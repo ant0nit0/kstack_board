@@ -27,6 +27,8 @@ class ImageItemContent extends StackItemContent {
     this.gaplessPlayback = false,
     this.isAntiAlias = false,
     this.filterQuality = FilterQuality.low,
+    this.flipHorizontal = false,
+    this.flipVertical = false,
   }) {
     _init();
   }
@@ -63,6 +65,12 @@ class ImageItemContent extends StackItemContent {
           : FilterQuality.high,
       bytes: json['bytes'] != null ? base64Decode(json['bytes']) : null,
       file: json['filePath'] != null ? File(json['filePath']) : null,
+      flipHorizontal: json['flipHorizontal'] == null
+          ? false
+          : asT<bool>(json['flipHorizontal']),
+      flipVertical: json['flipVertical'] == null
+          ? false
+          : asT<bool>(json['flipVertical']),
     );
   }
 
@@ -77,6 +85,8 @@ class ImageItemContent extends StackItemContent {
     BoxFit fit = BoxFit.contain,
     bool matchTextDirection = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return ImageItemContent(
       svgString: svgString,
@@ -89,6 +99,8 @@ class ImageItemContent extends StackItemContent {
       fit: fit,
       matchTextDirection: matchTextDirection,
       filterQuality: filterQuality,
+      flipHorizontal: flipHorizontal,
+      flipVertical: flipVertical,
     );
   }
 
@@ -277,6 +289,8 @@ class ImageItemContent extends StackItemContent {
   Uint8List? bytes;
   File? file;
   FilterQuality filterQuality;
+  bool flipHorizontal;
+  bool flipVertical;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -562,6 +576,8 @@ class ImageItemContent extends StackItemContent {
       'gaplessPlayback': gaplessPlayback,
       'isAntiAlias': isAntiAlias,
       'filterQuality': filterQuality.index,
+      'flipHorizontal': flipHorizontal,
+      'flipVertical': flipVertical,
     };
   }
 }
@@ -607,6 +623,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     BoxFit fit = BoxFit.contain,
     bool matchTextDirection = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return StackImageItem(
       id: id,
@@ -626,6 +644,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
         fit: fit,
         matchTextDirection: matchTextDirection,
         filterQuality: filterQuality,
+        flipHorizontal: flipHorizontal,
+        flipVertical: flipVertical,
       ),
     );
   }
@@ -648,6 +668,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return StackImageItem(
       id: id,
@@ -668,6 +690,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
+        flipHorizontal: flipHorizontal,
+        flipVertical: flipVertical,
       ),
     );
   }
@@ -690,6 +714,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return StackImageItem(
       id: id,
@@ -710,6 +736,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
+        flipHorizontal: flipHorizontal,
+        flipVertical: flipVertical,
       ),
     );
   }
@@ -732,6 +760,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return StackImageItem(
       id: id,
@@ -752,6 +782,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
+        flipHorizontal: flipHorizontal,
+        flipVertical: flipVertical,
       ),
     );
   }
@@ -774,6 +806,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
+    bool flipHorizontal = false,
+    bool flipVertical = false,
   }) {
     return StackImageItem(
       id: id,
@@ -794,6 +828,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
+        flipHorizontal: flipHorizontal,
+        flipVertical: flipVertical,
       ),
     );
   }
