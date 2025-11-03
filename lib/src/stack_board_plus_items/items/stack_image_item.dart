@@ -33,6 +33,50 @@ class ImageItemContent extends StackItemContent {
     _init();
   }
 
+  ImageItemContent copyWith({
+    String? url,
+    String? assetName,
+    Uint8List? bytes,
+    File? file,
+    String? svgString,
+    String? semanticLabel,
+    bool? excludeFromSemantics,
+    double? width,
+    double? height,
+    Color? color,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    ImageRepeat? repeat,
+    bool? matchTextDirection,
+    bool? gaplessPlayback,
+    bool? isAntiAlias,
+    FilterQuality? filterQuality,
+    bool? flipHorizontal,
+    bool? flipVertical,
+  }) {
+    return ImageItemContent(
+      url: url ?? this.url,
+      assetName: assetName ?? this.assetName,
+      bytes: bytes ?? this.bytes,
+      file: file ?? this.file,
+      svgString: svgString ?? this.svgString,
+      semanticLabel: semanticLabel ?? this.semanticLabel,
+      excludeFromSemantics: excludeFromSemantics ?? this.excludeFromSemantics,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      color: color ?? this.color,
+      colorBlendMode: colorBlendMode ?? this.colorBlendMode,
+      fit: fit ?? this.fit,
+      repeat: repeat ?? this.repeat,
+      matchTextDirection: matchTextDirection ?? this.matchTextDirection,
+      gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
+      isAntiAlias: isAntiAlias ?? this.isAntiAlias,
+      filterQuality: filterQuality ?? this.filterQuality,
+      flipHorizontal: flipHorizontal ?? this.flipHorizontal,
+      flipVertical: flipVertical ?? this.flipVertical,
+    );
+  }
+
   factory ImageItemContent.fromJson(Map<String, dynamic> json) {
     return ImageItemContent(
       url: json['url'] != null ? asT<String>(json['url']) : null,
