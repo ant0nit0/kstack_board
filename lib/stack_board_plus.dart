@@ -1,4 +1,4 @@
-library stack_board_plus;
+library;
 
 // Core
 export 'src/core/case_style.dart';

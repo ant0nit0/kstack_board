@@ -16,7 +16,7 @@ class BackgroundEditorDialog extends StatefulWidget {
   final Function(Color, Gradient?, File?, double, double, double, BoxFit, bool, bool) onSave;
 
   const BackgroundEditorDialog({
-    Key? key,
+    super.key,
     required this.backgroundColor,
     this.backgroundGradient,
     this.backgroundImage,
@@ -27,7 +27,7 @@ class BackgroundEditorDialog extends StatefulWidget {
     required this.useImage,
     this.backgroundElevation = 1.0,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _BackgroundEditorDialogState createState() => _BackgroundEditorDialogState();
@@ -373,7 +373,7 @@ class _BackgroundEditorDialogState extends State<BackgroundEditorDialog> {
         const Text('Image Fit', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         DropdownButtonFormField<BoxFit>(
-          value: _fit,
+          initialValue: _fit,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),

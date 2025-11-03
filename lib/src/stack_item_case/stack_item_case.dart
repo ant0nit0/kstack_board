@@ -18,7 +18,7 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 /// * 7. Delete (white in edit status)
 class StackItemCase extends StatefulWidget {
   const StackItemCase({
-    Key? key,
+    super.key,
     required this.stackItem,
     required this.childBuilder,
     this.caseStyle,
@@ -31,7 +31,7 @@ class StackItemCase extends StatefulWidget {
     this.actionsBuilder,
     this.borderBuilder,
     this.customActionsBuilder, 
-  }) : super(key: key);
+  });
 
   /// * StackItemData
   final StackItem<StackItemContent> stackItem;
@@ -121,26 +121,26 @@ class _StackItemCaseState extends State<StackItemCase> {
   void _onEdit(BuildContext context, StackItemStatus status) {
     if (status == StackItemStatus.editing) return;
 
-    final StackBoardPlusController _stackController = _controller(context);
+    final StackBoardPlusController stackController = _controller(context);
     status = StackItemStatus.editing;
-    _stackController.selectOne(itemId);
-    _stackController.updateBasic(itemId, status: status);
+    stackController.selectOne(itemId);
+    stackController.updateBasic(itemId, status: status);
     widget.onStatusChanged?.call(status);
   }
 
   void _onPanStart(DragStartDetails details, BuildContext context,
       StackItemStatus newStatus) {
-    final StackBoardPlusController _stackController = _controller(context);
-    final StackItem<StackItemContent>? item = _stackController.getById(itemId);
+    final StackBoardPlusController stackController = _controller(context);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
     if (item == null) return;
 
     if (item.status != newStatus) {
       if (item.status == StackItemStatus.editing) return;
       if (item.status != StackItemStatus.selected) {
-        _stackController.selectOne(itemId);
+        stackController.selectOne(itemId);
       }
-      _stackController.updateBasic(itemId, status: newStatus);
-      _stackController.moveItemOnTop(itemId);
+      stackController.updateBasic(itemId, status: newStatus);
+      stackController.moveItemOnTop(itemId);
       widget.onStatusChanged?.call(newStatus);
     }
 
@@ -168,9 +168,9 @@ class _StackItemCaseState extends State<StackItemCase> {
 
   /// * Move operation
   void _onPanUpdate(DragUpdateDetails dud, BuildContext context) {
-    final StackBoardPlusController _stackController = _controller(context);
+    final StackBoardPlusController stackController = _controller(context);
 
-    final StackItem<StackItemContent>? item = _stackController.getById(itemId);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
@@ -187,7 +187,7 @@ class _StackItemCaseState extends State<StackItemCase> {
 
     if (!(widget.onOffsetChanged?.call(realOffset) ?? true)) return;
 
-    _stackController.updateBasic(itemId, offset: realOffset);
+    stackController.updateBasic(itemId, offset: realOffset);
 
     widget.onOffsetChanged?.call(changeTo);
   }
@@ -201,9 +201,9 @@ class _StackItemCaseState extends State<StackItemCase> {
   /// * Calculate the item size based on the cursor position
   Size _calculateNewSize(DragUpdateDetails dud, BuildContext context,
       final StackItemStatus status) {
-    final StackBoardPlusController _stackController = _controller(context);
+    final StackBoardPlusController stackController = _controller(context);
 
-    final StackItem<StackItemContent>? item = _stackController.getById(itemId);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
     if (item == null) return Size.zero;
 
     final double minSize = _minSize(context);
@@ -605,7 +605,7 @@ class _StackItemCaseState extends State<StackItemCase> {
             onPanUpdate: (DragUpdateDetails dud) =>
                 onPanUpdate(dud, context, status),
             onPanEnd: (_) => _onPanEnd(context, status),
-            child: Container(
+            child: SizedBox(
                 width: width * 3,
                 height: height * 3,
                 child: Center(

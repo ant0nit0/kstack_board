@@ -9,26 +9,20 @@ class ColorContent extends StackItemContent {
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'color': color.value,
+      'color': color.toARGB32(),
     };
   }
 }
 
 class ColorStackItem extends StackItem<ColorContent> {
   ColorStackItem({
-    required Size size,
-    String? id,
-    Offset? offset,
-    double? angle,
-    StackItemStatus? status,
-    ColorContent? content,
+    required super.size,
+    super.id,
+    super.offset,
+    super.angle = null,
+    super.status = null,
+    super.content,
   }) : super(
-          id: id,
-          size: size,
-          offset: offset,
-          angle: angle,
-          status: status,
-          content: content,
           lockZOrder: true,
         );
 

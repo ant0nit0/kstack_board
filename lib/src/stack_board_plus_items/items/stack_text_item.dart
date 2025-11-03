@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 /// TextItemContent
@@ -204,29 +203,29 @@ class TextItemContent implements StackItemContent {
       if (textWidthBasis != null) 'textWidthBasis': textWidthBasis?.toString(),
       if (textHeightBehavior != null)
         'textHeightBehavior': textHeightBehavior?.toJson(),
-      if (selectionColor != null) 'selectionColor': selectionColor?.value,
+      if (selectionColor != null) 'selectionColor': selectionColor?.toARGB32(),
       // Enhanced customization properties
       if (fontFamily != null) 'fontFamily': fontFamily,
       'fontSize': fontSize,
       if (fontWeight != null) 'fontWeight': fontWeight?.index,
       if (fontStyle != null) 'fontStyle': fontStyle?.index,
       'isUnderlined': isUnderlined,
-      if (textColor != null) 'textColor': textColor?.value,
+      if (textColor != null) 'textColor': textColor?.toARGB32(),
       if (textGradient != null) 'textGradient': {
-        'colors': textGradient!.colors.map((c) => c.value).toList(),
+        'colors': textGradient!.colors.map((c) => c.toARGB32()).toList(),
         'type': textGradient.runtimeType.toString(),
       },
-      if (strokeColor != null) 'strokeColor': strokeColor?.value,
+      if (strokeColor != null) 'strokeColor': strokeColor?.toARGB32(),
       'strokeWidth': strokeWidth,
-      if (shadowColor != null) 'shadowColor': shadowColor?.value,
+      if (shadowColor != null) 'shadowColor': shadowColor?.toARGB32(),
       if (shadowOffset != null) 'shadowOffset': {'dx': shadowOffset!.dx, 'dy': shadowOffset!.dy},
       'shadowBlurRadius': shadowBlurRadius,
       'shadowSpreadRadius': shadowSpreadRadius,
       'arcDegree': arcDegree,
       'letterSpacing': letterSpacing,
       'wordSpacing': wordSpacing,
-      if (backgroundColor != null) 'backgroundColor': backgroundColor?.value,
-      if (borderColor != null) 'borderColor': borderColor?.value,
+      if (backgroundColor != null) 'backgroundColor': backgroundColor?.toARGB32(),
+      if (borderColor != null) 'borderColor': borderColor?.toARGB32(),
       'borderWidth': borderWidth,
       'opacity': opacity,
       if (padding != null) 'padding': {
@@ -255,22 +254,14 @@ class TextItemContent implements StackItemContent {
 /// StackTextItem
 class StackTextItem extends StackItem<TextItemContent> {
   StackTextItem({
-    TextItemContent? content,
-    String? id,
-    double? angle,
-    required Size size,
-    Offset? offset,
-    bool? lockZOrder,
-    StackItemStatus? status,
-  }) : super(
-          id: id,
-          size: size,
-          offset: offset,
-          angle: angle,
-          status: status,
-          lockZOrder: lockZOrder,
-          content: content,
-        );
+    super.content,
+    super.id,
+    super.angle = null,
+    required super.size,
+    super.offset,
+    super.lockZOrder = null,
+    super.status = null,
+  });
 
   factory StackTextItem.fromJson(Map<String, dynamic> data) {
     return StackTextItem(

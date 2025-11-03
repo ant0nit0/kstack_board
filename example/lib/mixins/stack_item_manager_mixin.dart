@@ -18,7 +18,9 @@ mixin StackItemManagerMixin {
     boardController.addItem(
       StackTextItem(
         size: const Size(200, 100),
-        content: TextItemContent(data: 'Sample Text', ),
+        content: TextItemContent(
+          data: 'Sample Text',
+        ),
       ),
     );
   }
@@ -58,7 +60,7 @@ mixin StackItemManagerMixin {
           boardController.addItem(
             StackImageItem.fromJson(item),
           );
-        } 
+        }
       }
     } catch (e) {
       _showAlertDialog(context: context, title: 'Error', content: e.toString());
@@ -101,12 +103,14 @@ mixin StackItemManagerMixin {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                      Icon(Icons.check_circle,
+                          color: Colors.green[600], size: 20),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'JSON data copied to clipboard!',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              color: Colors.green, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -175,8 +179,8 @@ mixin StackItemManagerMixin {
   }
 
   void addSvgItem() {
-    // Example SVG string - a simple star * replace the image in constants.dart with this           
-     String svgString = SVG_ASSET_IMAGE_NAME;
+    // Example SVG string - a simple star * replace the image in constants.dart with this
+    String svgString = SVG_ASSET_IMAGE_NAME;
 
     final svgItem = StackImageItem.svg(
       svgString: svgString,
@@ -228,10 +232,16 @@ mixin StackItemManagerMixin {
   void addShapeItem() {
     // Create a default shape item with random color and size variation
     final colors = [
-      Colors.red, Colors.blue, Colors.green, Colors.purple, 
-      Colors.orange, Colors.teal, Colors.pink, Colors.amber
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.purple,
+      Colors.orange,
+      Colors.teal,
+      Colors.pink,
+      Colors.amber
     ];
-    
+
     final shapes = [
       StackShapeType.rectangle,
       StackShapeType.circle,
@@ -249,7 +259,7 @@ mixin StackItemManagerMixin {
 
     final shapeData = StackShapeData(
       type: selectedShape,
-      fillColor: selectedColor.withOpacity(0.7),
+      fillColor: selectedColor.withValues(alpha: 0.7),
       strokeColor: selectedColor,
       strokeWidth: 2.0,
       opacity: 1.0,
@@ -258,7 +268,8 @@ mixin StackItemManagerMixin {
       height: size,
       flipHorizontal: false,
       flipVertical: false,
-      endpoints: selectedShape == StackShapeType.star || selectedShape == StackShapeType.polygon 
+      endpoints: selectedShape == StackShapeType.star ||
+              selectedShape == StackShapeType.polygon
           ? 5 // Default 5 points for star/polygon
           : null,
     );
@@ -283,16 +294,15 @@ mixin StackItemManagerMixin {
       // showDefaultTools: false,             // Don't show default tool palette
       // boardPanEnabled: true,               // Allow panning the drawing canvas
       // boardScaleEnabled: true,             // Allow zooming the drawing canvas
-      maxScale: 5.0,                       // Maximum zoom level
-      minScale: 0.5,                       // Minimum zoom level
+      maxScale: 5.0, // Maximum zoom level
+      minScale: 0.5, // Minimum zoom level
       // boardScaleFactor: 200.0,             // Zoom sensitivity
       // clipBehavior: Clip.antiAlias,        // How to clip the drawing area
       // boardClipBehavior: Clip.hardEdge,    // How to clip the board
       // panAxis: PanAxis.free,               // Allow free panning in all directions
       // boardConstrained: false,             // Don't constrain drawing to board bounds
       // alignment: Alignment.topCenter,      // Align drawing content
-      
-      
+
       // You can also use gradient backgrounds:
       // gradient: LinearGradient(
       //   colors: [Colors.white, Colors.grey[100]!],
@@ -307,7 +317,7 @@ mixin StackItemManagerMixin {
       // ),
       // For circular drawing areas:
       // shape: BoxShape.circle,
-      
+
       // You can also add pointer event callbacks:
       // onPointerDown: (event) => print('Pointer down: ${event.localPosition}'),
       // onPointerMove: (event) => print('Pointer move: ${event.localPosition}'),
@@ -320,7 +330,10 @@ mixin StackItemManagerMixin {
     boardController.addItem(drawItem);
   }
 
-  void _showAlertDialog({required BuildContext context, required String title, required String content}) {
+  void _showAlertDialog(
+      {required BuildContext context,
+      required String title,
+      required String content}) {
     showDialog<void>(
       context: context,
       builder: (_) {

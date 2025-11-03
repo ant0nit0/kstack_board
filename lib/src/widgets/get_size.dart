@@ -28,10 +28,10 @@ class _MeasureSizeRenderObject extends RenderProxyBox {
 
 class GetSize extends SingleChildRenderObjectWidget {
   const GetSize({
-    Key? key,
+    super.key,
     required this.onChanged,
-    required Widget child,
-  }) : super(key: key, child: child);
+    required Widget super.child,
+  });
   final OnWidgetSizeChange onChanged;
 
   @override

@@ -5,7 +5,7 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 class StackShapeContent extends StatelessWidget {
   final StackShapeData data;
 
-  const StackShapeContent({Key? key, required this.data}) : super(key: key);
+  const StackShapeContent({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {

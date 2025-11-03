@@ -14,11 +14,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
-
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +28,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -39,7 +37,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late StackBoardPlusController _boardController;
-  
+
   // Background customization variables
   Color _backgroundColor = Colors.white;
   Gradient? _backgroundGradient = const LinearGradient(
@@ -51,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   double _backgroundWidth = 800.0;
   double _backgroundHeight = 600.0;
   BoxFit _backgroundFit = BoxFit.cover;
-  bool _useGradient = true;  // Start with gradient as default
+  bool _useGradient = true; // Start with gradient as default
   bool _useImage = false;
 
   @override
@@ -79,7 +77,8 @@ class _HomePageState extends State<HomePage> {
           elevation: 10,
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange[600], size: 28),
+              Icon(Icons.warning_amber_rounded,
+                  color: Colors.orange[600], size: 28),
               const SizedBox(width: 12),
               const Text(
                 'Delete Item',
@@ -98,7 +97,8 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               child: const Text(
                 'Cancel',
@@ -110,7 +110,8 @@ class _HomePageState extends State<HomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -135,7 +136,9 @@ class _HomePageState extends State<HomePage> {
     _boardController.addItem(
       StackTextItem(
         size: const Size(200, 100),
-        content: TextItemContent(data: 'Sample Text', ),
+        content: TextItemContent(
+          data: 'Sample Text',
+        ),
       ),
     );
   }
@@ -151,6 +154,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   /// Add custom item
   Future<void> _generateFromJson() async {
     final String jsonString =
@@ -173,7 +177,7 @@ class _HomePageState extends State<HomePage> {
           _boardController.addItem(
             StackImageItem.fromJson(item),
           );
-        } 
+        }
       }
     } catch (e) {
       _showAlertDialog(title: 'Error', content: e.toString());
@@ -216,12 +220,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                      Icon(Icons.check_circle,
+                          color: Colors.green[600], size: 20),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'JSON data copied to clipboard!',
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              color: Colors.green, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ],
@@ -290,8 +296,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _addSvgItem() {
-    // Example SVG string - a simple star * replace the image in constants.dart with this           
-     String svgString = SVG_ASSET_IMAGE_NAME;
+    // Example SVG string - a simple star * replace the image in constants.dart with this
+    String svgString = SVG_ASSET_IMAGE_NAME;
 
     final svgItem = StackImageItem.svg(
       svgString: svgString,
@@ -326,9 +332,9 @@ class _HomePageState extends State<HomePage> {
 
     _boardController.addItem(svgAssetItem);
   }
+
   /// Example for image from Network
   void _addNetworkItem() {
-    
     final networkItem = StackImageItem(
       size: const Size(120, 120),
       content: ImageItemContent(
@@ -408,11 +414,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
- 
-
-  
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -462,7 +463,7 @@ class _HomePageState extends State<HomePage> {
           onDel: _onDel,
           controller: _boardController,
           caseStyle: CaseStyle(
-            frameBorderColor: Colors.blue.withOpacity(0.6),
+            frameBorderColor: Colors.blue.withValues(alpha: 0.6),
             buttonIconColor: Colors.white,
             buttonBgColor: Colors.blue,
             buttonBorderColor: Colors.blue[700]!,
@@ -477,7 +478,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -486,8 +487,9 @@ class _HomePageState extends State<HomePage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: _EnhancedStackTextCase(
-                    item: item, 
-                    decoration: InputDecoration.collapsed(hintText: "Enter text"),
+                    item: item,
+                    decoration:
+                        InputDecoration.collapsed(hintText: "Enter text"),
                     onTap: () => _openTextCustomizationDialog(item),
                   ),
                 ),
@@ -498,7 +500,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -518,7 +520,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -531,7 +533,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   // Main drawing board
                   StackDrawCase(item: item),
-                  
+
                   // Drawing controls overlay (only show when editing)
                   if (item.status == StackItemStatus.editing)
                     Positioned(
@@ -540,7 +542,7 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -548,23 +550,30 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             // Undo button
                             IconButton(
-                              icon: const Icon(Icons.undo, color: Colors.white, size: 18),
+                              icon: const Icon(Icons.undo,
+                                  color: Colors.white, size: 18),
                               onPressed: () => item.content!.undo(),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              constraints: const BoxConstraints(
+                                  minWidth: 32, minHeight: 32),
                               padding: EdgeInsets.zero,
                             ),
                             // Redo button
                             IconButton(
-                              icon: const Icon(Icons.redo, color: Colors.white, size: 18),
+                              icon: const Icon(Icons.redo,
+                                  color: Colors.white, size: 18),
                               onPressed: () => item.content!.redo(),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              constraints: const BoxConstraints(
+                                  minWidth: 32, minHeight: 32),
                               padding: EdgeInsets.zero,
                             ),
                             // Clear button
                             IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.white, size: 18),
-                              onPressed: () => _showDrawingClearDialog(context, item),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              icon: const Icon(Icons.clear,
+                                  color: Colors.white, size: 18),
+                              onPressed: () =>
+                                  _showDrawingClearDialog(context, item),
+                              constraints: const BoxConstraints(
+                                  minWidth: 32, minHeight: 32),
                               padding: EdgeInsets.zero,
                             ),
                           ],
@@ -576,7 +585,7 @@ class _HomePageState extends State<HomePage> {
             } else if (item is StackShapeItem) {
               return StackShapeCase(
                 item: item,
-                customEditorBuilder: (context, item, onUpdate)  {
+                customEditorBuilder: (context, item, onUpdate) {
                   showDialog(
                     context: context,
                     builder: (context) => ShapeEditDialog(
@@ -588,7 +597,6 @@ class _HomePageState extends State<HomePage> {
                   );
                   return const SizedBox.shrink();
                 },
-              
               );
             }
             return const SizedBox.shrink();
@@ -603,16 +611,17 @@ class _HomePageState extends State<HomePage> {
               //     context: context,
               //     onDuplicate: () => _duplicateItem(item),
               //   ),
-              
+
               // Drawing settings for drawing items
               if (item is StackDrawItem)
                 StackItemActionHelper.createCustomActionButton(
                   context: context,
                   icon: const Icon(Icons.brush),
-                  onTap: () => showDrawingSettingsDialog(context, item.content!.controller),
+                  onTap: () => showDrawingSettingsDialog(
+                      context, item.content!.controller),
                   tooltip: 'Drawing Settings',
                 ),
-              
+
               // Lock/Unlock toggle
               // StackItemActionHelper.createLockAction(
               //   item: item,
@@ -629,7 +638,7 @@ class _HomePageState extends State<HomePage> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -727,9 +736,9 @@ class _HomePageState extends State<HomePage> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: IconButton(
             onPressed: onPressed,
@@ -807,8 +816,7 @@ class _HomePageState extends State<HomePage> {
       // panAxis: PanAxis.free,               // Allow free panning in all directions
       // boardConstrained: false,             // Don't constrain drawing to board bounds
       // alignment: Alignment.topCenter,      // Align drawing content
-      
-      
+
       // You can also use gradient backgrounds:
       // gradient: LinearGradient(
       //   colors: [Colors.white, Colors.grey[100]!],
@@ -823,7 +831,7 @@ class _HomePageState extends State<HomePage> {
       // ),
       // For circular drawing areas:
       // shape: BoxShape.circle,
-      
+
       // You can also add pointer event callbacks:
       // onPointerDown: (event) => print('Pointer down: ${event.localPosition}'),
       // onPointerMove: (event) => print('Pointer move: ${event.localPosition}'),
@@ -836,13 +844,13 @@ class _HomePageState extends State<HomePage> {
     _boardController.addItem(drawItem);
   }
 
-
   void _showDrawingClearDialog(BuildContext context, StackDrawItem item) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Drawing'),
-        content: const Text('Are you sure you want to clear all drawing content?'),
+        content:
+            const Text('Are you sure you want to clear all drawing content?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -864,10 +872,16 @@ class _HomePageState extends State<HomePage> {
   void _addShapeItem() {
     // Create a default shape item with random color and size variation
     final colors = [
-      Colors.red, Colors.blue, Colors.green, Colors.purple, 
-      Colors.orange, Colors.teal, Colors.pink, Colors.amber
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.purple,
+      Colors.orange,
+      Colors.teal,
+      Colors.pink,
+      Colors.amber
     ];
-    
+
     final shapes = [
       StackShapeType.rectangle,
       StackShapeType.circle,
@@ -885,7 +899,7 @@ class _HomePageState extends State<HomePage> {
 
     final shapeData = StackShapeData(
       type: selectedShape,
-      fillColor: selectedColor.withOpacity(0.7),
+      fillColor: selectedColor.withValues(alpha: 0.7),
       strokeColor: selectedColor,
       strokeWidth: 2.0,
       opacity: 1.0,
@@ -894,7 +908,8 @@ class _HomePageState extends State<HomePage> {
       height: size,
       flipHorizontal: false,
       flipVertical: false,
-      endpoints: selectedShape == StackShapeType.star || selectedShape == StackShapeType.polygon 
+      endpoints: selectedShape == StackShapeType.star ||
+              selectedShape == StackShapeType.polygon
           ? 5 // Default 5 points for star/polygon
           : null,
     );
@@ -910,208 +925,238 @@ class _HomePageState extends State<HomePage> {
 
   /// Show drawing settings dialog
 
-  Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController controller) async {
-  await showDialog(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) {
-        Color selectedColor = Colors.black;
-        double strokeWidth = 4.0;
-        
-        return Dialog(
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Settings and tools', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(context).pop(),
+  Future<void> showDrawingSettingsDialog(
+      BuildContext context, DrawingController controller) async {
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          Color selectedColor = Colors.black;
+          double strokeWidth = 4.0;
+
+          return Dialog(
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Settings and tools',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+
+                    // Package Methods Info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: Colors.blue.withValues(alpha: 0.3)),
                       ),
-                    ],
-                  ),
-                  const Divider(),
-                  
-                  // Package Methods Info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Available Package Methods:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          const Text(
+                              '• item.content!.undo() - Undo last action',
+                              style: TextStyle(fontSize: 12)),
+                          const Text(
+                              '• item.content!.redo() - Redo last action',
+                              style: TextStyle(fontSize: 12)),
+                          const Text(
+                              '• item.content!.clear() - Clear all drawing',
+                              style: TextStyle(fontSize: 12)),
+                          const Text(
+                              '• item.content!.getDrawingData() - Export data',
+                              style: TextStyle(fontSize: 12)),
+                          const Text(
+                              '• controller.setStyle() - Set drawing style',
+                              style: TextStyle(fontSize: 12)),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.undo();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Undo Last Draw'),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.redo();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Redo Last Draw'),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.clear();
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Clear All'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Drawing Actions
+                    const Text('Actions',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.undo),
+                            label: const Text('Undo'),
+                            onPressed: () => controller.undo(),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.redo),
+                            label: const Text('Redo'),
+                            onPressed: () => controller.redo(),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.clear_all),
+                            label: const Text('Clear'),
+                            onPressed: () =>
+                                _showClearDrawingDialog(context, controller),
+                            style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Drawing Tools
+                    const Text('Drawing Tools',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    const Text(
+                        'Use the default drawing board tools or configure in the settings dialog.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 16),
+
+                    // Color Selection
+                    const Text('Color',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
                       children: [
-                        const Text('Available Package Methods:', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        const Text('• item.content!.undo() - Undo last action', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.redo() - Redo last action', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.clear() - Clear all drawing', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.getDrawingData() - Export data', style: TextStyle(fontSize: 12)),
-                        const Text('• controller.setStyle() - Set drawing style', style: TextStyle(fontSize: 12)),
-                      ],
+                        Colors.black,
+                        Colors.red,
+                        Colors.green,
+                        Colors.blue,
+                        Colors.yellow,
+                        Colors.purple,
+                        Colors.orange,
+                        Colors.brown,
+                      ]
+                          .map((color) => GestureDetector(
+                                onTap: () {
+                                  selectedColor = color;
+                                  controller.setStyle(color: selectedColor);
+                                  setState(() {});
+                                },
+                                child: Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: selectedColor == color
+                                          ? Colors.white
+                                          : Colors.grey,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ))
+                          .toList(),
                     ),
-                  ),
-                  ElevatedButton(
-              onPressed: () {
-                controller.undo();
-                Navigator.pop(context);
-              },
-              child: const Text('Undo Last Draw'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                controller.redo();
-                Navigator.pop(context);
-              },
-              child: const Text('Redo Last Draw'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                controller.clear();
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Clear All'),
-            ),
-                  const SizedBox(height: 16),
-                  
-                  // Drawing Actions
-                  const Text('Actions', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.undo),
-                          label: const Text('Undo'),
-                          onPressed: () => controller.undo(),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.redo),
-                          label: const Text('Redo'),
-                          onPressed: () => controller.redo(),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.clear_all),
-                          label: const Text('Clear'),
-                          onPressed: () => _showClearDrawingDialog(context, controller),
-                          style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Drawing Tools
-                  const Text('Drawing Tools', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  const Text('Use the default drawing board tools or configure in the settings dialog.', 
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  const SizedBox(height: 16),
-                  
-                  // Color Selection
-                  const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      Colors.black, Colors.red, Colors.green, Colors.blue,
-                      Colors.yellow, Colors.purple, Colors.orange, Colors.brown,
-                    ].map((color) => GestureDetector(
-                      onTap: () {
-                        selectedColor = color;
-                        controller.setStyle(color: selectedColor);
+                    const SizedBox(height: 16),
+
+                    // Stroke Width
+                    const Text('Stroke Width',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Slider(
+                      min: 1,
+                      max: 20,
+                      value: strokeWidth,
+                      divisions: 19,
+                      label: strokeWidth.round().toString(),
+                      onChanged: (value) {
+                        strokeWidth = value;
+                        controller.setStyle(strokeWidth: strokeWidth);
                         setState(() {});
                       },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: selectedColor == color ? Colors.white : Colors.grey,
-                            width: 2,
-                          ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Import/Export
+                    const Text('Import/Export',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.save_alt),
+                          label: const Text('Export'),
+                          onPressed: () => _exportDrawing(context, controller),
                         ),
-                      ),
-                    )).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Stroke Width
-                  const Text('Stroke Width', style: TextStyle(fontWeight: FontWeight.w600)),
-                  Slider(
-                    min: 1,
-                    max: 20,
-                    value: strokeWidth,
-                    divisions: 19,
-                    label: strokeWidth.round().toString(),
-                    onChanged: (value) {
-                      strokeWidth = value;
-                      controller.setStyle(strokeWidth: strokeWidth);
-                      setState(() {});
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Import/Export
-                  const Text('Import/Export', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.save_alt),
-                        label: const Text('Export'),
-                        onPressed: () => _exportDrawing(context, controller),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Import'),
-                        onPressed: () => _importDrawing(context, controller),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Import'),
+                          onPressed: () => _importDrawing(context, controller),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-
-  
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _EnhancedStackTextCase extends StatefulWidget {
   const _EnhancedStackTextCase({
-    Key? key,
     required this.item,
     this.decoration,
     this.onTap,
-  }) : super(key: key);
+  });
 
   final StackTextItem item;
   final InputDecoration? decoration;
@@ -1141,15 +1186,16 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
     Widget textWidget = _buildEnhancedText(content);
 
     // Apply container styling (background, border, padding)
-    if (content.backgroundColor != null || 
-        content.borderWidth > 0 || 
+    if (content.backgroundColor != null ||
+        content.borderWidth > 0 ||
         content.padding != null) {
       textWidget = Container(
         padding: content.padding ?? EdgeInsets.zero,
         decoration: BoxDecoration(
           color: content.backgroundColor,
           border: content.borderWidth > 0 && content.borderColor != null
-              ? Border.all(color: content.borderColor!, width: content.borderWidth)
+              ? Border.all(
+                  color: content.borderColor!, width: content.borderWidth)
               : null,
           borderRadius: BorderRadius.circular(4),
         ),
@@ -1166,16 +1212,16 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
     }
 
     // Apply transformations (skew, flip)
-    if (content.skewX != 0 || content.skewY != 0 || 
-        content.flipHorizontally || content.flipVertically) {
+    if (content.skewX != 0 ||
+        content.skewY != 0 ||
+        content.flipHorizontally ||
+        content.flipVertically) {
       textWidget = Transform(
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
-          ..scale(
-            content.flipHorizontally ? -1.0 : 1.0, 
-            content.flipVertically ? -1.0 : 1.0
-          ),
+          ..scale(content.flipHorizontally ? -1.0 : 1.0,
+              content.flipVertically ? -1.0 : 1.0),
         alignment: Alignment.center,
         child: textWidget,
       );
@@ -1192,7 +1238,8 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
     // Apply arc transformation if needed
     if (content.arcDegree != 0) {
       textWidget = Transform.rotate(
-        angle: content.arcDegree * (3.14159 / 180), // Convert degrees to radians
+        angle:
+            content.arcDegree * (3.14159 / 180), // Convert degrees to radians
         child: textWidget,
       );
     }
@@ -1210,9 +1257,10 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: _isHovered ? Colors.blue.withOpacity(0.3) : Colors.transparent, 
-                    width: 2
-                  ),
+                      color: _isHovered
+                          ? Colors.blue.withValues(alpha: 0.3)
+                          : Colors.transparent,
+                      width: 2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: textWidget,
@@ -1228,7 +1276,7 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -1249,7 +1297,8 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
 
     // Wrap in alignment container
     return Container(
-      alignment: _getAlignment(content.horizontalAlignment, content.verticalAlignment),
+      alignment:
+          _getAlignment(content.horizontalAlignment, content.verticalAlignment),
       child: FittedBox(child: textWidget),
     );
   }
@@ -1261,19 +1310,19 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
         widget.onTap!();
       }
     });
-    
+
     return Center(
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.blue, width: 2),
           borderRadius: BorderRadius.circular(4),
-          color: Colors.blue.withOpacity(0.1),
+          color: Colors.blue.withValues(alpha: 0.1),
         ),
         child: Text(
           content?.data ?? 'Tap to customize',
-          style: content?.style?.copyWith(color: Colors.blue) ?? 
-                 const TextStyle(color: Colors.blue),
+          style: content?.style?.copyWith(color: Colors.blue) ??
+              const TextStyle(color: Colors.blue),
           textAlign: content?.textAlign ?? TextAlign.start,
         ),
       ),
@@ -1283,7 +1332,7 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
   Widget _buildEnhancedText(TextItemContent content) {
     // Create text style with enhanced properties using Google Fonts
     TextStyle baseStyle;
-    
+
     try {
       baseStyle = GoogleFonts.getFont(
         content.fontFamily ?? 'Roboto',
@@ -1345,8 +1394,8 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
       return Text(
         text,
         style: finalStyle.copyWith(
-          color: content.textColor?.withValues(alpha: content.opacity) ?? 
-                 finalStyle.color?.withValues(alpha: content.opacity),
+          color: content.textColor?.withValues(alpha: content.opacity) ??
+              finalStyle.color?.withValues(alpha: content.opacity),
         ),
         textAlign: content.textAlign ?? content.horizontalAlignment,
         textDirection: content.textDirection,
@@ -1432,18 +1481,18 @@ class _TextCustomizationDialog extends StatefulWidget {
   final Function(TextItemContent) onSave;
 
   const _TextCustomizationDialog({
-    Key? key,
     required this.item,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
-  _TextCustomizationDialogState createState() => _TextCustomizationDialogState();
+  _TextCustomizationDialogState createState() =>
+      _TextCustomizationDialogState();
 }
 
 class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
   late TextEditingController _textController;
-  
+
   // Text properties
   String _fontFamily = 'Roboto';
   double _fontSize = 16.0;
@@ -1453,28 +1502,28 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
   Color _textColor = Colors.black;
   bool _useGradientText = false;
   Gradient? _textGradient;
-  
+
   // Stroke
   Color _strokeColor = Colors.transparent;
   double _strokeWidth = 0.0;
-  
+
   // Shadow
   Color _shadowColor = Colors.black54;
   Offset _shadowOffset = const Offset(1, 1);
   double _shadowBlurRadius = 2.0;
   double _shadowSpreadRadius = 0.0;
-  
+
   // Arc and spacing
   double _arcDegree = 0.0;
   double _letterSpacing = 0.0;
   double _wordSpacing = 0.0;
   double _lineHeight = 1.0;
-  
+
   // Background and border
   Color? _backgroundColor;
   Color? _borderColor;
   double _borderWidth = 0.0;
-  
+
   // Transform and alignment
   double _opacity = 1.0;
   EdgeInsets _padding = EdgeInsets.zero;
@@ -1485,15 +1534,30 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
   MainAxisAlignment _verticalAlignment = MainAxisAlignment.center;
   bool _flipHorizontally = false;
   bool _flipVertically = false;
-  
+
   int _selectedTab = 0;
 
   // Google Fonts list (20 popular fonts)
   final List<String> _fontFamilies = [
-    'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald',
-     'Raleway', 'Poppins', 'Merriweather', 'Ubuntu',
-    'Playfair Display', 'Nunito', 'PT Sans', 'Crimson Text', 'Libre Baskerville',
-    'Dancing Script', 'Pacifico', 'Lobster', 'Great Vibes', 'Indie Flower'
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Oswald',
+    'Raleway',
+    'Poppins',
+    'Merriweather',
+    'Ubuntu',
+    'Playfair Display',
+    'Nunito',
+    'PT Sans',
+    'Crimson Text',
+    'Libre Baskerville',
+    'Dancing Script',
+    'Pacifico',
+    'Lobster',
+    'Great Vibes',
+    'Indie Flower'
   ];
 
   @override
@@ -1700,9 +1764,10 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Font Family
-          const Text('Font Family', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Family',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Container(
+          SizedBox(
             height: 120,
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -1719,7 +1784,9 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: _fontFamily == font ? Colors.blue : Colors.grey[300]!,
+                        color: _fontFamily == font
+                            ? Colors.blue
+                            : Colors.grey[300]!,
                         width: _fontFamily == font ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -1739,7 +1806,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Font Size
-          const Text('Font Size', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Size',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Row(
             children: [
               Expanded(
@@ -1761,7 +1829,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Font Weight
-          const Text('Font Weight', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Weight',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -1774,11 +1843,14 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
               FontWeight.bold,
               FontWeight.w800,
               FontWeight.w900,
-            ].map((weight) => ChoiceChip(
-              label: Text('${weight.index + 1}00'),
-              selected: _fontWeight == weight,
-              onSelected: (selected) => setState(() => _fontWeight = weight),
-            )).toList(),
+            ]
+                .map((weight) => ChoiceChip(
+                      label: Text('${weight.index + 1}00'),
+                      selected: _fontWeight == weight,
+                      onSelected: (selected) =>
+                          setState(() => _fontWeight = weight),
+                    ))
+                .toList(),
           ),
         ],
       ),
@@ -1796,14 +1868,14 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           CheckboxListTile(
             title: const Text('Bold'),
             value: _fontWeight == FontWeight.bold,
-            onChanged: (value) => setState(() => 
-              _fontWeight = value! ? FontWeight.bold : FontWeight.normal),
+            onChanged: (value) => setState(() =>
+                _fontWeight = value! ? FontWeight.bold : FontWeight.normal),
           ),
           CheckboxListTile(
             title: const Text('Italic'),
             value: _fontStyle == FontStyle.italic,
-            onChanged: (value) => setState(() => 
-              _fontStyle = value! ? FontStyle.italic : FontStyle.normal),
+            onChanged: (value) => setState(() =>
+                _fontStyle = value! ? FontStyle.italic : FontStyle.normal),
           ),
           CheckboxListTile(
             title: const Text('Underline'),
@@ -1813,7 +1885,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Text Color
-          const Text('Text Color', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Text Color',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -1825,37 +1898,50 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
             ],
           ),
           const SizedBox(height: 8),
-          
+
           if (!_useGradientText) ...[
             // Solid Colors
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                Colors.black, Colors.white, Colors.red, Colors.green,
-                Colors.blue, Colors.yellow, Colors.purple, Colors.orange,
-                Colors.pink, Colors.teal, Colors.grey, Colors.brown,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _textColor = color),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _textColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _textColor == color ? 3 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.white,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.yellow,
+                Colors.purple,
+                Colors.orange,
+                Colors.pink,
+                Colors.teal,
+                Colors.grey,
+                Colors.brown,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _textColor = color),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _textColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _textColor == color ? 3 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ] else ...[
             // Gradient Options
             Text('Gradient Presets'),
             const SizedBox(height: 8),
-            Container(
+            SizedBox(
               height: 60,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -1866,7 +1952,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                     const LinearGradient(colors: [Colors.blue, Colors.purple]),
                     const LinearGradient(colors: [Colors.green, Colors.teal]),
                     const LinearGradient(colors: [Colors.pink, Colors.purple]),
-                    const LinearGradient(colors: [Colors.yellow, Colors.orange]),
+                    const LinearGradient(
+                        colors: [Colors.yellow, Colors.orange]),
                     const LinearGradient(colors: [Colors.indigo, Colors.blue]),
                   ];
                   final gradient = gradients[index];
@@ -1880,7 +1967,9 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                         gradient: gradient,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _textGradient == gradient ? Colors.blue : Colors.grey[300]!,
+                          color: _textGradient == gradient
+                              ? Colors.blue
+                              : Colors.grey[300]!,
                           width: _textGradient == gradient ? 3 : 1,
                         ),
                       ),
@@ -1936,23 +2025,33 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
             Wrap(
               spacing: 8,
               children: [
-                Colors.black, Colors.white, Colors.red, Colors.green,
-                Colors.blue, Colors.yellow, Colors.purple, Colors.orange,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _strokeColor = color),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _strokeColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _strokeColor == color ? 2 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.white,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.yellow,
+                Colors.purple,
+                Colors.orange,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _strokeColor = color),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _strokeColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _strokeColor == color ? 2 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -1970,7 +2069,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                   max: 20,
                   divisions: 20,
                   label: _shadowBlurRadius.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => _shadowBlurRadius = value),
+                  onChanged: (value) =>
+                      setState(() => _shadowBlurRadius = value),
                 ),
               ),
             ],
@@ -1985,7 +2085,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowSpreadRadius.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => _shadowSpreadRadius = value),
+                  onChanged: (value) =>
+                      setState(() => _shadowSpreadRadius = value),
                 ),
               ),
             ],
@@ -2000,8 +2101,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowOffset.dx.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => 
-                    _shadowOffset = Offset(value, _shadowOffset.dy)),
+                  onChanged: (value) => setState(
+                      () => _shadowOffset = Offset(value, _shadowOffset.dy)),
                 ),
               ),
             ],
@@ -2016,8 +2117,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowOffset.dy.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => 
-                    _shadowOffset = Offset(_shadowOffset.dx, value)),
+                  onChanged: (value) => setState(
+                      () => _shadowOffset = Offset(_shadowOffset.dx, value)),
                 ),
               ),
             ],
@@ -2037,7 +2138,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
 
           // Spacing
           const SizedBox(height: 16),
-          const Text('Letter Spacing', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Letter Spacing',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _letterSpacing,
             min: -5,
@@ -2047,7 +2149,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
             onChanged: (value) => setState(() => _letterSpacing = value),
           ),
 
-          const Text('Word Spacing', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Word Spacing',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _wordSpacing,
             min: -5,
@@ -2057,7 +2160,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
             onChanged: (value) => setState(() => _wordSpacing = value),
           ),
 
-          const Text('Line Height', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Line Height',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _lineHeight,
             min: 0.5,
@@ -2077,11 +2181,11 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Background
-          const Text('Background Color', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Background Color',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-
             child: Row(
               children: [
                 GestureDetector(
@@ -2098,24 +2202,30 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                 ),
                 const SizedBox(width: 8),
                 ...([
-                  Colors.white, Colors.black.withOpacity(0.1), Colors.red.withOpacity(0.1),
-                  Colors.green.withOpacity(0.1), Colors.blue.withOpacity(0.1), Colors.yellow.withOpacity(0.1),
+                  Colors.white,
+                  Colors.black.withValues(alpha: 0.1),
+                  Colors.red.withValues(alpha: 0.1),
+                  Colors.green.withValues(alpha: 0.1),
+                  Colors.blue.withValues(alpha: 0.1),
+                  Colors.yellow.withValues(alpha: 0.1),
                 ].map((color) => GestureDetector(
-                  onTap: () => setState(() => _backgroundColor = color),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _backgroundColor == color ? Colors.blue : Colors.grey[300]!,
-                        width: _backgroundColor == color ? 2 : 1,
+                      onTap: () => setState(() => _backgroundColor = color),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _backgroundColor == color
+                                ? Colors.blue
+                                : Colors.grey[300]!,
+                            width: _backgroundColor == color ? 2 : 1,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ))),
+                    ))),
               ],
             ),
           ),
@@ -2145,23 +2255,31 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
             Wrap(
               spacing: 8,
               children: [
-                Colors.black, Colors.grey, Colors.red, Colors.green,
-                Colors.blue, Colors.purple,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _borderColor = color),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _borderColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _borderColor == color ? 2 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.grey,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.purple,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _borderColor = color),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _borderColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _borderColor == color ? 2 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -2179,8 +2297,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
                       min: 0,
                       max: 20,
                       divisions: 20,
-                      onChanged: (value) => setState(() => 
-                        _padding = EdgeInsets.all(value)),
+                      onChanged: (value) =>
+                          setState(() => _padding = EdgeInsets.all(value)),
                     ),
                   ],
                 ),
@@ -2190,7 +2308,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Transform
-          const Text('Transform', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Transform',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -2225,28 +2344,39 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Alignment
-          const Text('Alignment', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Alignment',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
               const Text('Horizontal:'),
               const SizedBox(width: 8),
               Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                children: [TextAlign.left, TextAlign.center, TextAlign.right, TextAlign.start, TextAlign.end, TextAlign.justify].map((align) =>
-                  Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(align.toString().split('.').last),
-                    selected: _horizontalAlignment == align,
-                    onSelected: (selected) => setState(() => _horizontalAlignment = align),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      TextAlign.left,
+                      TextAlign.center,
+                      TextAlign.right,
+                      TextAlign.start,
+                      TextAlign.end,
+                      TextAlign.justify
+                    ]
+                        .map(
+                          (align) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(align.toString().split('.').last),
+                              selected: _horizontalAlignment == align,
+                              onSelected: (selected) =>
+                                  setState(() => _horizontalAlignment = align),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  ),
-                ).toList(),
                 ),
-              ),
               ),
             ],
           ),
@@ -2256,21 +2386,28 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
               const Text('Vertical:'),
               const SizedBox(width: 8),
               Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                children: [MainAxisAlignment.start, MainAxisAlignment.center, MainAxisAlignment.end].map((align) =>
-                  Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(align.toString().split('.').last),
-                    selected: _verticalAlignment == align,
-                    onSelected: (selected) => setState(() => _verticalAlignment = align),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      MainAxisAlignment.start,
+                      MainAxisAlignment.center,
+                      MainAxisAlignment.end
+                    ]
+                        .map(
+                          (align) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(align.toString().split('.').last),
+                              selected: _verticalAlignment == align,
+                              onSelected: (selected) =>
+                                  setState(() => _verticalAlignment = align),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  ),
-                ).toList(),
                 ),
-              ),
               ),
             ],
           ),
@@ -2283,7 +2420,8 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
               CheckboxListTile(
                 title: const Text('Horizontal'),
                 value: _flipHorizontally,
-                onChanged: (value) => setState(() => _flipHorizontally = value!),
+                onChanged: (value) =>
+                    setState(() => _flipHorizontally = value!),
               ),
               CheckboxListTile(
                 title: const Text('Vertical'),
@@ -2311,13 +2449,15 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
         height: _lineHeight,
         decoration: _isUnderlined ? TextDecoration.underline : null,
         decorationColor: _textColor,
-        shadows: _shadowBlurRadius > 0 ? [
-          Shadow(
-            color: _shadowColor,
-            offset: _shadowOffset,
-            blurRadius: _shadowBlurRadius,
-          ),
-        ] : null,
+        shadows: _shadowBlurRadius > 0
+            ? [
+                Shadow(
+                  color: _shadowColor,
+                  offset: _shadowOffset,
+                  blurRadius: _shadowBlurRadius,
+                ),
+              ]
+            : null,
       ),
       textAlign: _horizontalAlignment,
     );
@@ -2352,7 +2492,9 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
         padding: _padding,
         decoration: BoxDecoration(
           color: _backgroundColor,
-          border: _borderWidth > 0 ? Border.all(color: _borderColor!, width: _borderWidth) : null,
+          border: _borderWidth > 0
+              ? Border.all(color: _borderColor!, width: _borderWidth)
+              : null,
           borderRadius: BorderRadius.circular(4),
         ),
         child: result,
@@ -2436,10 +2578,10 @@ class _BackgroundEditorDialog extends StatefulWidget {
   final BoxFit backgroundFit;
   final bool useGradient;
   final bool useImage;
-  final Function(Color, Gradient?, File?, double, double, BoxFit, bool, bool) onSave;
+  final Function(Color, Gradient?, File?, double, double, BoxFit, bool, bool)
+      onSave;
 
   const _BackgroundEditorDialog({
-    Key? key,
     required this.backgroundColor,
     this.backgroundGradient,
     this.backgroundImage,
@@ -2449,7 +2591,7 @@ class _BackgroundEditorDialog extends StatefulWidget {
     required this.useGradient,
     required this.useImage,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _BackgroundEditorDialogState createState() => _BackgroundEditorDialogState();
@@ -2616,9 +2758,10 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
           ),
         ),
         const SizedBox(height: 20),
-        
+
         // Predefined Colors
-        const Text('Quick Colors', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Quick Colors',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Wrap(
           spacing: 8,
@@ -2636,25 +2779,29 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
             Colors.teal,
             Colors.grey,
             Colors.brown,
-          ].map((color) => GestureDetector(
-            onTap: () => setState(() {
-              _selectedColor = color;
-              _useGradient = false;
-              _useImage = false;
-            }),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _selectedColor == color ? Colors.blue : Colors.grey[300]!,
-                  width: _selectedColor == color ? 3 : 1,
-                ),
-              ),
-            ),
-          )).toList(),
+          ]
+              .map((color) => GestureDetector(
+                    onTap: () => setState(() {
+                      _selectedColor = color;
+                      _useGradient = false;
+                      _useImage = false;
+                    }),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _selectedColor == color
+                              ? Colors.blue
+                              : Colors.grey[300]!,
+                          width: _selectedColor == color ? 3 : 1,
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
         ),
       ],
     );
@@ -2672,7 +2819,8 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
 
     return Column(
       children: [
-        const Text('Gradient Presets', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Gradient Presets',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Expanded(
           child: GridView.builder(
@@ -2696,7 +2844,9 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
                     gradient: gradient,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: _selectedGradient == gradient ? Colors.blue : Colors.grey[300]!,
+                      color: _selectedGradient == gradient
+                          ? Colors.blue
+                          : Colors.grey[300]!,
                       width: _selectedGradient == gradient ? 3 : 1,
                     ),
                   ),
@@ -2765,7 +2915,7 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
             ),
           ],
         ),
-        
+
         if (_selectedImage != null) ...[
           const SizedBox(height: 12),
           Row(
@@ -2793,7 +2943,7 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
         const Text('Image Fit', style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         DropdownButtonFormField<BoxFit>(
-          value: _fit,
+          initialValue: _fit,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2856,23 +3006,25 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
         const SizedBox(height: 5),
 
         // Preset Sizes
-        const Text('Preset Sizes', style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text('Preset Sizes',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         Wrap(
           spacing: 5,
           runSpacing: 5,
-
           children: [
             {'name': 'HD', 'width': 1280.0, 'height': 720.0},
             {'name': 'Full HD', 'width': 1920.0, 'height': 1080.0},
             {'name': 'Square', 'width': 800.0, 'height': 800.0},
             {'name': 'A4', 'width': 794.0, 'height': 1123.0},
-          ].map((preset) => ElevatedButton(
-            onPressed: () => setState(() {
-              _width = preset['width'] as double;
-              _height = preset['height'] as double;
-            }),
-            child: Text(preset['name'] as String),
-          )).toList(),
+          ]
+              .map((preset) => ElevatedButton(
+                    onPressed: () => setState(() {
+                      _width = preset['width'] as double;
+                      _height = preset['height'] as double;
+                    }),
+                    child: Text(preset['name'] as String),
+                  ))
+              .toList(),
         ),
       ],
     );
@@ -2881,7 +3033,7 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
   Future<void> _pickImageFromGallery() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
@@ -2894,7 +3046,7 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
   Future<void> _pickImageFromCamera() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.camera);
-    
+
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
@@ -2955,14 +3107,15 @@ class _BackgroundEditorDialogState extends State<_BackgroundEditorDialog> {
   }
 }
 
-Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController controller) async {
+Future<void> showDrawingSettingsDialog(
+    BuildContext context, DrawingController controller) async {
   await showDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) {
         Color selectedColor = Colors.black;
         double strokeWidth = 4.0;
-        
+
         return Dialog(
           child: Container(
             width: 400,
@@ -2976,7 +3129,9 @@ Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController c
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Drawing Tools', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text('Drawing Tools',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () => Navigator.of(context).pop(),
@@ -2984,32 +3139,43 @@ Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController c
                     ],
                   ),
                   const Divider(),
-                  
+
                   // Package Methods Info
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      border:
+                          Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Available Package Methods:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text('Available Package Methods:',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        const Text('• item.content!.undo() - Undo last action', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.redo() - Redo last action', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.clear() - Clear all drawing', style: TextStyle(fontSize: 12)),
-                        const Text('• item.content!.getDrawingData() - Export data', style: TextStyle(fontSize: 12)),
-                        const Text('• controller.setStyle() - Set drawing style', style: TextStyle(fontSize: 12)),
+                        const Text('• item.content!.undo() - Undo last action',
+                            style: TextStyle(fontSize: 12)),
+                        const Text('• item.content!.redo() - Redo last action',
+                            style: TextStyle(fontSize: 12)),
+                        const Text(
+                            '• item.content!.clear() - Clear all drawing',
+                            style: TextStyle(fontSize: 12)),
+                        const Text(
+                            '• item.content!.getDrawingData() - Export data',
+                            style: TextStyle(fontSize: 12)),
+                        const Text(
+                            '• controller.setStyle() - Set drawing style',
+                            style: TextStyle(fontSize: 12)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Drawing Actions
-                  const Text('Actions', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Actions',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -3030,53 +3196,69 @@ Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController c
                         ElevatedButton.icon(
                           icon: const Icon(Icons.clear_all),
                           label: const Text('Clear'),
-                          onPressed: () => _showClearDrawingDialog(context, controller),
-                          style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+                          onPressed: () =>
+                              _showClearDrawingDialog(context, controller),
+                          style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.red),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Drawing Tools
-                  const Text('Drawing Tools', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Drawing Tools',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  const Text('Use the default drawing board tools or configure in the settings dialog.', 
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const Text(
+                      'Use the default drawing board tools or configure in the settings dialog.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 16),
-                  
+
                   // Color Selection
-                  const Text('Color', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Color',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     children: [
-                      Colors.black, Colors.red, Colors.green, Colors.blue,
-                      Colors.yellow, Colors.purple, Colors.orange, Colors.brown,
-                    ].map((color) => GestureDetector(
-                      onTap: () {
-                        selectedColor = color;
-                        controller.setStyle(color: selectedColor);
-                        setState(() {});
-                      },
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: selectedColor == color ? Colors.white : Colors.grey,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    )).toList(),
+                      Colors.black,
+                      Colors.red,
+                      Colors.green,
+                      Colors.blue,
+                      Colors.yellow,
+                      Colors.purple,
+                      Colors.orange,
+                      Colors.brown,
+                    ]
+                        .map((color) => GestureDetector(
+                              onTap: () {
+                                selectedColor = color;
+                                controller.setStyle(color: selectedColor);
+                                setState(() {});
+                              },
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: selectedColor == color
+                                        ? Colors.white
+                                        : Colors.grey,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            ))
+                        .toList(),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Stroke Width
-                  const Text('Stroke Width', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Stroke Width',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Slider(
                     min: 1,
                     max: 20,
@@ -3090,9 +3272,10 @@ Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController c
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Import/Export
-                  const Text('Import/Export', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Import/Export',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -3119,12 +3302,14 @@ Future<void> showDrawingSettingsDialog(BuildContext context, DrawingController c
   );
 }
 
-void _showClearDrawingDialog(BuildContext context, DrawingController controller) {
+void _showClearDrawingDialog(
+    BuildContext context, DrawingController controller) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('Clear Drawing'),
-      content: const Text('Are you sure you want to clear all drawing content? This action cannot be undone.'),
+      content: const Text(
+          'Are you sure you want to clear all drawing content? This action cannot be undone.'),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -3146,7 +3331,7 @@ void _exportDrawing(BuildContext context, DrawingController controller) {
   try {
     final drawingData = controller.getJsonList();
     final jsonString = const JsonEncoder.withIndent('  ').convert(drawingData);
-    
+
     // Show export dialog with JSON data
     showDialog(
       context: context,
@@ -3189,7 +3374,7 @@ void _exportDrawing(BuildContext context, DrawingController controller) {
 
 void _importDrawing(BuildContext context, DrawingController controller) {
   final textController = TextEditingController();
-  
+
   showDialog(
     context: context,
     builder: (context) => AlertDialog(

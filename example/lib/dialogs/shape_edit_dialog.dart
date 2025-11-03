@@ -5,7 +5,7 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 class ShapeEditDialog extends StatefulWidget {
   final StackShapeItem item;
   final ValueChanged<StackShapeItem> onUpdate;
-  const ShapeEditDialog({Key? key, required this.item, required this.onUpdate}) : super(key: key);
+  const ShapeEditDialog({super.key, required this.item, required this.onUpdate});
 
   @override
   State<ShapeEditDialog> createState() => _ShapeEditDialogState();
@@ -123,7 +123,7 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                     onChanged: (v) => updateData(data.copyWith(opacity: v)),
                   ),
                 ),
-                Text((data.opacity * 100).toStringAsFixed(0) + '%'),
+                Text('${(data.opacity * 100).toStringAsFixed(0)}%'),
               ],
             ),
             // Tilt
@@ -240,7 +240,7 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
 
 class _ColorBox extends StatelessWidget {
   final Color color;
-  const _ColorBox({Key? key, required this.color}) : super(key: key);
+  const _ColorBox({required this.color});
   @override
   Widget build(BuildContext context) {
     return Container(

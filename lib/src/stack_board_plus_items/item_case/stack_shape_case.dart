@@ -20,14 +20,14 @@ class StackShapeCase extends StatefulWidget {
   final bool enableMove;
 
   const StackShapeCase({
-    Key? key,
+    super.key,
     required this.item,
     this.customEditorBuilder,
     this.enableResize = true,
     this.enableRotate = true,
     this.enableFlip = true,
     this.enableMove = true,
-  }) : super(key: key);
+  });
 
   @override
   State<StackShapeCase> createState() => _StackShapeCaseState();

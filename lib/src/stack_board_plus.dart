@@ -3,11 +3,11 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
-    Key? key,
+    super.key,
     required this.controller,
     this.caseStyle,
-    required Widget child,
-  }) : super(key: key, child: child);
+    required super.child,
+  });
 
   final StackBoardPlusController controller;
   final CaseStyle? caseStyle;
@@ -27,7 +27,7 @@ class StackBoardPlusConfig extends InheritedWidget {
 /// StackBoardPlus
 class StackBoardPlus extends StatelessWidget {
   const StackBoardPlus({
-    Key? key,
+    super.key,
     this.controller,
     this.background,
     this.caseStyle,
@@ -42,7 +42,7 @@ class StackBoardPlus extends StatelessWidget {
     this.borderBuilder,
     this.customActionsBuilder,
     this.elevation = 1.0,
-  }) : super(key: key);
+  });
 
   final StackBoardPlusController? controller;
 

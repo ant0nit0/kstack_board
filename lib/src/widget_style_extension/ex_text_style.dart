@@ -1,13 +1,12 @@
 import 'package:flutter/painting.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import 'ex_locale.dart';
 
 extension ExTextStyle on TextStyle {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      if (color != null) 'color': color?.value,
+      if (color != null) 'color': color?.toARGB32(),
       if (decoration != null) 'decoration': decoration?.toString(),
-      if (decorationColor != null) 'decorationColor': decorationColor?.value,
+      if (decorationColor != null) 'decorationColor': decorationColor?.toARGB32(),
       if (decorationStyle != null)
         'decorationStyle': decorationStyle?.toString(),
       if (decorationThickness != null)

@@ -5,22 +5,20 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 /// * Simplified `ExValueBuilder`
 class ExBuilder<T> extends StatefulWidget {
   const ExBuilder({
-    Key? key,
+    super.key,
     required this.valueListenable,
     required this.builder,
     this.shouldRebuild,
   })  : child = null,
-        childBuilder = null,
-        super(key: key);
+        childBuilder = null;
 
   const ExBuilder.child({
-    Key? key,
+    super.key,
     required this.valueListenable,
     required this.childBuilder,
     required this.child,
     this.shouldRebuild,
-  })  : builder = null,
-        super(key: key);
+  })  : builder = null;
 
   final ValueListenable<T> valueListenable;
 

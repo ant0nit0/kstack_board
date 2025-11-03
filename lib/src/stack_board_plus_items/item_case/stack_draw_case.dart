@@ -61,11 +61,11 @@ class StackDrawCase extends StatelessWidget {
   final void Function(Size)? onResize;
 
   const StackDrawCase({
-    Key? key,
+    super.key,
     required this.item,
     this.onMove,
     this.onResize,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

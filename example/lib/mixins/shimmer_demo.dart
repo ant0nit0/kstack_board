@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 class ShimmerDemo extends StatefulWidget {
-  const ShimmerDemo({Key? key}) : super(key: key);
+  const ShimmerDemo({super.key});
 
   @override
   _ShimmerDemoState createState() => _ShimmerDemoState();

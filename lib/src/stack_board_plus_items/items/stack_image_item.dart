@@ -101,7 +101,8 @@ class ImageItemContent extends StackItemContent {
       'svgString': svgString,
     };
 
-    final nonNullSources = sources.entries.where((e) => e.value != null).toList();
+    final nonNullSources =
+        sources.entries.where((e) => e.value != null).toList();
 
     if (nonNullSources.length != 1) {
       final selected = nonNullSources.map((e) => e.key).join(', ');
@@ -121,9 +122,9 @@ class ImageItemContent extends StackItemContent {
 
     /// Handle different image sources and detect SVG content
     if (svgString != null) {
-      /// Direct SVG string provided 
+      /// Direct SVG string provided
       _isSvg = true;
-      _isLoaded = true; 
+      _isLoaded = true;
       _svgWidget = SvgPicture.string(
         svgString!,
         width: width,
@@ -131,7 +132,9 @@ class ImageItemContent extends StackItemContent {
         fit: fit,
         semanticsLabel: semanticLabel,
         excludeFromSemantics: excludeFromSemantics,
-        colorFilter: color != null ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn) : null,
+        colorFilter: color != null
+            ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+            : null,
         matchTextDirection: matchTextDirection,
       );
     } else if (url != null) {
@@ -144,7 +147,9 @@ class ImageItemContent extends StackItemContent {
           fit: fit,
           semanticsLabel: semanticLabel,
           excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn) : null,
+          colorFilter: color != null
+              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+              : null,
           matchTextDirection: matchTextDirection,
         );
       } else {
@@ -164,7 +169,9 @@ class ImageItemContent extends StackItemContent {
           fit: fit,
           semanticsLabel: semanticLabel,
           excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn) : null,
+          colorFilter: color != null
+              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+              : null,
           matchTextDirection: matchTextDirection,
         );
       } else {
@@ -182,7 +189,9 @@ class ImageItemContent extends StackItemContent {
           fit: fit,
           semanticsLabel: semanticLabel,
           excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn) : null,
+          colorFilter: color != null
+              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+              : null,
           matchTextDirection: matchTextDirection,
         );
       } else {
@@ -193,7 +202,7 @@ class ImageItemContent extends StackItemContent {
       _isSvg = _isSvgBytes(bytes!);
       if (_isSvg) {
         final svgContent = utf8.decode(bytes!);
-        _isLoaded = true; 
+        _isLoaded = true;
         _svgWidget = SvgPicture.string(
           svgContent,
           width: width,
@@ -201,7 +210,9 @@ class ImageItemContent extends StackItemContent {
           fit: fit,
           semanticsLabel: semanticLabel,
           excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn) : null,
+          colorFilter: color != null
+              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+              : null,
           matchTextDirection: matchTextDirection,
         );
       } else {
@@ -229,10 +240,11 @@ class ImageItemContent extends StackItemContent {
   bool _isSvgBytes(Uint8List bytes) {
     try {
       final content = utf8.decode(bytes);
+
       /// Check if content starts with SVG markers
       final trimmed = content.trim().toLowerCase();
-      return trimmed.startsWith('<svg') || 
-             trimmed.startsWith('<?xml') && trimmed.contains('<svg');
+      return trimmed.startsWith('<svg') ||
+          trimmed.startsWith('<?xml') && trimmed.contains('<svg');
     } catch (e) {
       return false;
     }
@@ -241,7 +253,7 @@ class ImageItemContent extends StackItemContent {
   late ImageProvider? _image;
   SvgPicture? _svgWidget;
   bool _isSvg = false;
-  
+
   /// Loading state management
   bool _isLoaded = false;
   bool _hasError = false;
@@ -282,19 +294,19 @@ class ImageItemContent extends StackItemContent {
     if (bytes != null) this.bytes = bytes;
     if (file != null) this.file = file;
     if (svgString != null) this.svgString = svgString;
-    
+
     /// Clear previous state
     _image = null;
     _svgWidget = null;
     _isSvg = false;
-    
+
     /// Reset loading state
     _isLoaded = false;
     _hasError = false;
     _isLoading = false;
     _loadingCompleter?.complete();
     _loadingCompleter = null;
-    
+
     _init();
   }
 
@@ -325,11 +337,11 @@ class ImageItemContent extends StackItemContent {
         // Network or asset SVG - use cached loading state
         return _buildSvgWithLoadingState();
       }
-    } 
+    }
     // For regular images
     else if (_image != null) {
       return _buildImageWithLoadingState();
-    } 
+    }
     // Fallback for no content
     else {
       _markAsError();
@@ -370,7 +382,7 @@ class ImageItemContent extends StackItemContent {
   }
 
   Widget _buildShimmerPlaceholder() {
-    return Container(
+    return SizedBox(
       width: width,
       height: height,
       child: Shimmer.fromColors(
@@ -391,11 +403,11 @@ class ImageItemContent extends StackItemContent {
     if (!_isLoading && !_isLoaded) {
       _startSvgLoading();
     }
-    
+
     if (_isLoaded) {
       return _svgWidget!;
     }
-    
+
     return _buildShimmerPlaceholder();
   }
 
@@ -436,13 +448,13 @@ class ImageItemContent extends StackItemContent {
       if (!_isLoading && !_isLoaded) {
         _startFileLoading();
       }
-      
+
       if (_isLoaded) {
         return _buildContentWidget();
       } else if (_hasError) {
         return _buildErrorWidget();
       }
-      
+
       return _buildShimmerPlaceholder();
     } else {
       return Image(
@@ -480,10 +492,10 @@ class ImageItemContent extends StackItemContent {
 
   void _startSvgLoading() {
     if (_isLoading) return;
-    
+
     _isLoading = true;
     _loadingCompleter = Completer<void>();
-    
+
     Future.delayed(const Duration(milliseconds: 50)).then((_) {
       if (!_loadingCompleter!.isCompleted) {
         _markAsLoaded();
@@ -493,10 +505,10 @@ class ImageItemContent extends StackItemContent {
 
   void _startFileLoading() {
     if (_isLoading) return;
-    
+
     _isLoading = true;
     _loadingCompleter = Completer<void>();
-    
+
     if (file != null) {
       file!.exists().then((exists) {
         if (!_loadingCompleter!.isCompleted) {
@@ -542,7 +554,7 @@ class ImageItemContent extends StackItemContent {
       'excludeFromSemantics': excludeFromSemantics,
       if (width != null) 'width': width,
       if (height != null) 'height': height,
-      if (color != null) 'color': color?.value,
+      if (color != null) 'color': color?.toARGB32(),
       if (colorBlendMode != null) 'colorBlendMode': colorBlendMode?.index,
       'fit': fit.index,
       'repeat': repeat.index,
@@ -556,22 +568,14 @@ class ImageItemContent extends StackItemContent {
 
 class StackImageItem extends StackItem<ImageItemContent> {
   StackImageItem({
-    required ImageItemContent? content,
-    String? id,
-    double? angle,
-    required Size size,
-    Offset? offset,
-    StackItemStatus? status,
-    bool? lockZOrder,
-  }) : super(
-          id: id,
-          size: size,
-          offset: offset,
-          angle: angle,
-          status: status,
-          content: content,
-          lockZOrder: lockZOrder,
-        );
+    required super.content,
+    super.id,
+    super.angle = null,
+    required super.size,
+    super.offset,
+    super.status = null,
+    super.lockZOrder = null,
+  });
 
   factory StackImageItem.fromJson(Map<String, dynamic> data) {
     return StackImageItem(

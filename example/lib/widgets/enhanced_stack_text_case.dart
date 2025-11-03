@@ -4,11 +4,11 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 
 class EnhancedStackTextCase extends StatefulWidget {
   const EnhancedStackTextCase({
-    Key? key,
+    super.key,
     required this.item,
     this.decoration,
     this.onTap,
-  }) : super(key: key);
+  });
 
   final StackTextItem item;
   final InputDecoration? decoration;
@@ -38,15 +38,16 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
     Widget textWidget = _buildEnhancedText(content);
 
     // Apply container styling (background, border, padding)
-    if (content.backgroundColor != null || 
-        content.borderWidth > 0 || 
+    if (content.backgroundColor != null ||
+        content.borderWidth > 0 ||
         content.padding != null) {
       textWidget = Container(
         padding: content.padding ?? EdgeInsets.zero,
         decoration: BoxDecoration(
           color: content.backgroundColor,
           border: content.borderWidth > 0 && content.borderColor != null
-              ? Border.all(color: content.borderColor!, width: content.borderWidth)
+              ? Border.all(
+                  color: content.borderColor!, width: content.borderWidth)
               : null,
           borderRadius: BorderRadius.circular(4),
         ),
@@ -63,16 +64,16 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
     }
 
     // Apply transformations (skew, flip)
-    if (content.skewX != 0 || content.skewY != 0 || 
-        content.flipHorizontally || content.flipVertically) {
+    if (content.skewX != 0 ||
+        content.skewY != 0 ||
+        content.flipHorizontally ||
+        content.flipVertically) {
       textWidget = Transform(
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
-          ..scale(
-            content.flipHorizontally ? -1.0 : 1.0, 
-            content.flipVertically ? -1.0 : 1.0
-          ),
+          ..scale(content.flipHorizontally ? -1.0 : 1.0,
+              content.flipVertically ? -1.0 : 1.0),
         alignment: Alignment.center,
         child: textWidget,
       );
@@ -89,7 +90,8 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
     // Apply arc transformation if needed
     if (content.arcDegree != 0) {
       textWidget = Transform.rotate(
-        angle: content.arcDegree * (3.14159 / 180), // Convert degrees to radians
+        angle:
+            content.arcDegree * (3.14159 / 180), // Convert degrees to radians
         child: textWidget,
       );
     }
@@ -107,9 +109,10 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: _isHovered ? Colors.blue.withOpacity(0.3) : Colors.transparent, 
-                    width: 2
-                  ),
+                      color: _isHovered
+                          ? Colors.blue.withValues(alpha: 0.3)
+                          : Colors.transparent,
+                      width: 2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: textWidget,
@@ -125,7 +128,7 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -146,7 +149,8 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
 
     // Wrap in alignment container
     return Container(
-      alignment: _getAlignment(content.horizontalAlignment, content.verticalAlignment),
+      alignment:
+          _getAlignment(content.horizontalAlignment, content.verticalAlignment),
       child: FittedBox(child: textWidget),
     );
   }
@@ -158,19 +162,19 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
         widget.onTap!();
       }
     });
-    
+
     return Center(
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.blue, width: 2),
           borderRadius: BorderRadius.circular(4),
-          color: Colors.blue.withOpacity(0.1),
+          color: Colors.blue.withValues(alpha: 0.1),
         ),
         child: Text(
           content?.data ?? 'Tap to customize',
-          style: content?.style?.copyWith(color: Colors.blue) ?? 
-                 const TextStyle(color: Colors.blue),
+          style: content?.style?.copyWith(color: Colors.blue) ??
+              const TextStyle(color: Colors.blue),
           textAlign: content?.textAlign ?? TextAlign.start,
         ),
       ),
@@ -180,7 +184,7 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
   Widget _buildEnhancedText(TextItemContent content) {
     // Create text style with enhanced properties using Google Fonts
     TextStyle baseStyle;
-    
+
     try {
       baseStyle = GoogleFonts.getFont(
         content.fontFamily ?? 'Roboto',
@@ -242,8 +246,8 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
       return Text(
         text,
         style: finalStyle.copyWith(
-          color: content.textColor?.withValues(alpha: content.opacity) ?? 
-                 finalStyle.color?.withValues(alpha: content.opacity),
+          color: content.textColor?.withValues(alpha: content.opacity) ??
+              finalStyle.color?.withValues(alpha: content.opacity),
         ),
         textAlign: content.textAlign ?? content.horizontalAlignment,
         textDirection: content.textDirection,

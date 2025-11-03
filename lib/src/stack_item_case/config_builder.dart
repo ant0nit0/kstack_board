@@ -5,11 +5,11 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 /// Config Builder
 class ConfigBuilder extends StatelessWidget {
   const ConfigBuilder({
-    Key? key,
+    super.key,
     this.shouldRebuild,
     this.childBuilder,
     required this.child,
-  }) : super(key: key);
+  });
 
   final bool Function(StackConfig p, StackConfig n)? shouldRebuild;
   final Widget Function(StackConfig sc, Widget c)? childBuilder;

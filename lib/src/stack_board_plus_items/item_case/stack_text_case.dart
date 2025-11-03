@@ -4,7 +4,7 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 
 class StackTextCase extends StatelessWidget {
   const StackTextCase({
-    Key? key,
+    super.key,
     required this.item,
     this.decoration,
     this.keyboardType,
@@ -23,7 +23,7 @@ class StackTextCase extends StatelessWidget {
     this.inputFormatters,
     this.focusNode,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   final StackTextItem item;
 

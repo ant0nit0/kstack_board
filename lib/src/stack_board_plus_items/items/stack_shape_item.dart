@@ -74,19 +74,13 @@ class StackShapeItem extends StackItem<StackItemContent> {
   final StackShapeData data;
   StackShapeItem({
     required this.data,
-    required Size size,
-    Offset? offset,
-    double? angle,
-    StackItemStatus? status,
-    bool? lockZOrder,
-    String? id,
+    required super.size,
+    super.offset,
+    super.angle = null,
+    super.status = null,
+    super.lockZOrder = null,
+    super.id,
   }) : super(
-          id: id,
-          size: size,
-          offset: offset,
-          angle: angle,
-          status: status,
-          lockZOrder: lockZOrder,
           content: null,
         );
 

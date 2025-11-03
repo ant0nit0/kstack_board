@@ -3,9 +3,9 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 
 class StackImageCase extends StatelessWidget {
   const StackImageCase({
-    Key? key,
+    super.key,
     required this.item,
-  }) : super(key: key);
+  });
 
   final StackImageItem item;
 

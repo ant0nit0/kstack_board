@@ -7,18 +7,19 @@ class TextCustomizationDialog extends StatefulWidget {
   final Function(TextItemContent) onSave;
 
   const TextCustomizationDialog({
-    Key? key,
+    super.key,
     required this.item,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
-  _TextCustomizationDialogState createState() => _TextCustomizationDialogState();
+  _TextCustomizationDialogState createState() =>
+      _TextCustomizationDialogState();
 }
 
 class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
   late TextEditingController _textController;
-  
+
   // Text properties
   String _fontFamily = 'Roboto';
   double _fontSize = 16.0;
@@ -28,28 +29,28 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
   Color _textColor = Colors.black;
   bool _useGradientText = false;
   Gradient? _textGradient;
-  
+
   // Stroke
   Color _strokeColor = Colors.transparent;
   double _strokeWidth = 0.0;
-  
+
   // Shadow
   Color _shadowColor = Colors.black54;
   Offset _shadowOffset = const Offset(1, 1);
   double _shadowBlurRadius = 2.0;
   double _shadowSpreadRadius = 0.0;
-  
+
   // Arc and spacing
   double _arcDegree = 0.0;
   double _letterSpacing = 0.0;
   double _wordSpacing = 0.0;
   double _lineHeight = 1.0;
-  
+
   // Background and border
   Color? _backgroundColor;
   Color? _borderColor;
   double _borderWidth = 0.0;
-  
+
   // Transform and alignment
   double _opacity = 1.0;
   EdgeInsets _padding = EdgeInsets.zero;
@@ -60,15 +61,30 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
   MainAxisAlignment _verticalAlignment = MainAxisAlignment.center;
   bool _flipHorizontally = false;
   bool _flipVertically = false;
-  
+
   int _selectedTab = 0;
 
   // Google Fonts list (20 popular fonts)
   final List<String> _fontFamilies = [
-    'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald',
-     'Raleway', 'Poppins', 'Merriweather', 'Ubuntu',
-    'Playfair Display', 'Nunito', 'PT Sans', 'Crimson Text', 'Libre Baskerville',
-    'Dancing Script', 'Pacifico', 'Lobster', 'Great Vibes', 'Indie Flower'
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Oswald',
+    'Raleway',
+    'Poppins',
+    'Merriweather',
+    'Ubuntu',
+    'Playfair Display',
+    'Nunito',
+    'PT Sans',
+    'Crimson Text',
+    'Libre Baskerville',
+    'Dancing Script',
+    'Pacifico',
+    'Lobster',
+    'Great Vibes',
+    'Indie Flower'
   ];
 
   @override
@@ -275,9 +291,10 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Font Family
-          const Text('Font Family', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Family',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Container(
+          SizedBox(
             height: 120,
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -294,7 +311,9 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: _fontFamily == font ? Colors.blue : Colors.grey[300]!,
+                        color: _fontFamily == font
+                            ? Colors.blue
+                            : Colors.grey[300]!,
                         width: _fontFamily == font ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -314,7 +333,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Font Size
-          const Text('Font Size', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Size',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Row(
             children: [
               Expanded(
@@ -336,7 +356,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Font Weight
-          const Text('Font Weight', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Font Weight',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -349,11 +370,14 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
               FontWeight.bold,
               FontWeight.w800,
               FontWeight.w900,
-            ].map((weight) => ChoiceChip(
-              label: Text('${weight.index + 1}00'),
-              selected: _fontWeight == weight,
-              onSelected: (selected) => setState(() => _fontWeight = weight),
-            )).toList(),
+            ]
+                .map((weight) => ChoiceChip(
+                      label: Text('${weight.index + 1}00'),
+                      selected: _fontWeight == weight,
+                      onSelected: (selected) =>
+                          setState(() => _fontWeight = weight),
+                    ))
+                .toList(),
           ),
         ],
       ),
@@ -371,14 +395,14 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           CheckboxListTile(
             title: const Text('Bold'),
             value: _fontWeight == FontWeight.bold,
-            onChanged: (value) => setState(() => 
-              _fontWeight = value! ? FontWeight.bold : FontWeight.normal),
+            onChanged: (value) => setState(() =>
+                _fontWeight = value! ? FontWeight.bold : FontWeight.normal),
           ),
           CheckboxListTile(
             title: const Text('Italic'),
             value: _fontStyle == FontStyle.italic,
-            onChanged: (value) => setState(() => 
-              _fontStyle = value! ? FontStyle.italic : FontStyle.normal),
+            onChanged: (value) => setState(() =>
+                _fontStyle = value! ? FontStyle.italic : FontStyle.normal),
           ),
           CheckboxListTile(
             title: const Text('Underline'),
@@ -388,7 +412,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Text Color
-          const Text('Text Color', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Text Color',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -400,37 +425,50 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
             ],
           ),
           const SizedBox(height: 8),
-          
+
           if (!_useGradientText) ...[
             // Solid Colors
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                Colors.black, Colors.white, Colors.red, Colors.green,
-                Colors.blue, Colors.yellow, Colors.purple, Colors.orange,
-                Colors.pink, Colors.teal, Colors.grey, Colors.brown,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _textColor = color),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _textColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _textColor == color ? 3 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.white,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.yellow,
+                Colors.purple,
+                Colors.orange,
+                Colors.pink,
+                Colors.teal,
+                Colors.grey,
+                Colors.brown,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _textColor = color),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _textColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _textColor == color ? 3 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ] else ...[
             // Gradient Options
             Text('Gradient Presets'),
             const SizedBox(height: 8),
-            Container(
+            SizedBox(
               height: 60,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -441,7 +479,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                     const LinearGradient(colors: [Colors.blue, Colors.purple]),
                     const LinearGradient(colors: [Colors.green, Colors.teal]),
                     const LinearGradient(colors: [Colors.pink, Colors.purple]),
-                    const LinearGradient(colors: [Colors.yellow, Colors.orange]),
+                    const LinearGradient(
+                        colors: [Colors.yellow, Colors.orange]),
                     const LinearGradient(colors: [Colors.indigo, Colors.blue]),
                   ];
                   final gradient = gradients[index];
@@ -455,7 +494,9 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                         gradient: gradient,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _textGradient == gradient ? Colors.blue : Colors.grey[300]!,
+                          color: _textGradient == gradient
+                              ? Colors.blue
+                              : Colors.grey[300]!,
                           width: _textGradient == gradient ? 3 : 1,
                         ),
                       ),
@@ -511,23 +552,33 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
             Wrap(
               spacing: 8,
               children: [
-                Colors.black, Colors.white, Colors.red, Colors.green,
-                Colors.blue, Colors.yellow, Colors.purple, Colors.orange,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _strokeColor = color),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _strokeColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _strokeColor == color ? 2 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.white,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.yellow,
+                Colors.purple,
+                Colors.orange,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _strokeColor = color),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _strokeColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _strokeColor == color ? 2 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -545,7 +596,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                   max: 20,
                   divisions: 20,
                   label: _shadowBlurRadius.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => _shadowBlurRadius = value),
+                  onChanged: (value) =>
+                      setState(() => _shadowBlurRadius = value),
                 ),
               ),
             ],
@@ -560,7 +612,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowSpreadRadius.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => _shadowSpreadRadius = value),
+                  onChanged: (value) =>
+                      setState(() => _shadowSpreadRadius = value),
                 ),
               ),
             ],
@@ -575,8 +628,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowOffset.dx.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => 
-                    _shadowOffset = Offset(value, _shadowOffset.dy)),
+                  onChanged: (value) => setState(
+                      () => _shadowOffset = Offset(value, _shadowOffset.dy)),
                 ),
               ),
             ],
@@ -591,8 +644,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                   max: 10,
                   divisions: 20,
                   label: _shadowOffset.dy.toStringAsFixed(1),
-                  onChanged: (value) => setState(() => 
-                    _shadowOffset = Offset(_shadowOffset.dx, value)),
+                  onChanged: (value) => setState(
+                      () => _shadowOffset = Offset(_shadowOffset.dx, value)),
                 ),
               ),
             ],
@@ -612,7 +665,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
 
           // Spacing
           const SizedBox(height: 16),
-          const Text('Letter Spacing', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Letter Spacing',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _letterSpacing,
             min: -5,
@@ -622,7 +676,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
             onChanged: (value) => setState(() => _letterSpacing = value),
           ),
 
-          const Text('Word Spacing', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Word Spacing',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _wordSpacing,
             min: -5,
@@ -632,7 +687,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
             onChanged: (value) => setState(() => _wordSpacing = value),
           ),
 
-          const Text('Line Height', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Line Height',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           Slider(
             value: _lineHeight,
             min: 0.5,
@@ -652,11 +708,11 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Background
-          const Text('Background Color', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Background Color',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-
             child: Row(
               children: [
                 GestureDetector(
@@ -673,24 +729,30 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                 ),
                 const SizedBox(width: 8),
                 ...([
-                  Colors.white, Colors.black.withOpacity(0.1), Colors.red.withOpacity(0.1),
-                  Colors.green.withOpacity(0.1), Colors.blue.withOpacity(0.1), Colors.yellow.withOpacity(0.1),
+                  Colors.white,
+                  Colors.black.withValues(alpha: 0.1),
+                  Colors.red.withValues(alpha: 0.1),
+                  Colors.green.withValues(alpha: 0.1),
+                  Colors.blue.withValues(alpha: 0.1),
+                  Colors.yellow.withValues(alpha: 0.1),
                 ].map((color) => GestureDetector(
-                  onTap: () => setState(() => _backgroundColor = color),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _backgroundColor == color ? Colors.blue : Colors.grey[300]!,
-                        width: _backgroundColor == color ? 2 : 1,
+                      onTap: () => setState(() => _backgroundColor = color),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _backgroundColor == color
+                                ? Colors.blue
+                                : Colors.grey[300]!,
+                            width: _backgroundColor == color ? 2 : 1,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ))),
+                    ))),
               ],
             ),
           ),
@@ -720,23 +782,31 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
             Wrap(
               spacing: 8,
               children: [
-                Colors.black, Colors.grey, Colors.red, Colors.green,
-                Colors.blue, Colors.purple,
-              ].map((color) => GestureDetector(
-                onTap: () => setState(() => _borderColor = color),
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _borderColor == color ? Colors.blue : Colors.grey[300]!,
-                      width: _borderColor == color ? 2 : 1,
-                    ),
-                  ),
-                ),
-              )).toList(),
+                Colors.black,
+                Colors.grey,
+                Colors.red,
+                Colors.green,
+                Colors.blue,
+                Colors.purple,
+              ]
+                  .map((color) => GestureDetector(
+                        onTap: () => setState(() => _borderColor = color),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: _borderColor == color
+                                  ? Colors.blue
+                                  : Colors.grey[300]!,
+                              width: _borderColor == color ? 2 : 1,
+                            ),
+                          ),
+                        ),
+                      ))
+                  .toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -754,8 +824,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
                       min: 0,
                       max: 20,
                       divisions: 20,
-                      onChanged: (value) => setState(() => 
-                        _padding = EdgeInsets.all(value)),
+                      onChanged: (value) =>
+                          setState(() => _padding = EdgeInsets.all(value)),
                     ),
                   ],
                 ),
@@ -765,7 +835,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Transform
-          const Text('Transform', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Transform',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -800,28 +871,39 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
           const SizedBox(height: 16),
 
           // Alignment
-          const Text('Alignment', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Alignment',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
               const Text('Horizontal:'),
               const SizedBox(width: 8),
               Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                children: [TextAlign.left, TextAlign.center, TextAlign.right, TextAlign.start, TextAlign.end, TextAlign.justify].map((align) =>
-                  Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(align.toString().split('.').last),
-                    selected: _horizontalAlignment == align,
-                    onSelected: (selected) => setState(() => _horizontalAlignment = align),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      TextAlign.left,
+                      TextAlign.center,
+                      TextAlign.right,
+                      TextAlign.start,
+                      TextAlign.end,
+                      TextAlign.justify
+                    ]
+                        .map(
+                          (align) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(align.toString().split('.').last),
+                              selected: _horizontalAlignment == align,
+                              onSelected: (selected) =>
+                                  setState(() => _horizontalAlignment = align),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  ),
-                ).toList(),
                 ),
-              ),
               ),
             ],
           ),
@@ -831,21 +913,28 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
               const Text('Vertical:'),
               const SizedBox(width: 8),
               Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                children: [MainAxisAlignment.start, MainAxisAlignment.center, MainAxisAlignment.end].map((align) =>
-                  Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(align.toString().split('.').last),
-                    selected: _verticalAlignment == align,
-                    onSelected: (selected) => setState(() => _verticalAlignment = align),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      MainAxisAlignment.start,
+                      MainAxisAlignment.center,
+                      MainAxisAlignment.end
+                    ]
+                        .map(
+                          (align) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(align.toString().split('.').last),
+                              selected: _verticalAlignment == align,
+                              onSelected: (selected) =>
+                                  setState(() => _verticalAlignment = align),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  ),
-                ).toList(),
                 ),
-              ),
               ),
             ],
           ),
@@ -858,7 +947,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
               CheckboxListTile(
                 title: const Text('Horizontal'),
                 value: _flipHorizontally,
-                onChanged: (value) => setState(() => _flipHorizontally = value!),
+                onChanged: (value) =>
+                    setState(() => _flipHorizontally = value!),
               ),
               CheckboxListTile(
                 title: const Text('Vertical'),
@@ -886,13 +976,15 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         height: _lineHeight,
         decoration: _isUnderlined ? TextDecoration.underline : null,
         decorationColor: _textColor,
-        shadows: _shadowBlurRadius > 0 ? [
-          Shadow(
-            color: _shadowColor,
-            offset: _shadowOffset,
-            blurRadius: _shadowBlurRadius,
-          ),
-        ] : null,
+        shadows: _shadowBlurRadius > 0
+            ? [
+                Shadow(
+                  color: _shadowColor,
+                  offset: _shadowOffset,
+                  blurRadius: _shadowBlurRadius,
+                ),
+              ]
+            : null,
       ),
       textAlign: _horizontalAlignment,
     );
@@ -927,7 +1019,9 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         padding: _padding,
         decoration: BoxDecoration(
           color: _backgroundColor,
-          border: _borderWidth > 0 ? Border.all(color: _borderColor!, width: _borderWidth) : null,
+          border: _borderWidth > 0
+              ? Border.all(color: _borderColor!, width: _borderWidth)
+              : null,
           borderRadius: BorderRadius.circular(4),
         ),
         child: result,

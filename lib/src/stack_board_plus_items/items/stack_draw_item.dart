@@ -82,13 +82,13 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   final BoxShape shape;
 
   StackDrawItem({
-    required StackDrawContent content,
-    String? id,
-    double? angle,
-    required Size size,
-    Offset? offset,
-    bool? lockZOrder,
-    StackItemStatus? status,
+    required StackDrawContent super.content,
+    super.id,
+    super.angle = null,
+    required super.size,
+    super.offset,
+    super.lockZOrder = null,
+    super.status = null,
     this.showDefaultActions = false,
     this.showDefaultTools = false,
     this.onPointerDown,
@@ -119,15 +119,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
     this.gradient,
     this.backgroundBlendMode,
     this.shape = BoxShape.rectangle,
-  }) : super(
-          id: id,
-          size: size,
-          offset: offset,
-          angle: angle,
-          status: status,
-          lockZOrder: lockZOrder,
-          content: content,
-        );
+  });
 
   @override
   StackDrawItem copyWith({

@@ -11,13 +11,13 @@ import '../widgets/enhanced_stack_text_case.dart';
 import '../dialogs/shape_edit_dialog.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> 
+class _HomePageState extends State<HomePage>
     with BackgroundManagerMixin, StackItemManagerMixin {
   late StackBoardPlusController _boardController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -47,9 +47,10 @@ class _HomePageState extends State<HomePage>
           height: size,
           child: FittedBox(
             fit: BoxFit.cover,
-            child: content?.svgWidget ?? (content?.image != null
-                ? Image(image: content!.image!)
-                : const Icon(Icons.image, size: size)),
+            child: content?.svgWidget ??
+                (content?.image != null
+                    ? Image(image: content!.image!)
+                    : const Icon(Icons.image, size: size)),
           ),
         ),
       );
@@ -85,7 +86,8 @@ class _HomePageState extends State<HomePage>
     }
     if (item is ColorStackItem) {
       final Color color = item.content?.color ?? Colors.grey;
-      String hex = color.value.toRadixString(16).padLeft(8, '0').toUpperCase();
+      String hex =
+          color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
       return '#${hex.substring(2)}';
     }
     if (item is StackDrawItem) return 'Drawing';
@@ -119,7 +121,8 @@ class _HomePageState extends State<HomePage>
           elevation: 10,
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange[600], size: 28),
+              Icon(Icons.warning_amber_rounded,
+                  color: Colors.orange[600], size: 28),
               const SizedBox(width: 12),
               const Text(
                 'Delete Item',
@@ -138,7 +141,8 @@ class _HomePageState extends State<HomePage>
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               child: const Text(
                 'Cancel',
@@ -150,7 +154,8 @@ class _HomePageState extends State<HomePage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -193,7 +198,8 @@ class _HomePageState extends State<HomePage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Drawing'),
-        content: const Text('Are you sure you want to clear all drawing content?'),
+        content:
+            const Text('Are you sure you want to clear all drawing content?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -271,22 +277,27 @@ class _HomePageState extends State<HomePage>
                 child: ValueListenableBuilder<StackConfig>(
                   valueListenable: _boardController,
                   builder: (context, stackConfig, _) {
-                    final List<StackItem<StackItemContent>> items = List.of(stackConfig.data);
+                    final List<StackItem<StackItemContent>> items =
+                        List.of(stackConfig.data);
                     // Show top-most first
-                    final List<StackItem<StackItemContent>> ordered = items.reversed.toList();
+                    final List<StackItem<StackItemContent>> ordered =
+                        items.reversed.toList();
                     return ListView.separated(
                       itemCount: ordered.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final StackItem<StackItemContent> item = ordered[index];
-                        final int actualIndex = items.indexOf(item); // 0 = bottom, last = top
+                        final int actualIndex =
+                            items.indexOf(item); // 0 = bottom, last = top
                         final bool isTop = actualIndex == items.length - 1;
                         final bool isBottom = actualIndex == 0;
                         return ListTile(
                           dense: true,
                           leading: _buildLayerPreview(item),
-                          title: Text(_layerLabel(item), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(item.runtimeType.toString(), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          title: Text(_layerLabel(item),
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: Text(item.runtimeType.toString(),
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -300,16 +311,22 @@ class _HomePageState extends State<HomePage>
                               IconButton(
                                 tooltip: 'Down',
                                 icon: const Icon(Icons.arrow_downward),
-                                onPressed: isBottom ? null : () {
-                                  _boardController.moveItemBackward(item.id);
-                                },
+                                onPressed: isBottom
+                                    ? null
+                                    : () {
+                                        _boardController
+                                            .moveItemBackward(item.id);
+                                      },
                               ),
                               IconButton(
                                 tooltip: 'Up',
                                 icon: const Icon(Icons.arrow_upward),
-                                onPressed: isTop ? null : () {
-                                  _boardController.moveItemForward(item.id);
-                                },
+                                onPressed: isTop
+                                    ? null
+                                    : () {
+                                        _boardController
+                                            .moveItemForward(item.id);
+                                      },
                               ),
                               IconButton(
                                 tooltip: 'To Top',
@@ -323,7 +340,8 @@ class _HomePageState extends State<HomePage>
                           onTap: () {
                             // Select without changing z-order
                             _boardController.unSelectAll();
-                            _boardController.setItemStatus(item.id, StackItemStatus.selected);
+                            _boardController.setItemStatus(
+                                item.id, StackItemStatus.selected);
                           },
                         );
                       },
@@ -348,153 +366,162 @@ class _HomePageState extends State<HomePage>
             width: backgroundWidth,
             height: backgroundHeight,
             child: StackBoardPlus(
-          elevation: backgroundElevation,
-          onDel: _onDel,
-          controller: _boardController,
-          caseStyle: CaseStyle(
-            frameBorderColor: Colors.blue.withOpacity(0.6),
-            buttonIconColor: Colors.white,
-            buttonBgColor: Colors.blue,
-            buttonBorderColor: Colors.blue[700]!,
-            frameBorderWidth: 2,
-            buttonSize: 32,
-          ),
-          background: buildBackground(),
-          customBuilder: (StackItem<StackItemContent> item) {
-            if (item is StackTextItem) {
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.1),
-                  //     blurRadius: 8,
-                  //     offset: const Offset(0, 4),
-                  //   ),
-                  // ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: EnhancedStackTextCase(
-                    item: item, 
-                    decoration: const InputDecoration.collapsed(hintText: "Enter text"),
-                    onTap: () => _openTextCustomizationDialog(item),
-                  ),
-                ),
-              );
-            } else if (item is StackImageItem) {
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.15),
-                  //     blurRadius: 10,
-                  //     offset: const Offset(0, 4),
-                  //   ),
-                  // ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: StackImageCase(item: item),
-                ),
-              );
-            } else if (item is ColorStackItem) {
-              return Container(
-                width: item.size.width,
-                height: item.size.height,
-                decoration: BoxDecoration(
-                  color: item.content?.color,
-                  borderRadius: BorderRadius.circular(12),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.2),
-                  //     blurRadius: 8,
-                  //     offset: const Offset(0, 4),
-                  //   ),
-                  // ],
-                ),
-              );
-            } else if (item is StackDrawItem) {
-              // Render the drawing canvas for drawing items with controls overlay
-              return Stack(
-                children: [
-                  // Main drawing board
-                  StackDrawCase(item: item),
-                  
-                  // Drawing controls overlay (only show when editing)
-                  if (item.status == StackItemStatus.editing)
-                    Positioned(
-                      top: 5,
-                      right: 5,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Undo button
-                            IconButton(
-                              icon: const Icon(Icons.undo, color: Colors.white, size: 18),
-                              onPressed: () => item.content!.undo(),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Redo button
-                            IconButton(
-                              icon: const Icon(Icons.redo, color: Colors.white, size: 18),
-                              onPressed: () => item.content!.redo(),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              padding: EdgeInsets.zero,
-                            ),
-                            // Clear button
-                            IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.white, size: 18),
-                              onPressed: () => _showDrawingClearDialog(context, item),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              padding: EdgeInsets.zero,
-                            ),
-                          ],
-                        ),
+              elevation: backgroundElevation,
+              onDel: _onDel,
+              controller: _boardController,
+              caseStyle: CaseStyle(
+                frameBorderColor: Colors.blue.withValues(alpha: 0.6),
+                buttonIconColor: Colors.white,
+                buttonBgColor: Colors.blue,
+                buttonBorderColor: Colors.blue[700]!,
+                frameBorderWidth: 2,
+                buttonSize: 32,
+              ),
+              background: buildBackground(),
+              customBuilder: (StackItem<StackItemContent> item) {
+                if (item is StackTextItem) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withValues(alpha: 0.1),
+                      //     blurRadius: 8,
+                      //     offset: const Offset(0, 4),
+                      //   ),
+                      // ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: EnhancedStackTextCase(
+                        item: item,
+                        decoration: const InputDecoration.collapsed(
+                            hintText: "Enter text"),
+                        onTap: () => _openTextCustomizationDialog(item),
                       ),
                     ),
-                ],
-              );
-            } else if (item is StackShapeItem) {
-              return StackShapeCase(
-                item: item,
-                customEditorBuilder: (context, item, onUpdate)  {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ShapeEditDialog(
-                      item: item,
-                      onUpdate: (updated) {
-                        onUpdate(updated);
-                      },
+                  );
+                } else if (item is StackImageItem) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withValues(alpha: 0.15),
+                      //     blurRadius: 10,
+                      //     offset: const Offset(0, 4),
+                      //   ),
+                      // ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: StackImageCase(item: item),
                     ),
                   );
-                  return const SizedBox.shrink();
-                },
-              );
-            }
-            return const SizedBox.shrink();
-          },
-          customActionsBuilder: (item, context) {
-            // Example using StackItemActionHelper for consistent styling
-            return [
-              // Drawing settings for drawing items
-              if (item is StackDrawItem)
-                StackItemActionHelper.createCustomActionButton(
-                  context: context,
-                  icon: const Icon(Icons.brush),
-                  onTap: () => DrawingUtils.showDrawingSettingsDialog(context, item.content!.controller),
-                  tooltip: 'Drawing Settings',
-                ),
-            ];
-          },
+                } else if (item is ColorStackItem) {
+                  return Container(
+                    width: item.size.width,
+                    height: item.size.height,
+                    decoration: BoxDecoration(
+                      color: item.content?.color,
+                      borderRadius: BorderRadius.circular(12),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withValues(alpha: 0.2),
+                      //     blurRadius: 8,
+                      //     offset: const Offset(0, 4),
+                      //   ),
+                      // ],
+                    ),
+                  );
+                } else if (item is StackDrawItem) {
+                  // Render the drawing canvas for drawing items with controls overlay
+                  return Stack(
+                    children: [
+                      // Main drawing board
+                      StackDrawCase(item: item),
+
+                      // Drawing controls overlay (only show when editing)
+                      if (item.status == StackItemStatus.editing)
+                        Positioned(
+                          top: 5,
+                          right: 5,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Undo button
+                                IconButton(
+                                  icon: const Icon(Icons.undo,
+                                      color: Colors.white, size: 18),
+                                  onPressed: () => item.content!.undo(),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 32, minHeight: 32),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                // Redo button
+                                IconButton(
+                                  icon: const Icon(Icons.redo,
+                                      color: Colors.white, size: 18),
+                                  onPressed: () => item.content!.redo(),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 32, minHeight: 32),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                // Clear button
+                                IconButton(
+                                  icon: const Icon(Icons.clear,
+                                      color: Colors.white, size: 18),
+                                  onPressed: () =>
+                                      _showDrawingClearDialog(context, item),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 32, minHeight: 32),
+                                  padding: EdgeInsets.zero,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                } else if (item is StackShapeItem) {
+                  return StackShapeCase(
+                    item: item,
+                    customEditorBuilder: (context, item, onUpdate) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ShapeEditDialog(
+                          item: item,
+                          onUpdate: (updated) {
+                            onUpdate(updated);
+                          },
+                        ),
+                      );
+                      return const SizedBox.shrink();
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+              customActionsBuilder: (item, context) {
+                // Example using StackItemActionHelper for consistent styling
+                return [
+                  // Drawing settings for drawing items
+                  if (item is StackDrawItem)
+                    StackItemActionHelper.createCustomActionButton(
+                      context: context,
+                      icon: const Icon(Icons.brush),
+                      onTap: () => DrawingUtils.showDrawingSettingsDialog(
+                          context, item.content!.controller),
+                      tooltip: 'Drawing Settings',
+                    ),
+                ];
+              },
             ),
           ),
         ),
@@ -505,7 +532,7 @@ class _HomePageState extends State<HomePage>
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),

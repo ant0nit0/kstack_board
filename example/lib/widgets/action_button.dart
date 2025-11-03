@@ -7,12 +7,12 @@ class ActionButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const ActionButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.color,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +21,9 @@ class ActionButton extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: IconButton(
             onPressed: onPressed,
