@@ -7,6 +7,7 @@ export 'src/core/stack_board_plus_controller.dart';
 export 'src/core/stack_board_plus_item/stack_item.dart';
 export 'src/core/stack_board_plus_item/stack_item_content.dart';
 export 'src/core/stack_board_plus_item/stack_item_status.dart';
+export 'src/core/rotation_snap_config.dart';
 
 // Main widget
 export 'src/stack_board_plus.dart';

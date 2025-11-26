@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import 'widgets/snap_guide_provider.dart';
 import 'widgets/all_snap_lines_overlay.dart';
+import 'core/rotation_snap_config.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
@@ -9,6 +10,7 @@ class StackBoardPlusConfig extends InheritedWidget {
     required this.controller,
     this.caseStyle,
     this.snapConfig,
+    this.rotationSnapConfig,
     this.snapGuideLines = const [],
     required super.child,
   });
@@ -16,6 +18,7 @@ class StackBoardPlusConfig extends InheritedWidget {
   final StackBoardPlusController controller;
   final CaseStyle? caseStyle;
   final SnapConfig? snapConfig;
+  final RotationSnapConfig? rotationSnapConfig;
   final List<SnapGuideLine> snapGuideLines;
 
   static StackBoardPlusConfig of(BuildContext context) {
@@ -30,6 +33,7 @@ class StackBoardPlusConfig extends InheritedWidget {
       oldWidget.controller != controller ||
       oldWidget.caseStyle != caseStyle ||
       oldWidget.snapConfig != snapConfig ||
+      oldWidget.rotationSnapConfig != rotationSnapConfig ||
       oldWidget.snapGuideLines != snapGuideLines;
 }
 
@@ -51,6 +55,7 @@ class StackBoardPlus extends StatelessWidget {
     this.borderBuilder,
     this.customActionsBuilder,
     this.snapConfig,
+    this.rotationSnapConfig,
     this.elevation = 1.0,
   });
 
@@ -106,6 +111,9 @@ class StackBoardPlus extends StatelessWidget {
   /// * Snap configuration
   final SnapConfig? snapConfig;
 
+  /// * Rotation snap configuration
+  final RotationSnapConfig? rotationSnapConfig;
+
   /// * elevation for the whole canvas container
   /// defaults to 1.0
   final double elevation;
@@ -120,6 +128,7 @@ class StackBoardPlus extends StatelessWidget {
         controller: _controller,
         caseStyle: caseStyle,
         snapConfig: snapConfig,
+        rotationSnapConfig: rotationSnapConfig,
         child: Material(
           elevation: elevation,
           child: GestureDetector(

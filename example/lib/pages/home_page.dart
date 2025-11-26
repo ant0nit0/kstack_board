@@ -12,6 +12,8 @@ import '../widgets/action_button.dart';
 import '../widgets/enhanced_stack_text_case.dart';
 import '../dialogs/shape_edit_dialog.dart';
 
+import 'dart:math' as math;
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -386,6 +388,14 @@ class _HomePageState extends State<HomePage>
             width: backgroundWidth,
             height: backgroundHeight,
             child: StackBoardPlus(
+              rotationSnapConfig: RotationSnapConfig(
+                enabled: true,
+                snapIncrement: math.pi / 6,
+                tolerance: 3 * math.pi / 180,
+                onSnapHapticFeedback: () {
+                  HapticFeedback.lightImpact();
+                },
+              ),
               elevation: backgroundElevation,
               onDel: _onDel,
               controller: _boardController,

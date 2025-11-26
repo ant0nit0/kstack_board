@@ -16,6 +16,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   Size startSize = Size.zero;
   double startAngle = 0;
   bool _wasSnapping = false;
+  bool _wasRotationSnapping = false;
 
   // Callbacks that can be overridden or hooked into
   void onStatusChanged(StackItemStatus status);
@@ -54,6 +55,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     } catch (_) {}
 
     _wasSnapping = false;
+    _wasRotationSnapping = false;
 
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
@@ -265,6 +267,42 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     controller.updateBasic(itemId, size: newSize, offset: newOffset);
   }
 
+  // Helper to snap angle to nearest multiple of snapAngle
+  // If the difference is within tolerance, snap it.
+  double _snapAngle(
+      double angle, RotationSnapConfig snapConfig, BuildContext context) {
+    if (!snapConfig.enabled) return angle;
+
+    final double snapIncrement = snapConfig.snapIncrement;
+    final double tolerance = snapConfig.tolerance;
+
+    final double remainder = angle % snapIncrement;
+    double snapped = angle;
+    bool isSnapped = false;
+
+    if (remainder.abs() < tolerance) {
+      snapped = angle - remainder;
+      isSnapped = true;
+    } else if ((remainder - snapIncrement).abs() < tolerance) {
+      snapped = angle - remainder + snapIncrement;
+      isSnapped = true;
+    } else if ((remainder + snapIncrement).abs() < tolerance) {
+      snapped = angle - remainder - snapIncrement;
+      isSnapped = true;
+    }
+
+    if (isSnapped) {
+      if (!_wasRotationSnapping) {
+        snapConfig.onSnapHapticFeedback?.call();
+        _wasRotationSnapping = true;
+      }
+      return snapped;
+    } else {
+      _wasRotationSnapping = false;
+      return angle;
+    }
+  }
+
   void onRotateUpdate(
       DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
     final double startToCenterX = startGlobalPoint.dx - centerPoint.dx;
@@ -291,6 +329,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       angle = startAngle - angle;
     } else {
       angle = startAngle + angle;
+    }
+
+    // Apply rotation snap
+    final RotationSnapConfig? rotationSnapConfig =
+        StackBoardPlusConfig.of(context).rotationSnapConfig;
+    if (rotationSnapConfig != null) {
+      angle = _snapAngle(angle, rotationSnapConfig, context);
     }
 
     onAngleChanged(angle);
@@ -327,6 +372,15 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item.status == StackItemStatus.drawing) return;
 
     double newAngle = startAngle + details.rotation;
+
+    // Snap to 45 degrees (pi/4) if within tolerance
+    if (details.pointerCount > 1) {
+      final RotationSnapConfig? rotationSnapConfig =
+          StackBoardPlusConfig.of(context).rotationSnapConfig;
+      if (rotationSnapConfig != null) {
+        newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
+      }
+    }
 
     double newScale = details.scale;
     double newWidth = startSize.width * newScale;
