@@ -89,7 +89,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
   }
 
   /// * add item
-  void addItem(StackItem<StackItemContent> item, {bool selectIt = false}) {
+  void addItem(StackItem<StackItemContent> item,
+      {bool selectIt = false, Offset? offset}) {
     if (innerData.contains(item)) {
       print('StackBoardController addItem: item already exists');
       return;
@@ -99,9 +100,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
         List<StackItem<StackItemContent>>.from(innerData);
 
     // Initial offset
-    // `TODO`: transform this to parameters
-    const double baseOffset = 50;
-    const double deltaOffset = 10;
+    final double baseOffset = offset?.dx ?? 50;
+    final double deltaOffset = offset?.dy ?? 10;
     double deltaOffsetMultiplicator = 1;
 
     // Set items status to idle

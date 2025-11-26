@@ -91,52 +91,88 @@ class TextItemContent implements StackItemContent {
           ? null
           : Color(asT<int>(data['selectionColor'])),
       // Enhanced customization properties
-      fontFamily: data['fontFamily'] == null ? null : asT<String>(data['fontFamily']),
+      fontFamily:
+          data['fontFamily'] == null ? null : asT<String>(data['fontFamily']),
       fontSize: data['fontSize'] == null ? 16.0 : asT<double>(data['fontSize']),
-      fontWeight: data['fontWeight'] == null 
-          ? null 
+      fontWeight: data['fontWeight'] == null
+          ? null
           : FontWeight.values[asT<int>(data['fontWeight'])],
       fontStyle: data['fontStyle'] == null
           ? null
           : FontStyle.values[asT<int>(data['fontStyle'])],
-      isUnderlined: data['isUnderlined'] == null ? false : asT<bool>(data['isUnderlined']),
-      textColor: data['textColor'] == null ? null : Color(asT<int>(data['textColor'])),
-      strokeColor: data['strokeColor'] == null ? null : Color(asT<int>(data['strokeColor'])),
-      strokeWidth: data['strokeWidth'] == null ? 0.0 : asT<double>(data['strokeWidth']),
-      shadowColor: data['shadowColor'] == null ? null : Color(asT<int>(data['shadowColor'])),
-      shadowOffset: data['shadowOffset'] == null ? null : Offset(asT<double>(data['shadowOffset']['dx']), asT<double>(data['shadowOffset']['dy'])),
-      shadowBlurRadius: data['shadowBlurRadius'] == null ? 0.0 : asT<double>(data['shadowBlurRadius']),
-      shadowSpreadRadius: data['shadowSpreadRadius'] == null ? 0.0 : asT<double>(data['shadowSpreadRadius']),
-      arcDegree: data['arcDegree'] == null ? 0.0 : asT<double>(data['arcDegree']),
-      letterSpacing: data['letterSpacing'] == null ? 0.0 : asT<double>(data['letterSpacing']),
-      wordSpacing: data['wordSpacing'] == null ? 0.0 : asT<double>(data['wordSpacing']),
-      backgroundColor: data['backgroundColor'] == null ? null : Color(asT<int>(data['backgroundColor'])),
-      borderColor: data['borderColor'] == null ? null : Color(asT<int>(data['borderColor'])),
-      borderWidth: data['borderWidth'] == null ? 0.0 : asT<double>(data['borderWidth']),
+      isUnderlined: data['isUnderlined'] == null
+          ? false
+          : asT<bool>(data['isUnderlined']),
+      textColor:
+          data['textColor'] == null ? null : Color(asT<int>(data['textColor'])),
+      strokeColor: data['strokeColor'] == null
+          ? null
+          : Color(asT<int>(data['strokeColor'])),
+      strokeWidth:
+          data['strokeWidth'] == null ? 0.0 : asT<double>(data['strokeWidth']),
+      shadowColor: data['shadowColor'] == null
+          ? null
+          : Color(asT<int>(data['shadowColor'])),
+      shadowOffset: data['shadowOffset'] == null
+          ? null
+          : Offset(asT<double>(data['shadowOffset']['dx']),
+              asT<double>(data['shadowOffset']['dy'])),
+      shadowBlurRadius: data['shadowBlurRadius'] == null
+          ? 0.0
+          : asT<double>(data['shadowBlurRadius']),
+      shadowSpreadRadius: data['shadowSpreadRadius'] == null
+          ? 0.0
+          : asT<double>(data['shadowSpreadRadius']),
+      arcDegree:
+          data['arcDegree'] == null ? 0.0 : asT<double>(data['arcDegree']),
+      letterSpacing: data['letterSpacing'] == null
+          ? 0.0
+          : asT<double>(data['letterSpacing']),
+      wordSpacing:
+          data['wordSpacing'] == null ? 0.0 : asT<double>(data['wordSpacing']),
+      backgroundColor: data['backgroundColor'] == null
+          ? null
+          : Color(asT<int>(data['backgroundColor'])),
+      borderColor: data['borderColor'] == null
+          ? null
+          : Color(asT<int>(data['borderColor'])),
+      borderWidth:
+          data['borderWidth'] == null ? 0.0 : asT<double>(data['borderWidth']),
       opacity: data['opacity'] == null ? 1.0 : asT<double>(data['opacity']),
-      padding: data['padding'] == null ? null : EdgeInsets.fromLTRB(
-        asT<double>(data['padding']['left']),
-        asT<double>(data['padding']['top']),
-        asT<double>(data['padding']['right']),
-        asT<double>(data['padding']['bottom']),
-      ),
-      margin: data['margin'] == null ? null : EdgeInsets.fromLTRB(
-        asT<double>(data['margin']['left']),
-        asT<double>(data['margin']['top']),
-        asT<double>(data['margin']['right']),
-        asT<double>(data['margin']['bottom']),
-      ),
+      padding: data['padding'] == null
+          ? null
+          : EdgeInsets.fromLTRB(
+              asT<double>(data['padding']['left']),
+              asT<double>(data['padding']['top']),
+              asT<double>(data['padding']['right']),
+              asT<double>(data['padding']['bottom']),
+            ),
+      margin: data['margin'] == null
+          ? null
+          : EdgeInsets.fromLTRB(
+              asT<double>(data['margin']['left']),
+              asT<double>(data['margin']['top']),
+              asT<double>(data['margin']['right']),
+              asT<double>(data['margin']['bottom']),
+            ),
       skewX: data['skewX'] == null ? 0.0 : asT<double>(data['skewX']),
       skewY: data['skewY'] == null ? 0.0 : asT<double>(data['skewY']),
       horizontalAlignment: data['horizontalAlignment'] == null
           ? TextAlign.center
-          : ExEnum.tryParse<TextAlign>(TextAlign.values, asT<String>(data['horizontalAlignment']))!,
+          : ExEnum.tryParse<TextAlign>(
+              TextAlign.values, asT<String>(data['horizontalAlignment']))!,
       verticalAlignment: data['verticalAlignment'] == null
           ? MainAxisAlignment.center
-          : ExEnum.tryParse<MainAxisAlignment>(MainAxisAlignment.values, asT<String>(data['verticalAlignment']))!,
-      flipHorizontally: data['flipHorizontally'] == null ? false : asT<bool>(data['flipHorizontally']),
-      flipVertically: data['flipVertically'] == null ? false : asT<bool>(data['flipVertically']),
-      lineHeight: data['lineHeight'] == null ? 1.0 : asT<double>(data['lineHeight']),
+          : ExEnum.tryParse<MainAxisAlignment>(MainAxisAlignment.values,
+              asT<String>(data['verticalAlignment']))!,
+      flipHorizontally: data['flipHorizontally'] == null
+          ? false
+          : asT<bool>(data['flipHorizontally']),
+      flipVertically: data['flipVertically'] == null
+          ? false
+          : asT<bool>(data['flipVertically']),
+      lineHeight:
+          data['lineHeight'] == null ? 1.0 : asT<double>(data['lineHeight']),
     );
   }
 
@@ -211,35 +247,40 @@ class TextItemContent implements StackItemContent {
       if (fontStyle != null) 'fontStyle': fontStyle?.index,
       'isUnderlined': isUnderlined,
       if (textColor != null) 'textColor': textColor?.toARGB32(),
-      if (textGradient != null) 'textGradient': {
-        'colors': textGradient!.colors.map((c) => c.toARGB32()).toList(),
-        'type': textGradient.runtimeType.toString(),
-      },
+      if (textGradient != null)
+        'textGradient': {
+          'colors': textGradient!.colors.map((c) => c.toARGB32()).toList(),
+          'type': textGradient.runtimeType.toString(),
+        },
       if (strokeColor != null) 'strokeColor': strokeColor?.toARGB32(),
       'strokeWidth': strokeWidth,
       if (shadowColor != null) 'shadowColor': shadowColor?.toARGB32(),
-      if (shadowOffset != null) 'shadowOffset': {'dx': shadowOffset!.dx, 'dy': shadowOffset!.dy},
+      if (shadowOffset != null)
+        'shadowOffset': {'dx': shadowOffset!.dx, 'dy': shadowOffset!.dy},
       'shadowBlurRadius': shadowBlurRadius,
       'shadowSpreadRadius': shadowSpreadRadius,
       'arcDegree': arcDegree,
       'letterSpacing': letterSpacing,
       'wordSpacing': wordSpacing,
-      if (backgroundColor != null) 'backgroundColor': backgroundColor?.toARGB32(),
+      if (backgroundColor != null)
+        'backgroundColor': backgroundColor?.toARGB32(),
       if (borderColor != null) 'borderColor': borderColor?.toARGB32(),
       'borderWidth': borderWidth,
       'opacity': opacity,
-      if (padding != null) 'padding': {
-        'left': padding!.left,
-        'top': padding!.top,
-        'right': padding!.right,
-        'bottom': padding!.bottom,
-      },
-      if (margin != null) 'margin': {
-        'left': margin!.left,
-        'top': margin!.top,
-        'right': margin!.right,
-        'bottom': margin!.bottom,
-      },
+      if (padding != null)
+        'padding': {
+          'left': padding!.left,
+          'top': padding!.top,
+          'right': padding!.right,
+          'bottom': padding!.bottom,
+        },
+      if (margin != null)
+        'margin': {
+          'left': margin!.left,
+          'top': margin!.top,
+          'right': margin!.right,
+          'bottom': margin!.bottom,
+        },
       'skewX': skewX,
       'skewY': skewY,
       'horizontalAlignment': horizontalAlignment.toString(),
