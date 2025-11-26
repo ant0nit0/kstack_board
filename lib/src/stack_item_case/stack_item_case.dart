@@ -91,6 +91,7 @@ class _StackItemCaseState extends State<StackItemCase> {
   Offset startOffset = Offset.zero;
   Size startSize = Size.zero;
   double startAngle = 0;
+  bool _wasSnapping = false;
 
   String get itemId => widget.stackItem.id;
 
@@ -171,6 +172,9 @@ class _StackItemCaseState extends State<StackItemCase> {
       // Ignore if context doesn't have snap guide provider
     }
 
+    // Reset snapping state
+    _wasSnapping = false;
+
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
       status = StackItemStatus.selected;
@@ -233,6 +237,12 @@ class _StackItemCaseState extends State<StackItemCase> {
 
             // Update snap guide lines
             context.updateSnapGuideLines(snapResult.guideLines);
+
+            // Trigger haptic feedback when snapping occurs
+            if (snapResult.isSnapped && !_wasSnapping) {
+              snapConfig.onSnapHapticFeedback?.call();
+            }
+            _wasSnapping = snapResult.isSnapped;
           }
         }
       }

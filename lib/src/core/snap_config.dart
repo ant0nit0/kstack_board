@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 class SnapConfig {
   const SnapConfig({
     this.enabled = true,
-    this.snapThreshold = 10.0,
-    this.horizontalDivisions = 6,
-    this.verticalDivisions = 9,
+    this.snapThreshold = 2.0,
+    this.horizontalDivisions = 2,
+    this.verticalDivisions = 2,
     this.snapToItems = true,
     this.snapToBoardEdges = true,
     this.snapToGrid = true,
@@ -14,6 +14,7 @@ class SnapConfig {
     this.snapLineColor = const Color(0xFFE0E0E0),
     this.snapLineWidth = 1.0,
     this.snapLineOpacity = 0.3,
+    this.onSnapHapticFeedback,
   });
 
   /// Whether snap is enabled
@@ -50,6 +51,10 @@ class SnapConfig {
   /// Opacity for all snap lines (0.0 to 1.0)
   final double snapLineOpacity;
 
+  /// Optional callback for haptic feedback when snapping occurs
+  /// Called whenever an item snaps to a snap point
+  final void Function()? onSnapHapticFeedback;
+
   /// Create a copy with modified values
   SnapConfig copyWith({
     bool? enabled,
@@ -63,6 +68,7 @@ class SnapConfig {
     Color? snapLineColor,
     double? snapLineWidth,
     double? snapLineOpacity,
+    void Function()? onSnapHapticFeedback,
   }) {
     return SnapConfig(
       enabled: enabled ?? this.enabled,
@@ -76,6 +82,7 @@ class SnapConfig {
       snapLineColor: snapLineColor ?? this.snapLineColor,
       snapLineWidth: snapLineWidth ?? this.snapLineWidth,
       snapLineOpacity: snapLineOpacity ?? this.snapLineOpacity,
+      onSnapHapticFeedback: onSnapHapticFeedback ?? this.onSnapHapticFeedback,
     );
   }
 

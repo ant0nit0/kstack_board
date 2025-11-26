@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 import '../dialogs/text_customization_dialog.dart';
@@ -388,7 +389,12 @@ class _HomePageState extends State<HomePage>
               elevation: backgroundElevation,
               onDel: _onDel,
               controller: _boardController,
-              snapConfig: _snapConfig,
+              snapConfig: _snapConfig.copyWith(
+                onSnapHapticFeedback: () {
+                  // Custom haptic feedback when snapping occurs
+                  HapticFeedback.lightImpact();
+                },
+              ),
               caseStyle: CaseStyle(
                 frameBorderColor: Colors.blue.withValues(alpha: 0.6),
                 buttonIconColor: Colors.white,
