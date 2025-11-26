@@ -61,6 +61,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
         (StackItem<StackItemContent> item) =>
             item.status == StackItemStatus.selected,
       );
+  StackItem<StackItemContent>? get activeItem => innerData.firstWhereOrNull(
+        (StackItem<StackItemContent> item) =>
+            item.status != StackItemStatus.idle &&
+            item.status != StackItemStatus.locked,
+      );
 
   /// * get item by id
   StackItem<StackItemContent>? getById(String id) {
