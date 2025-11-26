@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 class TextCustomizationDialog extends StatefulWidget {
   final StackTextItem item;
@@ -1036,7 +1037,13 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         transform: Matrix4.identity()
           ..setEntry(0, 1, _skewX)
           ..setEntry(1, 0, _skewY)
-          ..scale(_flipHorizontally ? -1.0 : 1.0, _flipVertically ? -1.0 : 1.0),
+          ..scaleByVector3(
+            vm.Vector3(
+              _flipHorizontally ? -1.0 : 1.0,
+              _flipVertically ? -1.0 : 1.0,
+              1.0,
+            ),
+          ),
         alignment: Alignment.center,
         child: result,
       );

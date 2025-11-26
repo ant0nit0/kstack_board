@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../core/snap_config.dart';
 
 /// Represents a snap point with its position and type
 class SnapPoint {

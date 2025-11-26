@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 class StackShapeContent extends StatelessWidget {
   final StackShapeData data;
@@ -13,9 +14,12 @@ class StackShapeContent extends StatelessWidget {
       alignment: Alignment.center,
       transform: Matrix4.identity()
         ..rotateZ(data.tilt * math.pi / 180)
-        ..scale(
-          data.flipHorizontal ? -1.0 : 1.0,
-          data.flipVertical ? -1.0 : 1.0,
+        ..scaleByVector3(
+          vm.Vector3(
+            data.flipHorizontal ? -1.0 : 1.0,
+            data.flipVertical ? -1.0 : 1.0,
+            1.0,
+          ),
         ),
       child: Opacity(
         opacity: data.opacity.clamp(0.0, 1.0),
@@ -86,7 +90,8 @@ class _ShapePainter extends CustomPainter {
     }
   }
 
-  void _drawPolygon(Canvas canvas, Size size, int sides, Paint fill, Paint stroke) {
+  void _drawPolygon(
+      Canvas canvas, Size size, int sides, Paint fill, Paint stroke) {
     final path = Path();
     final angle = (2 * math.pi) / sides;
     final radius = math.min(size.width, size.height) / 2;
@@ -105,7 +110,8 @@ class _ShapePainter extends CustomPainter {
     canvas.drawPath(path, stroke);
   }
 
-  void _drawStar(Canvas canvas, Size size, int points, Paint fill, Paint stroke) {
+  void _drawStar(
+      Canvas canvas, Size size, int points, Paint fill, Paint stroke) {
     final path = Path();
     final outerRadius = math.min(size.width, size.height) / 2;
     final innerRadius = outerRadius * 0.5;
@@ -132,14 +138,20 @@ class _ShapePainter extends CustomPainter {
     final height = size.height;
     path.moveTo(width / 2, height * 0.8);
     path.cubicTo(
-      width * 1.2, height * 0.6,
-      width * 0.8, height * 0.1,
-      width / 2, height * 0.3,
+      width * 1.2,
+      height * 0.6,
+      width * 0.8,
+      height * 0.1,
+      width / 2,
+      height * 0.3,
     );
     path.cubicTo(
-      width * 0.2, height * 0.1,
-      -width * 0.2, height * 0.6,
-      width / 2, height * 0.8,
+      width * 0.2,
+      height * 0.1,
+      -width * 0.2,
+      height * 0.6,
+      width / 2,
+      height * 0.8,
     );
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
@@ -153,10 +165,14 @@ class _ShapePainter extends CustomPainter {
     final innerRadius = radius * 0.7;
     final offsetAmount = radius * 0.7;
 
-    final bigCircle = Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+    final bigCircle = Path()
+      ..addOval(Rect.fromCircle(center: center, radius: radius));
     final smallCircle = Path()
-      ..addOval(Rect.fromCircle(center: Offset(center.dx + offsetAmount, center.dy), radius: innerRadius));
-    final crescent = Path.combine(PathOperation.difference, bigCircle, smallCircle);
+      ..addOval(Rect.fromCircle(
+          center: Offset(center.dx + offsetAmount, center.dy),
+          radius: innerRadius));
+    final crescent =
+        Path.combine(PathOperation.difference, bigCircle, smallCircle);
 
     canvas.drawPath(crescent, fill);
     canvas.drawPath(crescent, stroke);
@@ -166,4 +182,4 @@ class _ShapePainter extends CustomPainter {
   bool shouldRepaint(covariant _ShapePainter oldDelegate) {
     return oldDelegate.data != data;
   }
-} 
+}

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../core/snap_config.dart';
-import '../helpers/snap_calculator.dart';
 
 /// Widget that displays all potential snap lines based on the snap configuration
 class AllSnapLinesOverlay extends StatelessWidget {
@@ -50,7 +48,7 @@ class _AllSnapLinesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = config.snapLineColor.withOpacity(config.snapLineOpacity)
+      ..color = config.snapLineColor.withValues(alpha: config.snapLineOpacity)
       ..strokeWidth = config.snapLineWidth
       ..style = PaintingStyle.stroke;
 

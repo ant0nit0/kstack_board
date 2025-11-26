@@ -525,7 +525,7 @@ class _SnapConfigDialogState extends State<SnapConfigDialog> {
   }
 
   Widget _buildColorOption(Color color, String label) {
-    final bool isSelected = _snapLineColor.value == color.value;
+    final bool isSelected = _snapLineColor.toARGB32() == color.toARGB32();
     return GestureDetector(
       onTap: () {
         setState(() {

@@ -27,7 +27,7 @@ class SnapGuideOverlay extends StatelessWidget {
       child: CustomPaint(
         painter: _SnapGuidePainter(
           guideLines: guideLines,
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
           strokeWidth: strokeWidth,
         ),
         size: Size.infinite,

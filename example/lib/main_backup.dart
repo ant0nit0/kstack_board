@@ -14,6 +14,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
+import 'package:vector_math/vector_math_64.dart' as vm;
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -1220,8 +1222,13 @@ class _EnhancedStackTextCaseState extends State<_EnhancedStackTextCase> {
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
-          ..scale(content.flipHorizontally ? -1.0 : 1.0,
-              content.flipVertically ? -1.0 : 1.0),
+          ..scaleByVector3(
+            vm.Vector3(
+              content.flipHorizontally ? -1.0 : 1.0,
+              content.flipVertically ? -1.0 : 1.0,
+              1.0,
+            ),
+          ),
         alignment: Alignment.center,
         child: textWidget,
       );
@@ -2507,7 +2514,13 @@ class _TextCustomizationDialogState extends State<_TextCustomizationDialog> {
         transform: Matrix4.identity()
           ..setEntry(0, 1, _skewX)
           ..setEntry(1, 0, _skewY)
-          ..scale(_flipHorizontally ? -1.0 : 1.0, _flipVertically ? -1.0 : 1.0),
+          ..scaleByVector3(
+            vm.Vector3(
+              _flipHorizontally ? -1.0 : 1.0,
+              _flipVertically ? -1.0 : 1.0,
+              1.0,
+            ),
+          ),
         alignment: Alignment.center,
         child: result,
       );

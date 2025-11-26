@@ -1,9 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../helpers/snap_calculator.dart';
 import '../widgets/snap_guide_provider.dart';
-import '../core/snap_config.dart';
 import 'stack_item_types.dart';
 
 mixin StackItemGestures<T extends StatefulWidget> on State<T> {

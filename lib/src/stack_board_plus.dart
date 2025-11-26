@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import 'widgets/snap_guide_provider.dart';
 import 'widgets/all_snap_lines_overlay.dart';
-import 'helpers/snap_calculator.dart';
-import 'core/snap_config.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
