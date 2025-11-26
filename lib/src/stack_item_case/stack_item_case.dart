@@ -147,6 +147,33 @@ class _StackItemCaseState extends State<StackItemCase> {
     widget.onStatusChanged?.call(status);
   }
 
+  /// * Scale/Rotate gesture start
+  void _onGestureStart(ScaleStartDetails details, BuildContext context) {
+    final StackBoardPlusController stackController = _controller(context);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
+    if (item == null) return;
+
+    // Determine initial status. Default to moving.
+    StackItemStatus newStatus = StackItemStatus.moving;
+    // If we are not editing, and not selected, select it.
+    if (item.status != StackItemStatus.editing) {
+      if (item.status != StackItemStatus.selected) {
+        stackController.selectOne(itemId);
+      }
+      stackController.updateBasic(itemId, status: newStatus);
+      stackController.moveItemOnTop(itemId);
+      widget.onStatusChanged?.call(newStatus);
+    }
+
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    centerPoint = renderBox.localToGlobal(
+        Offset(renderBox.size.width / 2, renderBox.size.height / 2));
+    startGlobalPoint = details.focalPoint;
+    startOffset = item.offset;
+    startSize = item.size;
+    startAngle = item.angle;
+  }
+
   void _onPanStart(DragStartDetails details, BuildContext context,
       StackItemStatus newStatus) {
     final StackBoardPlusController stackController = _controller(context);
@@ -203,6 +230,8 @@ class _StackItemCaseState extends State<StackItemCase> {
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
+
+    // We need to transform the delta from local (rotated) coordinates to global coordinates
     final double angle = item.angle;
     final double sina = math.sin(-angle);
     final double cosa = math.cos(-angle);
@@ -210,6 +239,8 @@ class _StackItemCaseState extends State<StackItemCase> {
     Offset d = dud.delta;
     final Offset changeTo = item.offset.translate(d.dx, d.dy);
 
+    // Rotate delta back to global orientation
+    // Note: dud.delta is in the rotated local coordinate system because GestureDetector is inside Transform.rotate
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
     Offset realOffset = item.offset.translate(d.dx, d.dy);
@@ -274,45 +305,206 @@ class _StackItemCaseState extends State<StackItemCase> {
     widget.onOffsetChanged?.call(changeTo);
   }
 
-  static double _caculateDistance(Offset p1, Offset p2) {
-    return sqrt(
-      (p1.dx - p2.dx) * (p1.dx - p2.dx) + (p1.dy - p2.dy) * (p1.dy - p2.dy),
-    );
+  /// * Scale/Rotate/Move gesture update
+  void _onGestureUpdate(ScaleUpdateDetails details, BuildContext context) {
+    final StackBoardPlusController stackController = _controller(context);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
+    if (item == null) return;
+    if (item.status == StackItemStatus.editing) return;
+    if (item.status == StackItemStatus.drawing) return;
+
+    // 1. Calculate New Angle (Rotation)
+    double newAngle = startAngle + details.rotation;
+
+    // 2. Calculate New Size (Scale)
+    double newScale = details.scale;
+    double newWidth = startSize.width * newScale;
+    double newHeight = startSize.height * newScale;
+
+    // Enforce min size
+    final double minSize = _minSize(context);
+    if (newWidth < minSize || newHeight < minSize) {
+      // If scaling down too much, clamp scale
+      final double scaleW = minSize / startSize.width;
+      final double scaleH = minSize / startSize.height;
+      newScale = math.max(newScale, math.max(scaleW, scaleH));
+      newWidth = startSize.width * newScale;
+      newHeight = startSize.height * newScale;
+    }
+    final Size newSize = Size(newWidth, newHeight);
+
+    // 3. Calculate New Offset (Position)
+    // Movement of the focal point
+    final Offset delta = details.focalPoint - startGlobalPoint;
+    Offset newOffset = startOffset + delta;
+
+    // 4. Apply Snapping (Only if single pointer - drag)
+    // Snapping while rotating/scaling with 2 fingers is usually bad UX
+    if (details.pointerCount == 1) {
+      // Re-use snap logic from _onPanUpdate
+      // We need 'realOffset' which is newOffset here.
+      Offset realOffset = newOffset;
+
+      try {
+        final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+        final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+
+        if (!snapConfig.enabled) {
+          context.updateSnapGuideLines(<SnapGuideLine>[]);
+        } else {
+          final RenderBox? boardBox =
+              context.findAncestorRenderObjectOfType<RenderBox>();
+          if (boardBox != null && boardBox.hasSize) {
+            final Size boardSize = boardBox.size;
+            if (boardSize.width > 0 && boardSize.height > 0) {
+              final List<StackItem<StackItemContent>> allItems =
+                  stackController.innerData;
+
+              final SnapCalculator calculator = SnapCalculator(
+                boardSize: boardSize,
+                allItems: allItems,
+                movingItemId: itemId,
+                config: snapConfig,
+              );
+
+              final SnapResult snapResult =
+                  calculator.calculateSnap(realOffset, newSize); // Use newSize
+              realOffset = snapResult.offset;
+
+              context.updateSnapGuideLines(snapResult.guideLines);
+
+              if (snapResult.isSnapped && !_wasSnapping) {
+                snapConfig.onSnapHapticFeedback?.call();
+              }
+              _wasSnapping = snapResult.isSnapped;
+              newOffset = realOffset;
+            }
+          }
+        }
+      } catch (_) {
+        try {
+          context.updateSnapGuideLines(<SnapGuideLine>[]);
+        } catch (_) {}
+      }
+    } else {
+      // Clear guides if multi-touch
+      try {
+        context.updateSnapGuideLines(<SnapGuideLine>[]);
+      } catch (_) {}
+    }
+
+    // 5. Update State
+    bool shouldUpdate = true;
+    if (widget.onAngleChanged != null) {
+      shouldUpdate = widget.onAngleChanged!(newAngle) ?? true;
+    }
+    if (shouldUpdate && widget.onSizeChanged != null) {
+      shouldUpdate = widget.onSizeChanged!(newSize) ?? true;
+    }
+    if (shouldUpdate && widget.onOffsetChanged != null) {
+      shouldUpdate = widget.onOffsetChanged!(newOffset) ?? true;
+    }
+
+    if (!shouldUpdate) return;
+
+    stackController.updateBasic(itemId,
+        angle: newAngle, size: newSize, offset: newOffset);
   }
 
-  /// * Calculate the item size based on the cursor position
-  Size _calculateNewSize(DragUpdateDetails dud, BuildContext context,
-      final StackItemStatus status) {
-    final StackBoardPlusController stackController = _controller(context);
-
-    final StackItem<StackItemContent>? item = stackController.getById(itemId);
-    if (item == null) return Size.zero;
-
-    final double minSize = _minSize(context);
-
-    // Compute scale based on distances in the same (global) coordinate space
-    final double originalDistance =
-        _caculateDistance(startGlobalPoint, centerPoint);
-    final double newDistance =
-        _caculateDistance(dud.globalPosition, centerPoint);
-    final double scale = newDistance / originalDistance;
-
-    final double w = startSize.width * scale;
-    final double h = startSize.height * scale;
-
-    if (w < minSize || h < minSize) return item.size;
-
-    return Size(w, h);
+  /// * Gesture end
+  void _onGestureEnd(ScaleEndDetails details, BuildContext context) {
+    _onPanEnd(context, StackItemStatus.moving);
   }
 
   /// * Scale operation
-  void _onScaleUpdate(
-      DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
-    final Size s = _calculateNewSize(dud, context, status);
+  void _onScaleUpdate(DragUpdateDetails dud, BuildContext context,
+      StackItemStatus status, HandlePosition handle) {
+    final StackBoardPlusController stackController = _controller(context);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
+    if (item == null) return;
 
-    if (!(widget.onSizeChanged?.call(s) ?? true)) return;
+    // 1. Identify Anchor Point (Opposite Corner) in Local Coordinates
+    double anchorLocalX = 0;
+    double anchorLocalY = 0;
+    // Width/Height halves
+    final double w2 = startSize.width / 2;
+    final double h2 = startSize.height / 2;
 
-    _controller(context).updateBasic(itemId, size: s);
+    switch (handle) {
+      case HandlePosition.topLeft: // Anchor BottomRight
+        anchorLocalX = w2;
+        anchorLocalY = h2;
+        break;
+      case HandlePosition.topRight: // Anchor BottomLeft
+        anchorLocalX = -w2;
+        anchorLocalY = h2;
+        break;
+      case HandlePosition.bottomLeft: // Anchor TopRight
+        anchorLocalX = w2;
+        anchorLocalY = -h2;
+        break;
+      case HandlePosition.bottomRight: // Anchor TopLeft
+        anchorLocalX = -w2;
+        anchorLocalY = -h2;
+        break;
+      default:
+        return;
+    }
+
+    // 2. Calculate Anchor in Global Coordinates
+    final double sinA = math.sin(startAngle);
+    final double cosA = math.cos(startAngle);
+
+    // Rotate anchor local point
+    final double anchorDx = anchorLocalX * cosA - anchorLocalY * sinA;
+    final double anchorDy = anchorLocalX * sinA + anchorLocalY * cosA;
+
+    final Offset anchorGlobal = startOffset + Offset(anchorDx, anchorDy);
+
+    // 3. Calculate Distances
+    final double distStart = (startGlobalPoint - anchorGlobal).distance;
+    final double distCurr = (dud.globalPosition - anchorGlobal).distance;
+
+    // 4. Calculate Scale
+    // Prevent division by zero
+    if (distStart == 0) return;
+    double scale = distCurr / distStart;
+
+    // 5. Calculate New Size
+    double newWidth = startSize.width * scale;
+    double newHeight = startSize.height * scale;
+
+    // 6. Enforce Min Size
+    final double minSize = _minSize(context);
+    if (newWidth < minSize || newHeight < minSize) {
+      // Clamp scale to meet min size
+      final double scaleW = minSize / startSize.width;
+      final double scaleH = minSize / startSize.height;
+      scale = math.max(scale, math.max(scaleW, scaleH));
+      newWidth = startSize.width * scale;
+      newHeight = startSize.height * scale;
+    }
+
+    final Size newSize = Size(newWidth, newHeight);
+
+    // 7. Calculate New Center
+    // The new center is along the line from Anchor to OldCenter, scaled by 'scale'
+    // Vector Anchor -> OldCenter
+    final Offset anchorToCenterStart = startOffset - anchorGlobal;
+    final Offset anchorToCenterNew = anchorToCenterStart * scale;
+    final Offset newOffset = anchorGlobal + anchorToCenterNew;
+
+    bool shouldUpdate = true;
+    if (widget.onSizeChanged != null) {
+      shouldUpdate = widget.onSizeChanged!(newSize) ?? true;
+    }
+    if (shouldUpdate && widget.onOffsetChanged != null) {
+      shouldUpdate = widget.onOffsetChanged!(newOffset) ?? true;
+    }
+
+    if (!shouldUpdate) return;
+
+    stackController.updateBasic(itemId, size: newSize, offset: newOffset);
   }
 
   /// * Resize operation
@@ -470,11 +662,12 @@ class _StackItemCaseState extends State<StackItemCase> {
             cursor: _cursor(item.status),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onPanStart: (DragStartDetails details) =>
-                  _onPanStart(details, context, StackItemStatus.moving),
-              onPanUpdate: (DragUpdateDetails dud) =>
-                  _onPanUpdate(dud, context),
-              onPanEnd: (_) => _onPanEnd(context, item.status),
+              onScaleStart: (ScaleStartDetails details) =>
+                  _onGestureStart(details, context),
+              onScaleUpdate: (ScaleUpdateDetails details) =>
+                  _onGestureUpdate(details, context),
+              onScaleEnd: (ScaleEndDetails details) =>
+                  _onGestureEnd(details, context),
               onTap: () => _onTap(context),
               onDoubleTap: () => _onEdit(context, item.status),
               child: _childrenStack(context, item),
@@ -531,13 +724,19 @@ class _StackItemCaseState extends State<StackItemCase> {
           widgets.add(Positioned(
               top: style.buttonSize,
               right: 0,
-              child: _scaleHandle(context, item.status,
-                  SystemMouseCursors.resizeUpRightDownLeft)));
+              child: _scaleHandle(
+                  context,
+                  item.status,
+                  SystemMouseCursors.resizeUpRightDownLeft,
+                  HandlePosition.topRight)));
           widgets.add(Positioned(
               bottom: style.buttonSize,
               left: 0,
-              child: _scaleHandle(context, item.status,
-                  SystemMouseCursors.resizeUpRightDownLeft)));
+              child: _scaleHandle(
+                  context,
+                  item.status,
+                  SystemMouseCursors.resizeUpRightDownLeft,
+                  HandlePosition.bottomLeft)));
         }
         widgets.addAll(<Widget>[
           if (item.status == StackItemStatus.editing)
@@ -547,13 +746,19 @@ class _StackItemCaseState extends State<StackItemCase> {
           Positioned(
               top: style.buttonSize,
               left: 0,
-              child: _scaleHandle(context, item.status,
-                  SystemMouseCursors.resizeUpLeftDownRight)),
+              child: _scaleHandle(
+                  context,
+                  item.status,
+                  SystemMouseCursors.resizeUpLeftDownRight,
+                  HandlePosition.topLeft)),
           Positioned(
               bottom: style.buttonSize,
               right: 0,
-              child: _scaleHandle(context, item.status,
-                  SystemMouseCursors.resizeUpLeftDownRight)),
+              child: _scaleHandle(
+                  context,
+                  item.status,
+                  SystemMouseCursors.resizeUpLeftDownRight,
+                  HandlePosition.bottomRight)),
         ]);
       }
     } else {
@@ -714,8 +919,8 @@ class _StackItemCaseState extends State<StackItemCase> {
   }
 
   /// * Scale handle
-  Widget _scaleHandle(
-      BuildContext context, StackItemStatus status, MouseCursor cursor) {
+  Widget _scaleHandle(BuildContext context, StackItemStatus status,
+      MouseCursor cursor, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
 
     return MouseRegion(
@@ -724,7 +929,7 @@ class _StackItemCaseState extends State<StackItemCase> {
         onPanStart: (DragStartDetails dud) =>
             _onPanStart(dud, context, StackItemStatus.scaling),
         onPanUpdate: (DragUpdateDetails dud) =>
-            _onScaleUpdate(dud, context, status),
+            _onScaleUpdate(dud, context, status, handle),
         onPanEnd: (_) => _onPanEnd(context, status),
         child: _toolCase(
           context,
