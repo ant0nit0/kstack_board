@@ -7,6 +7,18 @@ import '../helpers/snap_calculator.dart';
 import '../widgets/snap_guide_provider.dart';
 import '../core/snap_config.dart';
 
+enum HandlePosition {
+  none,
+  topLeft,
+  top,
+  topRight,
+  right,
+  bottomRight,
+  bottom,
+  bottomLeft,
+  left,
+}
+
 // Add this import for the dialog
 /// This is the main class for the stack item case
 /// It is used to wrap the stack item and provide the functions of the stack item
@@ -303,26 +315,84 @@ class _StackItemCaseState extends State<StackItemCase> {
     _controller(context).updateBasic(itemId, size: s);
   }
 
-  /// * Horizontal resize operation
-  void _onResizeXUpdate(
-      DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
-    final Size newSize = _calculateNewSize(dud, context, status);
-    final Size s = Size(newSize.width, startSize.height);
+  /// * Resize operation
+  void _onResizeUpdate(DragUpdateDetails dud, BuildContext context,
+      StackItemStatus status, HandlePosition handle) {
+    final StackBoardPlusController stackController = _controller(context);
+    final StackItem<StackItemContent>? item = stackController.getById(itemId);
+    if (item == null) return;
 
-    if (!(widget.onSizeChanged?.call(s) ?? true)) return;
+    final double angle = item.angle;
+    final double sinA = math.sin(-angle);
+    final double cosA = math.cos(-angle);
 
-    _controller(context).updateBasic(itemId, size: s);
-  }
+    final Offset globalDelta = dud.globalPosition - startGlobalPoint;
 
-  /// * Vertical resize operation
-  void _onResizeYUpdate(
-      DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
-    final Size newSize = _calculateNewSize(dud, context, status);
-    final Size s = Size(startSize.width, newSize.height);
+    final double localDx = globalDelta.dx * cosA - globalDelta.dy * sinA;
+    final double localDy = globalDelta.dx * sinA + globalDelta.dy * cosA;
 
-    if (!(widget.onSizeChanged?.call(s) ?? true)) return;
+    double newWidth = startSize.width;
+    double newHeight = startSize.height;
+    double limitWx = 0;
+    double limitHy = 0;
 
-    _controller(context).updateBasic(itemId, size: s);
+    final double minSize = _minSize(context);
+
+    switch (handle) {
+      case HandlePosition.right:
+        newWidth = math.max(minSize, startSize.width + localDx);
+        limitWx = newWidth - startSize.width;
+        break;
+      case HandlePosition.left:
+        newWidth = math.max(minSize, startSize.width - localDx);
+        limitWx = newWidth - startSize.width;
+        break;
+      case HandlePosition.top:
+        newHeight = math.max(minSize, startSize.height - localDy);
+        limitHy = newHeight - startSize.height;
+        break;
+      case HandlePosition.bottom:
+        newHeight = math.max(minSize, startSize.height + localDy);
+        limitHy = newHeight - startSize.height;
+        break;
+      default:
+        return;
+    }
+
+    final Size newSize = Size(newWidth, newHeight);
+
+    double shiftX = 0;
+    double shiftY = 0;
+
+    if (handle == HandlePosition.right) {
+      shiftX = limitWx / 2;
+    } else if (handle == HandlePosition.left) {
+      shiftX = -limitWx / 2;
+    } else if (handle == HandlePosition.bottom) {
+      shiftY = limitHy / 2;
+    } else if (handle == HandlePosition.top) {
+      shiftY = -limitHy / 2;
+    }
+
+    final double sinRad = math.sin(angle);
+    final double cosRad = math.cos(angle);
+
+    final double globalShiftX = shiftX * cosRad - shiftY * sinRad;
+    final double globalShiftY = shiftX * sinRad + shiftY * cosRad;
+
+    final Offset newOffset = startOffset + Offset(globalShiftX, globalShiftY);
+
+    bool shouldUpdate = true;
+    if (widget.onSizeChanged != null) {
+      shouldUpdate = widget.onSizeChanged!(newSize) ?? true;
+    }
+    if (shouldUpdate && widget.onOffsetChanged != null) {
+      shouldUpdate = widget.onOffsetChanged!(newOffset) ?? true;
+    }
+
+    if (!shouldUpdate) return;
+
+    stackController.updateBasic(itemId, size: newSize, offset: newOffset);
   }
 
   /// * Rotate operation
@@ -434,24 +504,27 @@ class _StackItemCaseState extends State<StackItemCase> {
               bottom: style.buttonSize,
               right: 0,
               top: style.buttonSize,
-              child: _resizeXHandle(context, item.status)));
+              child:
+                  _resizeXHandle(context, item.status, HandlePosition.right)));
           widgets.add(Positioned(
               bottom: style.buttonSize,
               left: 0,
               top: style.buttonSize,
-              child: _resizeXHandle(context, item.status)));
+              child:
+                  _resizeXHandle(context, item.status, HandlePosition.left)));
         }
         if (item.size.width > _minSize(context) * 2) {
           widgets.add(Positioned(
               left: 0,
               top: style.buttonSize,
               right: 0,
-              child: _resizeYHandle(context, item.status)));
+              child: _resizeYHandle(context, item.status, HandlePosition.top)));
           widgets.add(Positioned(
               left: 0,
               bottom: style.buttonSize,
               right: 0,
-              child: _resizeYHandle(context, item.status)));
+              child:
+                  _resizeYHandle(context, item.status, HandlePosition.bottom)));
         }
         if (item.size.height > _minSize(context) &&
             item.size.width > _minSize(context)) {
@@ -663,13 +736,8 @@ class _StackItemCaseState extends State<StackItemCase> {
   }
 
   /// * Resize handle
-  Widget _resizeHandle(
-      BuildContext context,
-      StackItemStatus status,
-      double width,
-      double height,
-      MouseCursor cursor,
-      Function(DragUpdateDetails, BuildContext, StackItemStatus) onPanUpdate) {
+  Widget _resizeHandle(BuildContext context, StackItemStatus status,
+      double width, double height, MouseCursor cursor, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
     return Center(
       child: MouseRegion(
@@ -679,7 +747,7 @@ class _StackItemCaseState extends State<StackItemCase> {
             onPanStart: (DragStartDetails dud) =>
                 _onPanStart(dud, context, StackItemStatus.resizing),
             onPanUpdate: (DragUpdateDetails dud) =>
-                onPanUpdate(dud, context, status),
+                _onResizeUpdate(dud, context, status, handle),
             onPanEnd: (_) => _onPanEnd(context, status),
             child: SizedBox(
                 width: width * 3,
@@ -702,17 +770,19 @@ class _StackItemCaseState extends State<StackItemCase> {
   }
 
   /// * Resize X handle
-  Widget _resizeXHandle(BuildContext context, StackItemStatus status) {
+  Widget _resizeXHandle(
+      BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
     return _resizeHandle(context, status, style.buttonSize / 3,
-        style.buttonSize, SystemMouseCursors.resizeColumn, _onResizeXUpdate);
+        style.buttonSize, SystemMouseCursors.resizeColumn, handle);
   }
 
   /// * Resize Y handle
-  Widget _resizeYHandle(BuildContext context, StackItemStatus status) {
+  Widget _resizeYHandle(
+      BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
     return _resizeHandle(context, status, style.buttonSize,
-        style.buttonSize / 3, SystemMouseCursors.resizeRow, _onResizeYUpdate);
+        style.buttonSize / 3, SystemMouseCursors.resizeRow, handle);
   }
 
   /// * Rotate handle
