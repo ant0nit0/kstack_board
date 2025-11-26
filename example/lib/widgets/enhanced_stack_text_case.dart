@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 class EnhancedStackTextCase extends StatefulWidget {
   const EnhancedStackTextCase({
@@ -72,8 +73,13 @@ class _EnhancedStackTextCaseState extends State<EnhancedStackTextCase> {
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
-          ..scale(content.flipHorizontally ? -1.0 : 1.0,
-              content.flipVertically ? -1.0 : 1.0),
+          ..scaleByVector3(
+            vm.Vector3(
+              content.flipHorizontally ? -1.0 : 1.0,
+              content.flipVertically ? -1.0 : 1.0,
+              1.0,
+            ),
+          ),
         alignment: Alignment.center,
         child: textWidget,
       );

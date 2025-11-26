@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 class StackTextCase extends StatelessWidget {
   const StackTextCase({
@@ -78,15 +79,16 @@ class StackTextCase extends StatelessWidget {
     Widget textWidget = _buildEnhancedText(content);
 
     // Apply container styling (background, border, padding)
-    if (content.backgroundColor != null || 
-        content.borderWidth > 0 || 
+    if (content.backgroundColor != null ||
+        content.borderWidth > 0 ||
         content.padding != null) {
       textWidget = Container(
         padding: content.padding ?? EdgeInsets.zero,
         decoration: BoxDecoration(
           color: content.backgroundColor,
           border: content.borderWidth > 0 && content.borderColor != null
-              ? Border.all(color: content.borderColor!, width: content.borderWidth)
+              ? Border.all(
+                  color: content.borderColor!, width: content.borderWidth)
               : null,
           borderRadius: BorderRadius.circular(4),
         ),
@@ -103,15 +105,20 @@ class StackTextCase extends StatelessWidget {
     }
 
     // Apply transformations (skew, flip)
-    if (content.skewX != 0 || content.skewY != 0 || 
-        content.flipHorizontally || content.flipVertically) {
+    if (content.skewX != 0 ||
+        content.skewY != 0 ||
+        content.flipHorizontally ||
+        content.flipVertically) {
       textWidget = Transform(
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
-          ..scale(
-            content.flipHorizontally ? -1.0 : 1.0, 
-            content.flipVertically ? -1.0 : 1.0
+          ..scaleByVector3(
+            vm.Vector3(
+              content.flipHorizontally ? -1.0 : 1.0,
+              content.flipVertically ? -1.0 : 1.0,
+              1.0,
+            ),
           ),
         alignment: Alignment.center,
         child: textWidget,
@@ -129,14 +136,16 @@ class StackTextCase extends StatelessWidget {
     // Apply arc transformation if needed
     if (content.arcDegree != 0) {
       textWidget = Transform.rotate(
-        angle: content.arcDegree * (3.14159 / 180), // Convert degrees to radians
+        angle:
+            content.arcDegree * (3.14159 / 180), // Convert degrees to radians
         child: textWidget,
       );
     }
 
     // Wrap in alignment container
     return Container(
-      alignment: _getAlignment(content.horizontalAlignment, content.verticalAlignment),
+      alignment:
+          _getAlignment(content.horizontalAlignment, content.verticalAlignment),
       child: FittedBox(child: textWidget),
     );
   }
@@ -187,8 +196,8 @@ class StackTextCase extends StatelessWidget {
       return Text(
         text,
         style: finalStyle.copyWith(
-          color: content.textColor?.withValues(alpha: content.opacity) ?? 
-                 finalStyle.color?.withValues(alpha: content.opacity),
+          color: content.textColor?.withValues(alpha: content.opacity) ??
+              finalStyle.color?.withValues(alpha: content.opacity),
         ),
         textAlign: content.textAlign ?? content.horizontalAlignment,
         textDirection: content.textDirection,

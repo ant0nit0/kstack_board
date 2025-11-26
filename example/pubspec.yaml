@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   image_picker: ^1.1.2
   image_cropper: ^7.1.0
-  google_fonts: ^6.2.1
+  google_fonts: ^6.3.2
   shimmer: ^3.0.0
   
   # Reference to the local stack_board_plus package

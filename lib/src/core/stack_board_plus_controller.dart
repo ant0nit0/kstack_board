@@ -57,6 +57,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
   Map<String, int> get _newIndexMap => Map<String, int>.from(_indexMap);
 
+  StackItem<StackItemContent>? get selectedItem => innerData.firstWhereOrNull(
+        (StackItem<StackItemContent> item) =>
+            item.status == StackItemStatus.selected,
+      );
+
   /// * get item by id
   StackItem<StackItemContent>? getById(String id) {
     if (!_indexMap.containsKey(id)) return null;

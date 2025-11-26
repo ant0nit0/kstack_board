@@ -1020,7 +1020,9 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
         decoration: BoxDecoration(
           color: _backgroundColor,
           border: _borderWidth > 0
-              ? Border.all(color: _borderColor!, width: _borderWidth)
+              ? Border.all(
+                  color: _borderColor ?? Colors.transparent,
+                  width: _borderWidth)
               : null,
           borderRadius: BorderRadius.circular(4),
         ),

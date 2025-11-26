@@ -254,8 +254,8 @@ class _HomePageState extends State<HomePage>
           ),
           IconButton(
             onPressed: () => _boardController.clear(),
-            icon: const Icon(Icons.clear_all, color: Colors.white),
-            tooltip: 'Clear All',
+            icon: const Icon(Icons.delete_forever, color: Colors.white),
+            tooltip: 'Delete All',
           ),
           const SizedBox(width: 8),
         ],
