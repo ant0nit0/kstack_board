@@ -3,6 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import '../helpers/snap_calculator.dart';
+import '../widgets/snap_guide_provider.dart';
+import '../core/snap_config.dart';
+
 // Add this import for the dialog
 /// This is the main class for the stack item case
 /// It is used to wrap the stack item and provide the functions of the stack item
@@ -30,7 +34,7 @@ class StackItemCase extends StatefulWidget {
     this.onStatusChanged,
     this.actionsBuilder,
     this.borderBuilder,
-    this.customActionsBuilder, 
+    this.customActionsBuilder,
   });
 
   /// * StackItemData
@@ -71,7 +75,9 @@ class StackItemCase extends StatefulWidget {
   /// * Border builder
   final Widget Function(StackItemStatus operatState)? borderBuilder;
 
-  final List<Widget> Function(StackItem<StackItemContent> item, BuildContext context)? customActionsBuilder; // NEW
+  final List<Widget> Function(
+          StackItem<StackItemContent> item, BuildContext context)?
+      customActionsBuilder; // NEW
 
   @override
   State<StatefulWidget> createState() {
@@ -145,11 +151,11 @@ class _StackItemCaseState extends State<StackItemCase> {
     }
 
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    
+
     // Use the widget's visual center (in global coordinates) as the pivot
     // Use the widget's visual center (in global coordinates) as the pivot
-    centerPoint = renderBox
-        .localToGlobal(Offset(renderBox.size.width / 2, renderBox.size.height / 2));
+    centerPoint = renderBox.localToGlobal(
+        Offset(renderBox.size.width / 2, renderBox.size.height / 2));
     startGlobalPoint = details.globalPosition;
     startOffset = item.offset;
     startSize = item.size;
@@ -158,6 +164,13 @@ class _StackItemCaseState extends State<StackItemCase> {
 
   /// * Drag end
   void _onPanEnd(BuildContext context, StackItemStatus status) {
+    // Clear snap guides when dragging ends
+    try {
+      context.updateSnapGuideLines(<SnapGuideLine>[]);
+    } catch (_) {
+      // Ignore if context doesn't have snap guide provider
+    }
+
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
       status = StackItemStatus.selected;
@@ -183,7 +196,54 @@ class _StackItemCaseState extends State<StackItemCase> {
 
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
-    final Offset realOffset = item.offset.translate(d.dx, d.dy);
+    Offset realOffset = item.offset.translate(d.dx, d.dy);
+
+    // Apply snap calculation if available
+    try {
+      final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+      final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+
+      // Check if snap is enabled
+      if (!snapConfig.enabled) {
+        try {
+          context.updateSnapGuideLines(<SnapGuideLine>[]);
+        } catch (_) {
+          // Ignore
+        }
+      } else {
+        final RenderBox? boardBox =
+            context.findAncestorRenderObjectOfType<RenderBox>();
+        if (boardBox != null && boardBox.hasSize) {
+          final Size boardSize = boardBox.size;
+          // Only apply snap if board has valid size
+          if (boardSize.width > 0 && boardSize.height > 0) {
+            final List<StackItem<StackItemContent>> allItems =
+                stackController.innerData;
+
+            final SnapCalculator calculator = SnapCalculator(
+              boardSize: boardSize,
+              allItems: allItems,
+              movingItemId: itemId,
+              config: snapConfig,
+            );
+
+            final SnapResult snapResult =
+                calculator.calculateSnap(realOffset, item.size);
+            realOffset = snapResult.offset;
+
+            // Update snap guide lines
+            context.updateSnapGuideLines(snapResult.guideLines);
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore if snap guide provider is not available
+      try {
+        context.updateSnapGuideLines(<SnapGuideLine>[]);
+      } catch (_) {
+        // Ignore
+      }
+    }
 
     if (!(widget.onOffsetChanged?.call(realOffset) ?? true)) return;
 
@@ -418,10 +478,13 @@ class _StackItemCaseState extends State<StackItemCase> {
     }
     return Stack(children: widgets);
   }
-  Widget _toolsCase({required BuildContext context, required StackItem<StackItemContent> item}) {
+
+  Widget _toolsCase(
+      {required BuildContext context,
+      required StackItem<StackItemContent> item}) {
     final CaseStyle style = _caseStyle(context);
     return Positioned(
-      top: -style.buttonSize * 0.1, 
+      top: -style.buttonSize * 0.1,
       left: 0,
       right: 0,
       child: Wrap(
@@ -455,9 +518,10 @@ class _StackItemCaseState extends State<StackItemCase> {
                 ),
               ),
             ),
-            // const SizedBox(width: 8), 
+            // const SizedBox(width: 8),
             // Move handle for small items
-            if ((item.size.width + item.size.height < style.buttonSize * 6 ) || (item is StackDrawItem))
+            if ((item.size.width + item.size.height < style.buttonSize * 6) ||
+                (item is StackDrawItem))
               MouseRegion(
                 cursor: SystemMouseCursors.grab,
                 child: GestureDetector(
@@ -469,27 +533,29 @@ class _StackItemCaseState extends State<StackItemCase> {
                   onPanEnd: (_) => _onPanEnd(context, item.status),
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    child: _toolCase(context, style, const Icon(Icons.open_with)),
+                    child:
+                        _toolCase(context, style, const Icon(Icons.open_with)),
                   ),
                 ),
               ),
             // const SizedBox(width: 8),
           ],
           // Delete handle (always visible)
-          if ((item.size.width + item.size.height < style.buttonSize * 6) == false)
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                widget.onDel?.call();
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4), 
-                child: _toolCase(context, style, const Icon(Icons.delete)),
+          if ((item.size.width + item.size.height < style.buttonSize * 6) ==
+              false)
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  widget.onDel?.call();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  child: _toolCase(context, style, const Icon(Icons.delete)),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -703,7 +769,6 @@ class _StackItemCaseState extends State<StackItemCase> {
             ),
     );
   }
-
 }
 
 // Enum for item types

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 import '../dialogs/text_customization_dialog.dart';
+import '../dialogs/snap_config_dialog.dart';
 import '../mixins/background_manager_mixin.dart';
 import '../mixins/stack_item_manager_mixin.dart';
 import '../models/color_stack_item.dart';
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage>
     with BackgroundManagerMixin, StackItemManagerMixin {
   late StackBoardPlusController _boardController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  SnapConfig _snapConfig = const SnapConfig();
 
   Widget _buildLayerPreview(StackItem<StackItemContent> item) {
     const double size = 36;
@@ -248,6 +250,23 @@ class _HomePageState extends State<HomePage>
             tooltip: 'Background Settings',
           ),
           IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => SnapConfigDialog(
+                  initialConfig: _snapConfig,
+                  onSave: (config) {
+                    setState(() {
+                      _snapConfig = config;
+                    });
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.grid_on, color: Colors.white),
+            tooltip: 'Snap Settings',
+          ),
+          IconButton(
             onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
             icon: const Icon(Icons.layers, color: Colors.white),
             tooltip: 'Layers',
@@ -369,6 +388,7 @@ class _HomePageState extends State<HomePage>
               elevation: backgroundElevation,
               onDel: _onDel,
               controller: _boardController,
+              snapConfig: _snapConfig,
               caseStyle: CaseStyle(
                 frameBorderColor: Colors.blue.withValues(alpha: 0.6),
                 buttonIconColor: Colors.white,

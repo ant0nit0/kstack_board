@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'widgets/snap_guide_provider.dart';
+import 'widgets/all_snap_lines_overlay.dart';
+import 'helpers/snap_calculator.dart';
+import 'core/snap_config.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
     super.key,
     required this.controller,
     this.caseStyle,
+    this.snapConfig,
+    this.snapGuideLines = const [],
     required super.child,
   });
 
   final StackBoardPlusController controller;
   final CaseStyle? caseStyle;
+  final SnapConfig? snapConfig;
+  final List<SnapGuideLine> snapGuideLines;
 
   static StackBoardPlusConfig of(BuildContext context) {
     final StackBoardPlusConfig? result =
@@ -21,7 +29,10 @@ class StackBoardPlusConfig extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant StackBoardPlusConfig oldWidget) =>
-      oldWidget.controller != controller || oldWidget.caseStyle != caseStyle;
+      oldWidget.controller != controller ||
+      oldWidget.caseStyle != caseStyle ||
+      oldWidget.snapConfig != snapConfig ||
+      oldWidget.snapGuideLines != snapGuideLines;
 }
 
 /// StackBoardPlus
@@ -41,6 +52,7 @@ class StackBoardPlus extends StatelessWidget {
     this.actionsBuilder,
     this.borderBuilder,
     this.customActionsBuilder,
+    this.snapConfig,
     this.elevation = 1.0,
   });
 
@@ -89,7 +101,12 @@ class StackBoardPlus extends StatelessWidget {
   /// * border builder
   final Widget Function(StackItemStatus operatState)? borderBuilder;
 
-  final List<Widget> Function(StackItem<StackItemContent> item, BuildContext context)? customActionsBuilder;
+  final List<Widget> Function(
+          StackItem<StackItemContent> item, BuildContext context)?
+      customActionsBuilder;
+
+  /// * Snap configuration
+  final SnapConfig? snapConfig;
 
   /// * elevation for the whole canvas container
   /// defaults to 1.0
@@ -100,29 +117,50 @@ class StackBoardPlus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StackBoardPlusConfig(
-      controller: _controller,
-      caseStyle: caseStyle,
-      child: Material(
-        elevation: elevation,
-        child: GestureDetector(
-          onTap: () => _controller.unSelectAll(),
-          behavior: HitTestBehavior.opaque,
-          child: ExBuilder<StackConfig>(
-            valueListenable: _controller,
-            shouldRebuild: (StackConfig p, StackConfig n) =>
-                p.indexMap != n.indexMap,
-            builder: (StackConfig sc) {
-              return Stack(
-                fit: StackFit.expand,
-                children: <Widget>[
-                  const SizedBox.expand(),
-                  if (background != null) background!,
-                  for (final StackItem<StackItemContent> item in sc.data)
-                    _itemBuilder(item),
-                ],
-              );
-            },
+    return SnapGuideProvider(
+      child: StackBoardPlusConfig(
+        controller: _controller,
+        caseStyle: caseStyle,
+        snapConfig: snapConfig,
+        child: Material(
+          elevation: elevation,
+          child: GestureDetector(
+            onTap: () => _controller.unSelectAll(),
+            behavior: HitTestBehavior.opaque,
+            child: ExBuilder<StackConfig>(
+              valueListenable: _controller,
+              shouldRebuild: (StackConfig p, StackConfig n) =>
+                  p.indexMap != n.indexMap,
+              builder: (StackConfig sc) {
+                return LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final Size boardSize = Size(
+                      constraints.maxWidth,
+                      constraints.maxHeight,
+                    );
+                    final SnapConfig? snapConfig =
+                        StackBoardPlusConfig.of(context).snapConfig;
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: <Widget>[
+                        const SizedBox.expand(),
+                        if (background != null) background!,
+                        // All snap lines overlay (behind items)
+                        if (snapConfig != null)
+                          AllSnapLinesOverlay(
+                            boardSize: boardSize,
+                            config: snapConfig,
+                            allItems: sc.data,
+                          ),
+                        for (final StackItem<StackItemContent> item in sc.data)
+                          _itemBuilder(item),
+                        const SnapGuideLayer(),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ),
