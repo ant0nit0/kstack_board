@@ -37,8 +37,10 @@ class ToolActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonSize = params.style.buttonStyle.size ?? 24.0;
+
     return Positioned(
-      top: -params.style.buttonSize * 0.1,
+      top: -buttonSize * 0.1,
       left: 0,
       right: 0,
       child: Wrap(
@@ -53,12 +55,12 @@ class ToolActions extends StatelessWidget {
           if (params.item.status != StackItemStatus.editing) ...[
             _buildRotateHandle(),
             if ((params.item.size.width + params.item.size.height <
-                    params.style.buttonSize * 6) ||
+                    buttonSize * 6) ||
                 (params.item is StackDrawItem))
               _buildMoveHandle(),
           ],
           if (!(params.item.size.width + params.item.size.height <
-              params.style.buttonSize * 6))
+              buttonSize * 6))
             _buildDeleteHandle(),
         ],
       ),
@@ -129,23 +131,24 @@ class _ToolButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = style.buttonStyle.size ?? 24.0;
     return Container(
-      width: style.buttonSize,
-      height: style.buttonSize,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: style.buttonBgColor,
+        color: style.buttonStyle.color ?? Colors.white,
         border: Border.all(
-          width: style.buttonBorderWidth,
-          color: style.buttonBorderColor,
+          width: style.buttonStyle.borderWidth ?? 1.0,
+          color: style.buttonStyle.borderColor ?? Colors.grey,
         ),
       ),
       child: child == null
           ? null
           : IconTheme(
               data: Theme.of(context).iconTheme.copyWith(
-                    color: style.buttonIconColor,
-                    size: style.buttonSize * 0.6,
+                    color: style.buttonStyle.iconColor ?? Colors.grey,
+                    size: size * 0.6,
                   ),
               child: child!,
             ),

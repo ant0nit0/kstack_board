@@ -118,8 +118,10 @@ class _StackItemCaseState extends State<StackItemCase>
       const CaseStyle();
 
   @override
-  double getMinSize(BuildContext context) =>
-      widget.minItemSize ?? _caseStyle(context).buttonSize * 2;
+  double getMinSize(BuildContext context) {
+    final double buttonSize = _caseStyle(context).buttonStyle.size ?? 24.0;
+    return widget.minItemSize ?? buttonSize * 2;
+  }
 
   /// * Main body mouse pointer style
   MouseCursor _cursor(StackItemStatus status) {
@@ -161,6 +163,7 @@ class _StackItemCaseState extends State<StackItemCase>
               p.size != n.size ||
               p.status != n.status,
       childBuilder: (StackItem<StackItemContent> item, Widget c) {
+        final double buttonSize = _caseStyle(context).buttonStyle.size ?? 24.0;
         return Positioned(
           key: ValueKey<String>(item.id),
           top: item.offset.dy,
@@ -168,12 +171,10 @@ class _StackItemCaseState extends State<StackItemCase>
           child: Transform.translate(
             offset: Offset(
                 -item.size.width / 2 -
-                    (item.status != StackItemStatus.idle
-                        ? _caseStyle(context).buttonSize / 2
-                        : 0),
+                    (item.status != StackItemStatus.idle ? buttonSize / 2 : 0),
                 -item.size.height / 2 -
                     (item.status != StackItemStatus.idle
-                        ? _caseStyle(context).buttonSize * 1.5
+                        ? buttonSize * 1.5
                         : 0)),
             child: Transform.rotate(angle: item.angle, child: c),
           ),
@@ -218,20 +219,21 @@ class _StackItemCaseState extends State<StackItemCase>
     widgets.add(widget.borderBuilder?.call(item.status) ??
         _frameBorder(context, item.status));
 
-    final double scaleHandleSize = style.scaleHandleSize ?? style.buttonSize;
-    final double resizeHandleSize = style.resizeHandleSize ?? style.buttonSize;
+    final double buttonSize = style.buttonStyle.size ?? 24.0;
+    final double scaleHandleSize = style.scaleHandleStyle?.size ?? buttonSize;
+    final double resizeHandleSize = style.resizeHandleStyle?.size ?? buttonSize;
 
     // The content has a padding of buttonSize/2 on left/right and buttonSize*1.5 on top/bottom
     // We need to align handles with the border which is at:
-    // top: style.buttonSize * 1.5
-    // bottom: style.buttonSize * 1.5
-    // left: style.buttonSize / 2
-    // right: style.buttonSize / 2
+    // top: buttonSize * 1.5
+    // bottom: buttonSize * 1.5
+    // left: buttonSize / 2
+    // right: buttonSize / 2
 
-    final double topBorder = style.buttonSize * 1.5;
-    final double bottomBorder = style.buttonSize * 1.5;
-    final double leftBorder = style.buttonSize / 2;
-    final double rightBorder = style.buttonSize / 2;
+    final double topBorder = buttonSize * 1.5;
+    final double bottomBorder = buttonSize * 1.5;
+    final double leftBorder = buttonSize / 2;
+    final double rightBorder = buttonSize / 2;
 
     if (widget.actionsBuilder != null) {
       widgets.add(widget.actionsBuilder!(item.status, _caseStyle(context)));
@@ -343,6 +345,7 @@ class _StackItemCaseState extends State<StackItemCase>
   /// * Child component
   Widget _content(BuildContext context, StackItem<StackItemContent> item) {
     final CaseStyle style = _caseStyle(context);
+    final double buttonSize = style.buttonStyle.size ?? 24.0;
 
     final Widget content =
         widget.childBuilder?.call(item) ?? const SizedBox.shrink();
@@ -356,11 +359,8 @@ class _StackItemCaseState extends State<StackItemCase>
         return Padding(
             padding: item.status == StackItemStatus.idle
                 ? EdgeInsets.zero
-                : EdgeInsets.fromLTRB(
-                    style.buttonSize / 2,
-                    style.buttonSize * 1.5,
-                    style.buttonSize / 2,
-                    style.buttonSize * 1.5),
+                : EdgeInsets.fromLTRB(buttonSize / 2, buttonSize * 1.5,
+                    buttonSize / 2, buttonSize * 1.5),
             child: SizedBox.fromSize(size: item.size, child: c));
       },
       child: content,
@@ -370,14 +370,15 @@ class _StackItemCaseState extends State<StackItemCase>
   /// * Border
   Widget _frameBorder(BuildContext context, StackItemStatus status) {
     final CaseStyle style = _caseStyle(context);
+    final double buttonSize = style.buttonStyle.size ?? 24.0;
 
     if (status == StackItemStatus.idle) return const SizedBox.shrink();
 
     return Positioned(
-        top: style.buttonSize * 1.5,
-        bottom: style.buttonSize * 1.5,
-        left: style.buttonSize / 2,
-        right: style.buttonSize / 2,
+        top: buttonSize * 1.5,
+        bottom: buttonSize * 1.5,
+        left: buttonSize / 2,
+        right: buttonSize / 2,
         child: IgnorePointer(
           ignoring: true,
           child: style.isFrameDashed
@@ -403,6 +404,7 @@ class _StackItemCaseState extends State<StackItemCase>
   /// * Delete handle
   Widget _buildDeleteHandle(BuildContext context) {
     final CaseStyle style = _caseStyle(context);
+    final double buttonSize = style.buttonStyle.size ?? 24.0;
 
     return Positioned(
       left: 0,
@@ -413,20 +415,20 @@ class _StackItemCaseState extends State<StackItemCase>
         child: GestureDetector(
           onTap: () => widget.onDel?.call(),
           child: Container(
-            width: style.buttonSize,
-            height: style.buttonSize,
+            width: buttonSize,
+            height: buttonSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: style.buttonBgColor,
+              color: style.buttonStyle.color ?? Colors.white,
               border: Border.all(
-                width: style.buttonBorderWidth,
-                color: style.buttonBorderColor,
+                width: style.buttonStyle.borderWidth ?? 1.0,
+                color: style.buttonStyle.borderColor ?? Colors.grey,
               ),
             ),
             child: IconTheme(
               data: Theme.of(context).iconTheme.copyWith(
-                    color: style.buttonIconColor,
-                    size: style.buttonSize * 0.6,
+                    color: style.buttonStyle.iconColor ?? Colors.grey,
+                    size: buttonSize * 0.6,
                   ),
               child: const Icon(Icons.delete),
             ),
@@ -453,7 +455,8 @@ class _StackItemCaseState extends State<StackItemCase>
   Widget _buildResizeXHandle(
       BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
-    final double size = style.resizeHandleSize ?? style.buttonSize;
+    final double size =
+        style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
     return ResizeHandle(
       onPanStart: (d) => onPanStart(d, context, StackItemStatus.resizing),
       onPanUpdate: (d) => onResizeUpdate(d, context, status, handle),
@@ -468,7 +471,8 @@ class _StackItemCaseState extends State<StackItemCase>
   Widget _buildResizeYHandle(
       BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
-    final double size = style.resizeHandleSize ?? style.buttonSize;
+    final double size =
+        style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
     return ResizeHandle(
       onPanStart: (d) => onPanStart(d, context, StackItemStatus.resizing),
       onPanUpdate: (d) => onResizeUpdate(d, context, status, handle),

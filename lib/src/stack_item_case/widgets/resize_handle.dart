@@ -23,6 +23,9 @@ class ResizeHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // width/height passed here are usually the handle size logic from parent.
+    // But the style of the handle itself (container) comes from caseStyle.
+
     return Center(
       child: MouseRegion(
         cursor: cursor,
@@ -39,14 +42,17 @@ class ResizeHandle extends StatelessWidget {
                 width: width,
                 height: height,
                 decoration: BoxDecoration(
-                  color:
-                      caseStyle.resizeHandleBgColor ?? caseStyle.buttonBgColor,
+                  color: caseStyle.resizeHandleStyle?.color ??
+                      caseStyle.buttonStyle.color,
                   border: Border.all(
-                    width: caseStyle.buttonBorderWidth,
-                    color: caseStyle.resizeHandleBorderColor ??
-                        caseStyle.buttonBorderColor,
+                    width: caseStyle.resizeHandleStyle?.borderWidth ??
+                        caseStyle.buttonStyle.borderWidth ??
+                        1.0,
+                    color: caseStyle.resizeHandleStyle?.borderColor ??
+                        caseStyle.buttonStyle.borderColor ??
+                        Colors.grey,
                   ),
-                  borderRadius: BorderRadius.circular(caseStyle.buttonSize),
+                  borderRadius: BorderRadius.circular(width),
                 ),
               ),
             ),

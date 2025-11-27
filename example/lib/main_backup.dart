@@ -466,11 +466,13 @@ class _HomePageState extends State<HomePage> {
           controller: _boardController,
           caseStyle: CaseStyle(
             frameBorderColor: Colors.blue.withValues(alpha: 0.6),
-            buttonIconColor: Colors.white,
-            buttonBgColor: Colors.blue,
-            buttonBorderColor: Colors.blue[700]!,
             frameBorderWidth: 2,
-            buttonSize: 32,
+            buttonStyle: HandleStyle(
+              color: Colors.blue,
+              borderColor: Colors.blue[700]!,
+              iconColor: Colors.white,
+              size: 32,
+            ),
           ),
           background: _buildBackground(),
           customBuilder: (StackItem<StackItemContent> item) {

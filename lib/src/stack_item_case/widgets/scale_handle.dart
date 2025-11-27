@@ -21,7 +21,8 @@ class ScaleHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = caseStyle.scaleHandleSize ?? caseStyle.buttonSize;
+    final size =
+        caseStyle.scaleHandleStyle?.size ?? caseStyle.buttonStyle.size ?? 24.0;
 
     return MouseRegion(
       cursor: cursor,
@@ -34,19 +35,22 @@ class ScaleHandle extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: caseStyle.scaleHandleBgColor ?? caseStyle.buttonBgColor,
+            color: caseStyle.scaleHandleStyle?.color ??
+                caseStyle.buttonStyle.color,
             border: Border.all(
-              width: caseStyle.buttonBorderWidth,
-              color: caseStyle.scaleHandleBorderColor ??
-                  caseStyle.buttonBorderColor,
+              width: caseStyle.scaleHandleStyle?.borderWidth ??
+                  caseStyle.buttonStyle.borderWidth ??
+                  1.0,
+              color: caseStyle.scaleHandleStyle?.borderColor ??
+                  caseStyle.buttonStyle.borderColor ??
+                  Colors.grey,
             ),
           ),
           child: icon == null
               ? null
               : IconTheme(
                   data: Theme.of(context).iconTheme.copyWith(
-                        color: caseStyle.scaleHandleIconColor ??
-                            caseStyle.buttonIconColor,
+                        color: caseStyle.buttonStyle.iconColor,
                         size: size * 0.6,
                       ),
                   child: icon!,

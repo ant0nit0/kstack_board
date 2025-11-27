@@ -15,7 +15,8 @@ class StackItemActionHelper {
     StackItem<StackItemContent> item,
     CaseStyle style,
   ) {
-    return (item.size.width + item.size.height < style.buttonSize * 6) == false;
+    final buttonSize = style.buttonStyle.size ?? 24.0;
+    return (item.size.width + item.size.height < buttonSize * 6) == false;
   }
 
   /// Build custom actions that can be integrated into the toolbar
@@ -43,23 +44,24 @@ class StackItemActionHelper {
     CaseStyle style, 
     Widget? child
   ) {
+    final buttonSize = style.buttonStyle.size ?? 24.0;
     return Container(
-      width: style.buttonSize,
-      height: style.buttonSize,
+      width: buttonSize,
+      height: buttonSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: style.buttonBgColor,
+        color: style.buttonStyle.color ?? Colors.white,
         border: Border.all(
-          width: style.buttonBorderWidth, 
-          color: style.buttonBorderColor
+          width: style.buttonStyle.borderWidth ?? 1.0, 
+          color: style.buttonStyle.borderColor ?? Colors.grey,
         )
       ),
       child: child == null
           ? null
           : IconTheme(
               data: Theme.of(context).iconTheme.copyWith(
-                color: style.buttonIconColor,
-                size: style.buttonSize * 0.6,
+                color: style.buttonStyle.iconColor ?? Colors.grey,
+                size: buttonSize * 0.6,
               ),
               child: child,
             ),
