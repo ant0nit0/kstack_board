@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import 'widgets/snap_guide_provider.dart';
 import 'widgets/all_snap_lines_overlay.dart';
-import 'core/rotation_snap_config.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
@@ -57,6 +56,7 @@ class StackBoardPlus extends StatelessWidget {
     this.snapConfig,
     this.rotationSnapConfig,
     this.elevation = 1.0,
+    this.minItemSize,
   });
 
   final StackBoardPlusController? controller;
@@ -117,6 +117,10 @@ class StackBoardPlus extends StatelessWidget {
   /// * elevation for the whole canvas container
   /// defaults to 1.0
   final double elevation;
+
+  /// * minimum item size
+  /// defaults to 2 * caseStyle.buttonSize
+  final double? minItemSize;
 
   StackBoardPlusController get _controller =>
       controller ?? StackBoardPlusController.def();

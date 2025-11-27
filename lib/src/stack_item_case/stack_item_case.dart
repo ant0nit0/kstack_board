@@ -35,6 +35,7 @@ class StackItemCase extends StatefulWidget {
     this.actionsBuilder,
     this.borderBuilder,
     this.customActionsBuilder,
+    this.minItemSize,
   });
 
   /// * StackItemData
@@ -79,6 +80,9 @@ class StackItemCase extends StatefulWidget {
           StackItem<StackItemContent> item, BuildContext context)?
       customActionsBuilder;
 
+  /// * Minimum item size
+  final double? minItemSize;
+
   @override
   State<StatefulWidget> createState() {
     return _StackItemCaseState();
@@ -114,7 +118,8 @@ class _StackItemCaseState extends State<StackItemCase>
       const CaseStyle();
 
   @override
-  double getMinSize(BuildContext context) => _caseStyle(context).buttonSize * 2;
+  double getMinSize(BuildContext context) =>
+      widget.minItemSize ?? _caseStyle(context).buttonSize * 2;
 
   /// * Main body mouse pointer style
   MouseCursor _cursor(StackItemStatus status) {
