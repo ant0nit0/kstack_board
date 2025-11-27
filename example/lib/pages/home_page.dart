@@ -417,6 +417,9 @@ class _HomePageState extends State<HomePage>
                 scaleHandleBgColor: Colors.white,
                 scaleHandleBorderColor: Colors.blue[700]!,
                 resizeHandleBgColor: Colors.blue[700]!,
+                isFrameDashed: true,
+                dashWidth: 10,
+                dashGap: 10,
               ),
               background: buildBackground(),
               customBuilder: (StackItem<StackItemContent> item) {

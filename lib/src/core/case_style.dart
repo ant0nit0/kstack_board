@@ -13,6 +13,9 @@ class CaseStyle {
     this.boxAspectRatio,
     this.frameBorderColor = Colors.purple,
     this.frameBorderWidth = 2,
+    this.isFrameDashed = false,
+    this.dashWidth = 5.0,
+    this.dashGap = 3.0,
     this.scaleHandleBgColor,
     this.scaleHandleBorderColor,
     this.scaleHandleIconColor,
@@ -33,6 +36,9 @@ class CaseStyle {
     final double? boxAspectRatio = asNullT<double>(json['boxAspectRatio']);
     final Color? frameBorderColor = asNullT<Color>(json['frameBorderColor']);
     final double? frameBorderWidth = asNullT<double>(json['frameBorderWidth']);
+    final bool? isFrameDashed = asNullT<bool>(json['isFrameDashed']);
+    final double? dashWidth = asNullT<double>(json['dashWidth']);
+    final double? dashGap = asNullT<double>(json['dashGap']);
     final Color? scaleHandleBgColor =
         asNullT<Color>(json['scaleHandleBgColor']);
     final Color? scaleHandleBorderColor =
@@ -56,6 +62,9 @@ class CaseStyle {
       boxAspectRatio: boxAspectRatio,
       frameBorderColor: frameBorderColor ?? Colors.purple,
       frameBorderWidth: frameBorderWidth ?? 2,
+      isFrameDashed: isFrameDashed ?? false,
+      dashWidth: dashWidth ?? 5.0,
+      dashGap: dashGap ?? 3.0,
       scaleHandleBgColor: scaleHandleBgColor,
       scaleHandleBorderColor: scaleHandleBorderColor,
       scaleHandleIconColor: scaleHandleIconColor,
@@ -87,6 +96,15 @@ class CaseStyle {
 
   /// * Frame border thickness
   final double frameBorderWidth;
+
+  /// * Whether the frame border should be dashed
+  final bool isFrameDashed;
+
+  /// * Width of each dash (only used if isFrameDashed is true)
+  final double dashWidth;
+
+  /// * Gap between dashes (only used if isFrameDashed is true)
+  final double dashGap;
 
   /// * if(boxAspectRatio!=null)
   /// * Border ratio
@@ -127,6 +145,9 @@ class CaseStyle {
         'boxAspectRatio': boxAspectRatio,
         'frameBorderColor': frameBorderColor,
         'frameBorderWidth': frameBorderWidth,
+        'isFrameDashed': isFrameDashed,
+        'dashWidth': dashWidth,
+        'dashGap': dashGap,
         'scaleHandleBgColor': scaleHandleBgColor,
         'scaleHandleBorderColor': scaleHandleBorderColor,
         'scaleHandleIconColor': scaleHandleIconColor,
@@ -147,6 +168,9 @@ class CaseStyle {
       boxAspectRatio,
       frameBorderColor,
       frameBorderWidth,
+      isFrameDashed,
+      dashWidth,
+      dashGap,
       scaleHandleBgColor,
       scaleHandleBorderColor,
       scaleHandleIconColor,
@@ -169,6 +193,9 @@ class CaseStyle {
           boxAspectRatio == other.boxAspectRatio &&
           frameBorderColor == other.frameBorderColor &&
           frameBorderWidth == other.frameBorderWidth &&
+          isFrameDashed == other.isFrameDashed &&
+          dashWidth == other.dashWidth &&
+          dashGap == other.dashGap &&
           scaleHandleBgColor == other.scaleHandleBgColor &&
           scaleHandleBorderColor == other.scaleHandleBorderColor &&
           scaleHandleIconColor == other.scaleHandleIconColor &&

@@ -6,6 +6,7 @@ import 'stack_item_gestures_mixin.dart';
 import 'widgets/scale_handle.dart';
 import 'widgets/resize_handle.dart';
 import 'widgets/tool_actions.dart';
+import 'widgets/dashed_border.dart';
 
 /// This is the main class for the stack item case
 /// It is used to wrap the stack item and provide the functions of the stack item
@@ -365,6 +366,8 @@ class _StackItemCaseState extends State<StackItemCase>
   Widget _frameBorder(BuildContext context, StackItemStatus status) {
     final CaseStyle style = _caseStyle(context);
 
+    if (status == StackItemStatus.idle) return const SizedBox.shrink();
+
     return Positioned(
         top: style.buttonSize * 1.5,
         bottom: style.buttonSize * 1.5,
@@ -372,16 +375,23 @@ class _StackItemCaseState extends State<StackItemCase>
         right: style.buttonSize / 2,
         child: IgnorePointer(
           ignoring: true,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: status == StackItemStatus.idle
-                    ? Colors.transparent
-                    : style.frameBorderColor,
-                width: style.frameBorderWidth,
-              ),
-            ),
-          ),
+          child: style.isFrameDashed
+              ? CustomPaint(
+                  painter: DashedRectPainter(
+                    color: style.frameBorderColor,
+                    strokeWidth: style.frameBorderWidth,
+                    dashWidth: style.dashWidth,
+                    gap: style.dashGap,
+                  ),
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: style.frameBorderColor,
+                      width: style.frameBorderWidth,
+                    ),
+                  ),
+                ),
         ));
   }
 
