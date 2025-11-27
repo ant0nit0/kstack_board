@@ -182,6 +182,7 @@ class StackBoardPlus extends StatelessWidget {
     return StackItemCase(
       key: ValueKey<String>(item.id),
       stackItem: item,
+      minItemSize: minItemSize,
       childBuilder: customBuilder,
       caseStyle: caseStyle,
       onDel: () => onDel?.call(item),

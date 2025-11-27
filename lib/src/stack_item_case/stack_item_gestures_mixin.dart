@@ -171,10 +171,16 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final Offset anchorGlobal = startOffset + Offset(anchorDx, anchorDy);
 
     final double distStart = (startGlobalPoint - anchorGlobal).distance;
-    final double distCurr = (dud.globalPosition - anchorGlobal).distance;
-
     if (distStart == 0) return;
-    double scale = distCurr / distStart;
+
+    final Offset vStart = startGlobalPoint - anchorGlobal;
+    final Offset vCurr = dud.globalPosition - anchorGlobal;
+    final double dot = vCurr.dx * vStart.dx + vCurr.dy * vStart.dy;
+
+    double scale = 0;
+    if (dot > 0) {
+      scale = dot / (distStart * distStart);
+    }
 
     double newWidth = startSize.width * scale;
     double newHeight = startSize.height * scale;
@@ -195,6 +201,11 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
+
+    debugPrint('newSize: $newSize');
+    debugPrint('newOffset: $newOffset');
+
+    debugPrint('min size: $minSize');
 
     controller.updateBasic(itemId, size: newSize, offset: newOffset);
   }
@@ -263,6 +274,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
+
+    debugPrint('newSize: $newSize');
+    debugPrint('newOffset: $newOffset');
+    debugPrint('min size: $minSize');
 
     controller.updateBasic(itemId, size: newSize, offset: newOffset);
   }

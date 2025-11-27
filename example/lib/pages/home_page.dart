@@ -421,7 +421,7 @@ class _HomePageState extends State<HomePage>
                 dashWidth: 10,
                 dashGap: 10,
               ),
-              minItemSize: 4,
+              minItemSize: 20,
               background: buildBackground(),
               customBuilder: (StackItem<StackItemContent> item) {
                 if (item is StackTextItem) {
