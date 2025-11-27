@@ -212,51 +212,73 @@ class _StackItemCaseState extends State<StackItemCase>
     widgets.add(widget.borderBuilder?.call(item.status) ??
         _frameBorder(context, item.status));
 
+    final double scaleHandleSize = style.scaleHandleSize ?? style.buttonSize;
+    final double resizeHandleSize = style.resizeHandleSize ?? style.buttonSize;
+
+    // The content has a padding of buttonSize/2 on left/right and buttonSize*1.5 on top/bottom
+    // We need to align handles with the border which is at:
+    // top: style.buttonSize * 1.5
+    // bottom: style.buttonSize * 1.5
+    // left: style.buttonSize / 2
+    // right: style.buttonSize / 2
+
+    final double topBorder = style.buttonSize * 1.5;
+    final double bottomBorder = style.buttonSize * 1.5;
+    final double leftBorder = style.buttonSize / 2;
+    final double rightBorder = style.buttonSize / 2;
+
     if (widget.actionsBuilder != null) {
       widgets.add(widget.actionsBuilder!(item.status, _caseStyle(context)));
     } else if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.idle) {
         if (item.size.height > getMinSize(context) * 2) {
           widgets.add(Positioned(
-              bottom: style.buttonSize,
-              right: 0,
-              top: style.buttonSize,
+              bottom: bottomBorder - resizeHandleSize / 2,
+              right: rightBorder - resizeHandleSize * 1.5, // width is size/3
+              top: topBorder - resizeHandleSize / 2,
               child: _buildResizeXHandle(
                   context, item.status, HandlePosition.right)));
           widgets.add(Positioned(
-              bottom: style.buttonSize,
-              left: 0,
-              top: style.buttonSize,
+              bottom: bottomBorder - resizeHandleSize / 2,
+              left: leftBorder - resizeHandleSize * 1.5, // width is size/3
+              top: topBorder - resizeHandleSize / 2,
               child: _buildResizeXHandle(
                   context, item.status, HandlePosition.left)));
         }
         if (item.size.width > getMinSize(context) * 2) {
           widgets.add(Positioned(
-              left: 0,
-              top: style.buttonSize,
-              right: 0,
+              left: leftBorder - resizeHandleSize / 2,
+              top: topBorder - resizeHandleSize * 1.5, // height is size/3
+              right: rightBorder - resizeHandleSize / 2,
               child: _buildResizeYHandle(
                   context, item.status, HandlePosition.top)));
           widgets.add(Positioned(
-              left: 0,
-              bottom: style.buttonSize,
-              right: 0,
+              left: leftBorder - resizeHandleSize / 2,
+              bottom: bottomBorder - resizeHandleSize * 1.5, // height is size/3
+              right: rightBorder - resizeHandleSize / 2,
               child: _buildResizeYHandle(
                   context, item.status, HandlePosition.bottom)));
         }
+
+        final double scaleHandleOffsetTop = topBorder - scaleHandleSize / 2;
+        final double scaleHandleOffsetBottom =
+            bottomBorder - scaleHandleSize / 2;
+        final double scaleHandleOffsetLeft = leftBorder - scaleHandleSize / 2;
+        final double scaleHandleOffsetRight = rightBorder - scaleHandleSize / 2;
+
         if (item.size.height > getMinSize(context) &&
             item.size.width > getMinSize(context)) {
           widgets.add(Positioned(
-              top: style.buttonSize,
-              right: 0,
+              top: scaleHandleOffsetTop,
+              right: scaleHandleOffsetRight,
               child: _buildScaleHandle(
                   context,
                   item.status,
                   SystemMouseCursors.resizeUpRightDownLeft,
                   HandlePosition.topRight)));
           widgets.add(Positioned(
-              bottom: style.buttonSize,
-              left: 0,
+              bottom: scaleHandleOffsetBottom,
+              left: scaleHandleOffsetLeft,
               child: _buildScaleHandle(
                   context,
                   item.status,
@@ -264,37 +286,39 @@ class _StackItemCaseState extends State<StackItemCase>
                   HandlePosition.bottomLeft)));
         }
         widgets.addAll(<Widget>[
-          if (item.status == StackItemStatus.editing)
-            _buildDeleteHandle(context)
-          else
-            ToolActions(
-              params: ToolActionParams(
-                item: item,
-                context: context,
-                style: style,
-                customActionsBuilder: widget.customActionsBuilder,
-                onDel: widget.onDel,
-                onRotateStart: (d) =>
-                    onPanStart(d, context, StackItemStatus.roating),
-                onRotateUpdate: (d) => onRotateUpdate(d, context, item.status),
-                onRotateEnd: (_) => onPanEnd(context, item.status),
-                onMoveStart: (d) =>
-                    onPanStart(d, context, StackItemStatus.moving),
-                onMoveUpdate: (d) => onPanUpdate(d, context),
-                onMoveEnd: (_) => onPanEnd(context, item.status),
+          if (style.showHelperButtons)
+            if (item.status == StackItemStatus.editing)
+              _buildDeleteHandle(context)
+            else
+              ToolActions(
+                params: ToolActionParams(
+                  item: item,
+                  context: context,
+                  style: style,
+                  customActionsBuilder: widget.customActionsBuilder,
+                  onDel: widget.onDel,
+                  onRotateStart: (d) =>
+                      onPanStart(d, context, StackItemStatus.roating),
+                  onRotateUpdate: (d) =>
+                      onRotateUpdate(d, context, item.status),
+                  onRotateEnd: (_) => onPanEnd(context, item.status),
+                  onMoveStart: (d) =>
+                      onPanStart(d, context, StackItemStatus.moving),
+                  onMoveUpdate: (d) => onPanUpdate(d, context),
+                  onMoveEnd: (_) => onPanEnd(context, item.status),
+                ),
               ),
-            ),
           Positioned(
-              top: style.buttonSize,
-              left: 0,
+              top: scaleHandleOffsetTop,
+              left: scaleHandleOffsetLeft,
               child: _buildScaleHandle(
                   context,
                   item.status,
                   SystemMouseCursors.resizeUpLeftDownRight,
                   HandlePosition.topLeft)),
           Positioned(
-              bottom: style.buttonSize,
-              right: 0,
+              bottom: scaleHandleOffsetBottom,
+              right: scaleHandleOffsetRight,
               child: _buildScaleHandle(
                   context,
                   item.status,
@@ -303,7 +327,9 @@ class _StackItemCaseState extends State<StackItemCase>
         ]);
       }
     } else {
-      widgets.add(_buildDeleteHandle(context));
+      if (style.showHelperButtons) {
+        widgets.add(_buildDeleteHandle(context));
+      }
     }
     return Stack(children: widgets);
   }
@@ -412,28 +438,30 @@ class _StackItemCaseState extends State<StackItemCase>
   Widget _buildResizeXHandle(
       BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
+    final double size = style.resizeHandleSize ?? style.buttonSize;
     return ResizeHandle(
       onPanStart: (d) => onPanStart(d, context, StackItemStatus.resizing),
       onPanUpdate: (d) => onResizeUpdate(d, context, status, handle),
       onPanEnd: (_) => onPanEnd(context, status),
       cursor: SystemMouseCursors.resizeColumn,
       caseStyle: style,
-      width: style.buttonSize / 3,
-      height: style.buttonSize,
+      width: size,
+      height: size,
     );
   }
 
   Widget _buildResizeYHandle(
       BuildContext context, StackItemStatus status, HandlePosition handle) {
     final CaseStyle style = _caseStyle(context);
+    final double size = style.resizeHandleSize ?? style.buttonSize;
     return ResizeHandle(
       onPanStart: (d) => onPanStart(d, context, StackItemStatus.resizing),
       onPanUpdate: (d) => onResizeUpdate(d, context, status, handle),
       onPanEnd: (_) => onPanEnd(context, status),
       cursor: SystemMouseCursors.resizeRow,
       caseStyle: style,
-      width: style.buttonSize,
-      height: style.buttonSize / 3,
+      width: size,
+      height: size,
     );
   }
 }

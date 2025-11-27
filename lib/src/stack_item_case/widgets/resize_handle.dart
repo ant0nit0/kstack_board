@@ -39,10 +39,12 @@ class ResizeHandle extends StatelessWidget {
                 width: width,
                 height: height,
                 decoration: BoxDecoration(
-                  color: caseStyle.buttonBgColor,
+                  color:
+                      caseStyle.resizeHandleBgColor ?? caseStyle.buttonBgColor,
                   border: Border.all(
                     width: caseStyle.buttonBorderWidth,
-                    color: caseStyle.buttonBorderColor,
+                    color: caseStyle.resizeHandleBorderColor ??
+                        caseStyle.buttonBorderColor,
                   ),
                   borderRadius: BorderRadius.circular(caseStyle.buttonSize),
                 ),

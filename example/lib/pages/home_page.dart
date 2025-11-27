@@ -411,7 +411,12 @@ class _HomePageState extends State<HomePage>
                 buttonBgColor: Colors.blue,
                 buttonBorderColor: Colors.blue[700]!,
                 frameBorderWidth: 2,
-                buttonSize: 32,
+                showHelperButtons: false,
+                scaleHandleSize: 12,
+                resizeHandleSize: 8,
+                scaleHandleBgColor: Colors.white,
+                scaleHandleBorderColor: Colors.blue[700]!,
+                resizeHandleBgColor: Colors.blue[700]!,
               ),
               background: buildBackground(),
               customBuilder: (StackItem<StackItemContent> item) {
