@@ -143,10 +143,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       item.copyWith(
         status: status ?? item.status,
         offset: offset ??
-            Offset(
-              40 + item.size.width / 2,
-              40 + item.size.height / 2,
-            ),
+            (item.offset == Offset.zero
+                ? Offset(
+                    40 + item.size.width / 2,
+                    40 + item.size.height / 2,
+                  )
+                : item.offset),
       ),
     );
 
