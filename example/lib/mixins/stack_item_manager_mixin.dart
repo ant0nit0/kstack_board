@@ -22,6 +22,7 @@ mixin StackItemManagerMixin {
           data: 'Sample Text',
         ),
       ),
+      offset: Offset(300, 40),
     );
   }
 
@@ -327,7 +328,7 @@ mixin StackItemManagerMixin {
       // onInteractionUpdate: (details) => print('Scale update: ${details.scale}'),
       // onInteractionEnd: (details) => print('Scale end: ${details.velocity}'),
     );
-    boardController.addItem(drawItem);
+    boardController.addItem(drawItem, status: StackItemStatus.editing);
   }
 
   void _showAlertDialog(

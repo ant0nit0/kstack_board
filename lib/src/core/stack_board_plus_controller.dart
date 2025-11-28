@@ -89,8 +89,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
   }
 
   /// * add item
-  void addItem(StackItem<StackItemContent> item,
-      {bool selectIt = false, Offset? offset}) {
+  /// If status is provided, the item will be added with the status
+  /// If offset is provided, the item will be added with the offset
+  void addItem(
+    StackItem<StackItemContent> item, {
+    StackItemStatus? status,
+    Offset? offset,
+  }) {
     if (innerData.contains(item)) {
       print('StackBoardController addItem: item already exists');
       return;
@@ -100,9 +105,9 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
         List<StackItem<StackItemContent>>.from(innerData);
 
     // Initial offset
-    final double baseOffset = offset?.dx ?? 50;
-    final double deltaOffset = offset?.dy ?? 10;
-    double deltaOffsetMultiplicator = 1;
+    // final double baseOffset = offset?.dx ?? 50;
+    // final double deltaOffset = offset?.dy ?? 10;
+    // double deltaOffsetMultiplicator = 1;
 
     // Set items status to idle
     data.asMap().forEach((int index, StackItem<StackItemContent> item) {
@@ -110,30 +115,40 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     });
 
     // If the item has no offset, calculate the offset in order to prevent overlapping
-    if (item.offset == Offset.zero) {
-      for (final StackItem<StackItemContent> item in data) {
-        if (item.offset.dx -
-                    (item.size.width / 2) -
-                    item.offset.dy -
-                    (item.size.height / 2) <
-                10 &&
-            (item.offset.dx - item.size.width / 2) % deltaOffset < 10) {
-          deltaOffsetMultiplicator =
-              ((item.offset.dx - (item.size.width / 2)) / deltaOffset) + 1;
-        }
-      }
+    // if (item.offset == Offset.zero) {
+    //   for (final StackItem<StackItemContent> item in data) {
+    //     if (item.offset.dx -
+    //                 (item.size.width / 2) -
+    //                 item.offset.dy -
+    //                 (item.size.height / 2) <
+    //             10 &&
+    //         (item.offset.dx - item.size.width / 2) % deltaOffset < 10) {
+    //       deltaOffsetMultiplicator =
+    //           ((item.offset.dx - (item.size.width / 2)) / deltaOffset) + 1;
+    //     }
+    //   }
 
-      data.add(item.copyWith(
-          offset: Offset(
-              item.size.width / 2 +
-                  baseOffset +
-                  deltaOffsetMultiplicator * deltaOffset,
-              item.size.height / 2 +
-                  baseOffset +
-                  deltaOffsetMultiplicator * deltaOffset)));
-    } else {
-      data.add(item);
-    }
+    //   data.add(item.copyWith(
+    //       offset: Offset(
+    //           item.size.width / 2 +
+    //               baseOffset +
+    //               deltaOffsetMultiplicator * deltaOffset,
+    //           item.size.height / 2 +
+    //               baseOffset +
+    //               deltaOffsetMultiplicator * deltaOffset)));
+    // } else {
+    //   data.add(item);
+    // }
+    data.add(
+      item.copyWith(
+        status: status ?? item.status,
+        offset: offset ??
+            Offset(
+              40 + item.size.width / 2,
+              40 + item.size.height / 2,
+            ),
+      ),
+    );
 
     _indexMap[item.id] = data.length - 1;
 
