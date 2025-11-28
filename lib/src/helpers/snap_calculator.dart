@@ -88,8 +88,8 @@ class SnapCalculator {
     final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
 
     // Get all potential snap points
-    final List<SnapPoint> horizontalSnaps = _getHorizontalSnapPoints(itemSize);
-    final List<SnapPoint> verticalSnaps = _getVerticalSnapPoints(itemSize);
+    final List<SnapPoint> horizontalSnaps = getHorizontalSnapPoints(itemSize);
+    final List<SnapPoint> verticalSnaps = getVerticalSnapPoints(itemSize);
 
     // Calculate item edges in global coordinates
     final double itemLeft = currentOffset.dx - itemSize.width / 2;
@@ -188,8 +188,23 @@ class SnapCalculator {
     );
   }
 
+  /// Check if a value snaps to any of the points
+  SnapPoint? checkSnap(double value, List<SnapPoint> snapPoints) {
+    SnapPoint? nearest;
+    double minDistance = double.infinity;
+
+    for (final SnapPoint snap in snapPoints) {
+      final double distance = (value - snap.position).abs();
+      if (distance < config.snapThreshold && distance < minDistance) {
+        minDistance = distance;
+        nearest = snap;
+      }
+    }
+    return nearest;
+  }
+
   /// Get all horizontal snap points (vertical lines)
-  List<SnapPoint> _getHorizontalSnapPoints(Size itemSize) {
+  List<SnapPoint> getHorizontalSnapPoints(Size itemSize) {
     final List<SnapPoint> snaps = <SnapPoint>[];
 
     // Board edges
@@ -238,7 +253,7 @@ class SnapCalculator {
   }
 
   /// Get all vertical snap points (horizontal lines)
-  List<SnapPoint> _getVerticalSnapPoints(Size itemSize) {
+  List<SnapPoint> getVerticalSnapPoints(Size itemSize) {
     final List<SnapPoint> snaps = <SnapPoint>[];
 
     // Board edges

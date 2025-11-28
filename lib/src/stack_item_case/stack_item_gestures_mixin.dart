@@ -182,6 +182,142 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       scale = dot / (distStart * distStart);
     }
 
+    // Apply Snapping
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+    final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
+
+    if (snapConfig.enabled && snapConfig.snapToScale) {
+      final RenderBox? boardBox =
+          context.findAncestorRenderObjectOfType<RenderBox>();
+      if (boardBox != null && boardBox.hasSize) {
+        final SnapCalculator calculator = SnapCalculator(
+          boardSize: boardBox.size,
+          allItems: controller.innerData,
+          movingItemId: itemId,
+          config: snapConfig,
+        );
+
+        // Candidate size
+        final double candidateWidth = startSize.width * scale;
+        final double candidateHeight = startSize.height * scale;
+
+        // Check horizontal snaps
+        final List<SnapPoint> hSnaps = calculator
+            .getHorizontalSnapPoints(Size(candidateWidth, candidateHeight));
+
+        double? scaleX;
+        SnapPoint? snapX;
+
+        double fixedX;
+        double movingX;
+
+        if (handle == HandlePosition.topRight ||
+            handle == HandlePosition.bottomRight) {
+          fixedX = startOffset.dx - startSize.width / 2;
+          movingX = fixedX + candidateWidth;
+          snapX = calculator.checkSnap(movingX, hSnaps);
+          if (snapX != null) {
+            final double targetWidth = snapX.position - fixedX;
+            scaleX = targetWidth / startSize.width;
+          }
+        } else {
+          fixedX = startOffset.dx + startSize.width / 2;
+          movingX = fixedX - candidateWidth;
+          snapX = calculator.checkSnap(movingX, hSnaps);
+          if (snapX != null) {
+            final double targetWidth = fixedX - snapX.position;
+            scaleX = targetWidth / startSize.width;
+          }
+        }
+
+        // Check vertical snaps
+        final List<SnapPoint> vSnaps = calculator
+            .getVerticalSnapPoints(Size(candidateWidth, candidateHeight));
+
+        double? scaleY;
+        SnapPoint? snapY;
+
+        double fixedY;
+        double movingY;
+
+        if (handle == HandlePosition.bottomLeft ||
+            handle == HandlePosition.bottomRight) {
+          fixedY = startOffset.dy - startSize.height / 2;
+          movingY = fixedY + candidateHeight;
+          snapY = calculator.checkSnap(movingY, vSnaps);
+          if (snapY != null) {
+            final double targetHeight = snapY.position - fixedY;
+            scaleY = targetHeight / startSize.height;
+          }
+        } else {
+          fixedY = startOffset.dy + startSize.height / 2;
+          movingY = fixedY - candidateHeight;
+          snapY = calculator.checkSnap(movingY, vSnaps);
+          if (snapY != null) {
+            final double targetHeight = fixedY - snapY.position;
+            scaleY = targetHeight / startSize.height;
+          }
+        }
+
+        double? bestScale;
+        if (scaleX != null && scaleY != null) {
+          if ((scale - scaleX).abs() < (scale - scaleY).abs()) {
+            bestScale = scaleX;
+            if (snapX != null) {
+              guideLines.add(SnapGuideLine(
+                start: Offset(snapX.position, 0),
+                end: Offset(snapX.position, boardBox.size.height),
+                orientation: LineOrientation.vertical,
+              ));
+            }
+          } else {
+            bestScale = scaleY;
+            if (snapY != null) {
+              guideLines.add(SnapGuideLine(
+                start: Offset(0, snapY.position),
+                end: Offset(boardBox.size.width, snapY.position),
+                orientation: LineOrientation.horizontal,
+              ));
+            }
+          }
+        } else if (scaleX != null) {
+          bestScale = scaleX;
+          if (snapX != null) {
+            guideLines.add(SnapGuideLine(
+              start: Offset(snapX.position, 0),
+              end: Offset(snapX.position, boardBox.size.height),
+              orientation: LineOrientation.vertical,
+            ));
+          }
+        } else if (scaleY != null) {
+          bestScale = scaleY;
+          if (snapY != null) {
+            guideLines.add(SnapGuideLine(
+              start: Offset(0, snapY.position),
+              end: Offset(boardBox.size.width, snapY.position),
+              orientation: LineOrientation.horizontal,
+            ));
+          }
+        }
+
+        if (bestScale != null) {
+          scale = bestScale;
+        }
+
+        if (guideLines.isNotEmpty && !_wasSnapping) {
+          snapConfig.onSnapHapticFeedback?.call();
+        }
+        _wasSnapping = guideLines.isNotEmpty;
+      }
+    } else {
+      _wasSnapping = false;
+    }
+
+    try {
+      context.updateSnapGuideLines(guideLines);
+    } catch (_) {}
+
     double newWidth = startSize.width * scale;
     double newHeight = startSize.height * scale;
 
@@ -233,22 +369,126 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     switch (handle) {
       case HandlePosition.right:
         newWidth = math.max(minSize, startSize.width + localDx);
-        limitWx = newWidth - startSize.width;
         break;
       case HandlePosition.left:
         newWidth = math.max(minSize, startSize.width - localDx);
-        limitWx = newWidth - startSize.width;
         break;
       case HandlePosition.top:
         newHeight = math.max(minSize, startSize.height - localDy);
-        limitHy = newHeight - startSize.height;
         break;
       case HandlePosition.bottom:
         newHeight = math.max(minSize, startSize.height + localDy);
-        limitHy = newHeight - startSize.height;
         break;
       default:
         return;
+    }
+
+    // Apply Snapping
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+    final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
+
+    if (snapConfig.enabled && snapConfig.snapToResize) {
+      final RenderBox? boardBox =
+          context.findAncestorRenderObjectOfType<RenderBox>();
+      if (boardBox != null && boardBox.hasSize) {
+        final SnapCalculator calculator = SnapCalculator(
+          boardSize: boardBox.size,
+          allItems: controller.innerData,
+          movingItemId: itemId,
+          config: snapConfig,
+        );
+
+        // Horizontal snaps (Vertical lines) - affects Width/X
+        if (handle == HandlePosition.left || handle == HandlePosition.right) {
+          final List<SnapPoint> hSnaps =
+              calculator.getHorizontalSnapPoints(Size(newWidth, newHeight));
+          SnapPoint? snap;
+
+          if (handle == HandlePosition.right) {
+            // Snap Right Edge
+            // Unrotated Right Edge X = startOffset.dx - startSize.width/2 + newWidth
+            // (assuming anchor is left edge)
+            final double fixedLeft = startOffset.dx - startSize.width / 2;
+            final double movingRight = fixedLeft + newWidth;
+            snap = calculator.checkSnap(movingRight, hSnaps);
+            if (snap != null) {
+              newWidth = snap.position - fixedLeft;
+              guideLines.add(SnapGuideLine(
+                start: Offset(snap.position, 0),
+                end: Offset(snap.position, boardBox.size.height),
+                orientation: LineOrientation.vertical,
+              ));
+            }
+          } else {
+            // Snap Left Edge
+            // Right Edge (Fixed) = startOffset.dx + startSize.width/2
+            final double fixedRight = startOffset.dx + startSize.width / 2;
+            final double movingLeft = fixedRight - newWidth;
+            snap = calculator.checkSnap(movingLeft, hSnaps);
+            if (snap != null) {
+              newWidth = fixedRight - snap.position;
+              guideLines.add(SnapGuideLine(
+                start: Offset(snap.position, 0),
+                end: Offset(snap.position, boardBox.size.height),
+                orientation: LineOrientation.vertical,
+              ));
+            }
+          }
+          if (newWidth < minSize) newWidth = minSize;
+        }
+
+        // Vertical snaps (Horizontal lines) - affects Height/Y
+        if (handle == HandlePosition.top || handle == HandlePosition.bottom) {
+          final List<SnapPoint> vSnaps =
+              calculator.getVerticalSnapPoints(Size(newWidth, newHeight));
+          SnapPoint? snap;
+
+          if (handle == HandlePosition.bottom) {
+            final double fixedTop = startOffset.dy - startSize.height / 2;
+            final double movingBottom = fixedTop + newHeight;
+            snap = calculator.checkSnap(movingBottom, vSnaps);
+            if (snap != null) {
+              newHeight = snap.position - fixedTop;
+              guideLines.add(SnapGuideLine(
+                start: Offset(0, snap.position),
+                end: Offset(boardBox.size.width, snap.position),
+                orientation: LineOrientation.horizontal,
+              ));
+            }
+          } else {
+            final double fixedBottom = startOffset.dy + startSize.height / 2;
+            final double movingTop = fixedBottom - newHeight;
+            snap = calculator.checkSnap(movingTop, vSnaps);
+            if (snap != null) {
+              newHeight = fixedBottom - snap.position;
+              guideLines.add(SnapGuideLine(
+                start: Offset(0, snap.position),
+                end: Offset(boardBox.size.width, snap.position),
+                orientation: LineOrientation.horizontal,
+              ));
+            }
+          }
+          if (newHeight < minSize) newHeight = minSize;
+        }
+
+        if (guideLines.isNotEmpty && !_wasSnapping) {
+          snapConfig.onSnapHapticFeedback?.call();
+        }
+        _wasSnapping = guideLines.isNotEmpty;
+      }
+    } else {
+      _wasSnapping = false;
+    }
+
+    try {
+      context.updateSnapGuideLines(guideLines);
+    } catch (_) {}
+
+    if (handle == HandlePosition.right || handle == HandlePosition.left) {
+      limitWx = newWidth - startSize.width;
+    } else {
+      limitHy = newHeight - startSize.height;
     }
 
     final Size newSize = Size(newWidth, newHeight);

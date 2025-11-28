@@ -10,6 +10,8 @@ class SnapConfig {
     this.snapToItems = true,
     this.snapToBoardEdges = true,
     this.snapToGrid = true,
+    this.snapToResize = true,
+    this.snapToScale = true,
     this.showAllSnapLines = false,
     this.snapLineColor = const Color(0xFFE0E0E0),
     this.snapLineWidth = 1.0,
@@ -39,6 +41,12 @@ class SnapConfig {
   /// Whether to snap to grid divisions
   final bool snapToGrid;
 
+  /// Whether to snap when resizing
+  final bool snapToResize;
+
+  /// Whether to snap when scaling
+  final bool snapToScale;
+
   /// Whether to show all potential snap lines (grid overlay)
   final bool showAllSnapLines;
 
@@ -64,6 +72,8 @@ class SnapConfig {
     bool? snapToItems,
     bool? snapToBoardEdges,
     bool? snapToGrid,
+    bool? snapToResize,
+    bool? snapToScale,
     bool? showAllSnapLines,
     Color? snapLineColor,
     double? snapLineWidth,
@@ -78,6 +88,8 @@ class SnapConfig {
       snapToItems: snapToItems ?? this.snapToItems,
       snapToBoardEdges: snapToBoardEdges ?? this.snapToBoardEdges,
       snapToGrid: snapToGrid ?? this.snapToGrid,
+      snapToResize: snapToResize ?? this.snapToResize,
+      snapToScale: snapToScale ?? this.snapToScale,
       showAllSnapLines: showAllSnapLines ?? this.showAllSnapLines,
       snapLineColor: snapLineColor ?? this.snapLineColor,
       snapLineWidth: snapLineWidth ?? this.snapLineWidth,
@@ -98,6 +110,8 @@ class SnapConfig {
           snapToItems == other.snapToItems &&
           snapToBoardEdges == other.snapToBoardEdges &&
           snapToGrid == other.snapToGrid &&
+          snapToResize == other.snapToResize &&
+          snapToScale == other.snapToScale &&
           showAllSnapLines == other.showAllSnapLines &&
           snapLineColor == other.snapLineColor &&
           snapLineWidth == other.snapLineWidth &&
@@ -112,6 +126,8 @@ class SnapConfig {
         snapToItems,
         snapToBoardEdges,
         snapToGrid,
+        snapToResize,
+        snapToScale,
         showAllSnapLines,
         snapLineColor,
         snapLineWidth,

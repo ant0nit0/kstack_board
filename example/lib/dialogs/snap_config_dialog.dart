@@ -24,6 +24,8 @@ class _SnapConfigDialogState extends State<SnapConfigDialog> {
   late bool _snapToItems;
   late bool _snapToBoardEdges;
   late bool _snapToGrid;
+  late bool _snapToResize;
+  late bool _snapToScale;
   late bool _showAllSnapLines;
   late Color _snapLineColor;
   late double _snapLineWidth;
@@ -39,6 +41,8 @@ class _SnapConfigDialogState extends State<SnapConfigDialog> {
     _snapToItems = widget.initialConfig.snapToItems;
     _snapToBoardEdges = widget.initialConfig.snapToBoardEdges;
     _snapToGrid = widget.initialConfig.snapToGrid;
+    _snapToResize = widget.initialConfig.snapToResize;
+    _snapToScale = widget.initialConfig.snapToScale;
     _showAllSnapLines = widget.initialConfig.showAllSnapLines;
     _snapLineColor = widget.initialConfig.snapLineColor;
     _snapLineWidth = widget.initialConfig.snapLineWidth;
@@ -55,6 +59,8 @@ class _SnapConfigDialogState extends State<SnapConfigDialog> {
         snapToItems: _snapToItems,
         snapToBoardEdges: _snapToBoardEdges,
         snapToGrid: _snapToGrid,
+        snapToResize: _snapToResize,
+        snapToScale: _snapToScale,
         showAllSnapLines: _showAllSnapLines,
         snapLineColor: _snapLineColor,
         snapLineWidth: _snapLineWidth,
@@ -285,6 +291,38 @@ class _SnapConfigDialogState extends State<SnapConfigDialog> {
                 value: _snapToGrid,
                 onChanged: _enabled
                     ? (value) => setState(() => _snapToGrid = value)
+                    : null,
+                contentPadding: EdgeInsets.zero,
+              ),
+
+              SwitchListTile(
+                title: const Text(
+                  'Snap to Resize',
+                  style: TextStyle(fontSize: 14),
+                ),
+                subtitle: const Text(
+                  'Snap when resizing items',
+                  style: TextStyle(fontSize: 12),
+                ),
+                value: _snapToResize,
+                onChanged: _enabled
+                    ? (value) => setState(() => _snapToResize = value)
+                    : null,
+                contentPadding: EdgeInsets.zero,
+              ),
+
+              SwitchListTile(
+                title: const Text(
+                  'Snap to Scale',
+                  style: TextStyle(fontSize: 14),
+                ),
+                subtitle: const Text(
+                  'Snap when scaling items',
+                  style: TextStyle(fontSize: 12),
+                ),
+                value: _snapToScale,
+                onChanged: _enabled
+                    ? (value) => setState(() => _snapToScale = value)
                     : null,
                 contentPadding: EdgeInsets.zero,
               ),
