@@ -214,14 +214,22 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
-  void lockItem(String id) {
+  void toggleLockItem(String id) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    data[_indexMap[id]!] = data[_indexMap[id]!]
-        .copyWith(status: StackItemStatus.locked, lockZOrder: true);
+    final currentItem = data[_indexMap[id]!];
+    final wasLocked = currentItem.lockZOrder;
+
+    if (wasLocked) {
+      data[_indexMap[id]!] = data[_indexMap[id]!]
+          .copyWith(status: StackItemStatus.selected, lockZOrder: false);
+    } else {
+      data[_indexMap[id]!] = data[_indexMap[id]!]
+          .copyWith(status: StackItemStatus.locked, lockZOrder: true);
+    }
 
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
