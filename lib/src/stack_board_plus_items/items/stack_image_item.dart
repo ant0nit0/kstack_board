@@ -27,6 +27,7 @@ class ImageItemContent extends StackItemContent {
     this.gaplessPlayback = false,
     this.isAntiAlias = false,
     this.filterQuality = FilterQuality.low,
+    this.cornerRadius,
   }) {
     _init();
   }
@@ -49,6 +50,7 @@ class ImageItemContent extends StackItemContent {
     bool? gaplessPlayback,
     bool? isAntiAlias,
     FilterQuality? filterQuality,
+    double? cornerRadius,
   }) {
     return ImageItemContent(
       url: url ?? this.url,
@@ -68,6 +70,7 @@ class ImageItemContent extends StackItemContent {
       gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
       isAntiAlias: isAntiAlias ?? this.isAntiAlias,
       filterQuality: filterQuality ?? this.filterQuality,
+      cornerRadius: cornerRadius ?? this.cornerRadius,
     );
   }
 
@@ -103,6 +106,9 @@ class ImageItemContent extends StackItemContent {
           : FilterQuality.high,
       bytes: json['bytes'] != null ? base64Decode(json['bytes']) : null,
       file: json['filePath'] != null ? File(json['filePath']) : null,
+      cornerRadius: json['cornerRadius'] != null
+          ? asT<double>(json['cornerRadius'])
+          : null,
     );
   }
 
@@ -117,6 +123,7 @@ class ImageItemContent extends StackItemContent {
     BoxFit fit = BoxFit.contain,
     bool matchTextDirection = false,
     FilterQuality filterQuality = FilterQuality.low,
+    double? cornerRadius,
   }) {
     return ImageItemContent(
       svgString: svgString,
@@ -129,6 +136,7 @@ class ImageItemContent extends StackItemContent {
       fit: fit,
       matchTextDirection: matchTextDirection,
       filterQuality: filterQuality,
+      cornerRadius: cornerRadius,
     );
   }
 
@@ -317,6 +325,7 @@ class ImageItemContent extends StackItemContent {
   Uint8List? bytes;
   File? file;
   FilterQuality filterQuality;
+  double? cornerRadius;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -602,6 +611,7 @@ class ImageItemContent extends StackItemContent {
       'gaplessPlayback': gaplessPlayback,
       'isAntiAlias': isAntiAlias,
       'filterQuality': filterQuality.index,
+      if (cornerRadius != null) 'cornerRadius': cornerRadius,
     };
   }
 }
