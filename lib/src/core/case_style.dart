@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 /// * Handle style
@@ -64,6 +65,22 @@ class HandleStyle {
           borderWidth == other.borderWidth &&
           size == other.size &&
           iconColor == other.iconColor;
+
+  HandleStyle copyWith({
+    Color? color,
+    Color? borderColor,
+    double? borderWidth,
+    double? size,
+    Color? iconColor,
+  }) {
+    return HandleStyle(
+      color: color ?? this.color,
+      borderColor: borderColor ?? this.borderColor,
+      borderWidth: borderWidth ?? this.borderWidth,
+      size: size ?? this.size,
+      iconColor: iconColor ?? this.iconColor,
+    );
+  }
 }
 
 /// * case style
@@ -191,4 +208,67 @@ class CaseStyle {
           dashWidth == other.dashWidth &&
           dashGap == other.dashGap &&
           showHelperButtons == other.showHelperButtons;
+
+  /// * Copy with
+  CaseStyle copyWith({
+    HandleStyle? buttonStyle,
+    Color? buttonColor,
+    Color? buttonBorderColor,
+    double? buttonBorderWidth,
+    double? buttonSize,
+    Color? buttonIconColor,
+    HandleStyle? scaleHandleStyle,
+    Color? scaleHandleColor,
+    Color? scaleHandleBorderColor,
+    double? scaleHandleBorderWidth,
+    double? scaleHandleSize,
+    Color? scaleHandleIconColor,
+    HandleStyle? resizeHandleStyle,
+    Color? resizeHandleColor,
+    Color? resizeHandleBorderColor,
+    double? resizeHandleBorderWidth,
+    double? resizeHandleSize,
+    Color? resizeHandleIconColor,
+    double? boxAspectRatio,
+    Color? frameBorderColor,
+    double? frameBorderWidth,
+    bool? isFrameDashed,
+    double? dashWidth,
+    double? dashGap,
+    bool? showHelperButtons,
+  }) {
+    return CaseStyle(
+      buttonStyle: buttonStyle ??
+          this.buttonStyle.copyWith(
+                color: buttonColor,
+                borderColor: buttonBorderColor,
+                borderWidth: buttonBorderWidth,
+                size: buttonSize,
+                iconColor: buttonIconColor,
+              ),
+      scaleHandleStyle: scaleHandleStyle ??
+          this.scaleHandleStyle?.copyWith(
+                color: scaleHandleColor,
+                borderColor: scaleHandleBorderColor,
+                borderWidth: scaleHandleBorderWidth,
+                size: scaleHandleSize,
+                iconColor: scaleHandleIconColor,
+              ),
+      resizeHandleStyle: resizeHandleStyle ??
+          this.resizeHandleStyle?.copyWith(
+                color: resizeHandleColor,
+                borderColor: resizeHandleBorderColor,
+                borderWidth: resizeHandleBorderWidth,
+                size: resizeHandleSize,
+                iconColor: resizeHandleIconColor,
+              ),
+      boxAspectRatio: boxAspectRatio ?? this.boxAspectRatio,
+      frameBorderColor: frameBorderColor ?? this.frameBorderColor,
+      frameBorderWidth: frameBorderWidth ?? this.frameBorderWidth,
+      isFrameDashed: isFrameDashed ?? this.isFrameDashed,
+      dashWidth: dashWidth ?? this.dashWidth,
+      dashGap: dashGap ?? this.dashGap,
+      showHelperButtons: showHelperButtons ?? this.showHelperButtons,
+    );
+  }
 }
