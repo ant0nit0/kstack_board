@@ -264,7 +264,7 @@ class ImageItemContent extends StackItemContent {
 
   /// Helper methods to detect SVG content
   bool _isSvgUrl(String url) {
-    print("Checking if URL is SVG: $url");
+    // print("Checking if URL is SVG: $url");
     final uri = Uri.tryParse(url);
     if (uri != null) {
       final path = uri.path.toLowerCase();
