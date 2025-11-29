@@ -399,8 +399,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
+    final currentItem = data[_indexMap[id]!];
+    final newFlipX = flipX ? !currentItem.flipX : currentItem.flipX;
+    final newFlipY = flipY ? !currentItem.flipY : currentItem.flipY;
+
     data[_indexMap[id]!] =
-        data[_indexMap[id]!].copyWith(flipX: flipX, flipY: flipY);
+        currentItem.copyWith(flipX: newFlipX, flipY: newFlipY);
 
     value = value.copyWith(data: data);
   }
