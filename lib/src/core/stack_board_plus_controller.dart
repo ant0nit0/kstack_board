@@ -241,10 +241,6 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     final StackItem<StackItemContent> item = innerData[index];
 
-    if (item.locked) {
-      return;
-    }
-
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -375,12 +371,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     for (int i = 0; i < data.length; i++) {
       final StackItem<StackItemContent> item = data[i];
-      if (!item.locked) {
-        data[i] = item.copyWith(
-            status: item.status == StackItemStatus.editing
-                ? StackItemStatus.selected
-                : StackItemStatus.idle);
-      }
+      // if (!item.locked) {
+      data[i] = item.copyWith(
+          status: item.status == StackItemStatus.editing
+              ? StackItemStatus.selected
+              : StackItemStatus.idle);
+      // }
     }
 
     value = value.copyWith(data: data);
