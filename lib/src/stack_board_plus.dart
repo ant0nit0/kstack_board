@@ -8,6 +8,7 @@ class StackBoardPlusConfig extends InheritedWidget {
     super.key,
     required this.controller,
     this.caseStyle,
+    this.lockedCaseStyle,
     this.snapConfig,
     this.rotationSnapConfig,
     this.snapGuideLines = const [],
@@ -16,6 +17,7 @@ class StackBoardPlusConfig extends InheritedWidget {
 
   final StackBoardPlusController controller;
   final CaseStyle? caseStyle;
+  final CaseStyle? lockedCaseStyle;
   final SnapConfig? snapConfig;
   final RotationSnapConfig? rotationSnapConfig;
   final List<SnapGuideLine> snapGuideLines;
@@ -31,6 +33,7 @@ class StackBoardPlusConfig extends InheritedWidget {
   bool updateShouldNotify(covariant StackBoardPlusConfig oldWidget) =>
       oldWidget.controller != controller ||
       oldWidget.caseStyle != caseStyle ||
+      oldWidget.lockedCaseStyle != lockedCaseStyle ||
       oldWidget.snapConfig != snapConfig ||
       oldWidget.rotationSnapConfig != rotationSnapConfig ||
       oldWidget.snapGuideLines != snapGuideLines;
@@ -43,6 +46,7 @@ class StackBoardPlus extends StatelessWidget {
     this.controller,
     this.background,
     this.caseStyle,
+    this.lockedCaseStyle,
     this.customBuilder,
     this.onDel,
     this.onTap,
@@ -66,6 +70,9 @@ class StackBoardPlus extends StatelessWidget {
 
   /// * case style
   final CaseStyle? caseStyle;
+
+  /// * locked case style
+  final CaseStyle? lockedCaseStyle;
 
   /// * custom builder
   final Widget? Function(StackItem<StackItemContent> item)? customBuilder;
@@ -131,6 +138,7 @@ class StackBoardPlus extends StatelessWidget {
       child: StackBoardPlusConfig(
         controller: _controller,
         caseStyle: caseStyle,
+        lockedCaseStyle: lockedCaseStyle,
         snapConfig: snapConfig,
         rotationSnapConfig: rotationSnapConfig,
         child: Material(
@@ -185,6 +193,7 @@ class StackBoardPlus extends StatelessWidget {
       minItemSize: minItemSize,
       childBuilder: customBuilder,
       caseStyle: caseStyle,
+      lockedCaseStyle: lockedCaseStyle,
       onDel: () => onDel?.call(item),
       onTap: () => onTap?.call(item),
       onSizeChanged: (Size size) => onSizeChanged?.call(item, size) ?? true,

@@ -26,6 +26,7 @@ class StackItemCase extends StatefulWidget {
     required this.stackItem,
     required this.childBuilder,
     this.caseStyle,
+    this.lockedCaseStyle,
     this.onDel,
     this.onTap,
     this.onSizeChanged,
@@ -46,6 +47,9 @@ class StackItemCase extends StatefulWidget {
 
   /// * Outer frame style
   final CaseStyle? caseStyle;
+
+  /// * Locked outer frame style
+  final CaseStyle? lockedCaseStyle;
 
   /// * Remove intercept
   final void Function()? onDel;
@@ -112,10 +116,17 @@ class _StackItemCaseState extends State<StackItemCase>
   void onAngleChanged(double angle) => widget.onAngleChanged?.call(angle);
 
   /// * Outer frame style
-  CaseStyle _caseStyle(BuildContext context) =>
-      widget.caseStyle ??
-      StackBoardPlusConfig.of(context).caseStyle ??
-      const CaseStyle();
+  CaseStyle _caseStyle(BuildContext context) {
+    if (widget.stackItem.locked) {
+      final CaseStyle? lockedStyle = widget.lockedCaseStyle ??
+          StackBoardPlusConfig.of(context).lockedCaseStyle;
+      if (lockedStyle != null) return lockedStyle;
+    }
+
+    return widget.caseStyle ??
+        StackBoardPlusConfig.of(context).caseStyle ??
+        const CaseStyle();
+  }
 
   @override
   double getMinSize(BuildContext context) {
