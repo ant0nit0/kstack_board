@@ -90,6 +90,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
     super.status = null,
     super.flipX = false,
     super.flipY = false,
+    super.locked = false,
     this.showDefaultActions = false,
     this.showDefaultTools = false,
     this.onPointerDown,
@@ -126,6 +127,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   StackDrawItem copyWith({
     bool? flipX,
     bool? flipY,
+    bool? locked,
     Size? size,
     Offset? offset,
     double? angle,

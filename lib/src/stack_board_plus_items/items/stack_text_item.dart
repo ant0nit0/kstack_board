@@ -292,6 +292,7 @@ class StackTextItem extends StackItem<TextItemContent> {
     super.status = null,
     super.flipX = false,
     super.flipY = false,
+    super.locked = false,
   });
 
   factory StackTextItem.fromJson(Map<String, dynamic> data) {
@@ -303,9 +304,10 @@ class StackTextItem extends StackItem<TextItemContent> {
           data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
-      content: TextItemContent.fromJson(asMap(data['content'])),
+      locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
+      content: TextItemContent.fromJson(asMap(data['content'])),
     );
   }
 
@@ -325,6 +327,7 @@ class StackTextItem extends StackItem<TextItemContent> {
     TextItemContent? content,
     bool? flipX,
     bool? flipY,
+    bool? locked,
   }) {
     return StackTextItem(
       id: id,
@@ -336,6 +339,7 @@ class StackTextItem extends StackItem<TextItemContent> {
       flipX: flipX ?? this.flipX,
       flipY: flipY ?? this.flipY,
       content: content ?? this.content,
+      locked: locked ?? this.locked,
     );
   }
 }

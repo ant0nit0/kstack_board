@@ -79,6 +79,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
     super.flipX = false,
     super.flipY = false,
     super.id,
+    super.locked = false,
   });
 
   @override
@@ -91,6 +92,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
     bool? flipX,
     bool? flipY,
     StackShapeContent? content, // not used, but required for override
+    bool? locked,
   }) {
     return StackShapeItem(
       id: id,
@@ -102,6 +104,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
       flipY: flipY ?? this.flipY,
       lockZOrder: lockZOrder ?? this.lockZOrder,
       content: content ?? this.content,
+      locked: locked ?? this.locked,
     );
   }
 }

@@ -23,6 +23,7 @@ abstract class StackItem<T extends StackItemContent> {
     double? angle = 0,
     StackItemStatus? status = StackItemStatus.selected,
     bool? lockZOrder = false,
+    bool? locked = false,
     bool? flipX = false,
     bool? flipY = false,
     this.content,
@@ -32,7 +33,8 @@ abstract class StackItem<T extends StackItemContent> {
         lockZOrder = lockZOrder ?? false,
         flipX = flipX ?? false,
         flipY = flipY ?? false,
-        status = status ?? StackItemStatus.selected;
+        status = status ?? StackItemStatus.selected,
+        locked = locked ?? false;
 
   const StackItem.empty({
     required this.size,
@@ -41,6 +43,7 @@ abstract class StackItem<T extends StackItemContent> {
     required this.status,
     required this.content,
     required this.lockZOrder,
+    required this.locked,
     this.flipX = false,
     this.flipY = false,
   }) : id = '';
@@ -62,6 +65,8 @@ abstract class StackItem<T extends StackItemContent> {
 
   final bool lockZOrder;
 
+  final bool locked;
+
   /// Flip X
   final bool flipX;
 
@@ -78,6 +83,7 @@ abstract class StackItem<T extends StackItemContent> {
     double? angle,
     StackItemStatus? status,
     bool? lockZOrder,
+    bool? locked,
     bool? flipX,
     bool? flipY,
     T? content,
@@ -93,6 +99,7 @@ abstract class StackItem<T extends StackItemContent> {
       'offset': offset.toJson(),
       'status': status.index,
       'lockZOrder': lockZOrder,
+      'locked': locked,
       'flipX': flipX,
       'flipY': flipY,
       if (content != null) 'content': content?.toJson(),

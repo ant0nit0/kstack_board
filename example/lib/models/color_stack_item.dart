@@ -24,9 +24,9 @@ class ColorStackItem extends StackItem<ColorContent> {
     super.content,
     super.flipX = false,
     super.flipY = false,
-  }) : super(
-          lockZOrder: true,
-        );
+    super.locked = false,
+    super.lockZOrder = false,
+  });
 
   @override
   ColorStackItem copyWith({
@@ -38,6 +38,7 @@ class ColorStackItem extends StackItem<ColorContent> {
     ColorContent? content,
     bool? flipX,
     bool? flipY,
+    bool? locked,
   }) {
     return ColorStackItem(
       id: id, // <= must !!
@@ -48,6 +49,8 @@ class ColorStackItem extends StackItem<ColorContent> {
       content: content ?? this.content,
       flipX: flipX ?? this.flipX,
       flipY: flipY ?? this.flipY,
+      locked: locked ?? this.locked,
+      lockZOrder: lockZOrder ?? this.lockZOrder,
     );
   }
 }

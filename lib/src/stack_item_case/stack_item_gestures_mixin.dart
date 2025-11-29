@@ -30,6 +30,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
 
+    if (item.locked) return;
+
     if (item.status != newStatus) {
       if (item.status == StackItemStatus.editing) return;
       if (item.status != StackItemStatus.selected) {
@@ -70,6 +72,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
+    if (item.locked) return;
 
     final double angle = item.angle;
     final double sina = math.sin(-angle);
@@ -137,6 +140,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       StackItemStatus status, HandlePosition handle) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
+    if (item.locked) return;
 
     double anchorLocalX = 0;
     double anchorLocalY = 0;
@@ -350,6 +354,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       StackItemStatus status, HandlePosition handle) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
+    if (item.locked) return;
 
     final double angle = item.angle;
     final double sinA = math.sin(-angle);
@@ -560,6 +565,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
   void onRotateUpdate(
       DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
+    final StackItem<StackItemContent>? item = controller.getById(itemId);
+    if (item == null) return;
+    if (item.locked) return;
+
     final double startToCenterX = startGlobalPoint.dx - centerPoint.dx;
     final double startToCenterY = startGlobalPoint.dy - centerPoint.dy;
     final double endToCenterX = dud.globalPosition.dx - centerPoint.dx;
@@ -601,6 +610,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
 
+    if (item.locked) return;
+
     StackItemStatus newStatus = StackItemStatus.moving;
     if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.selected) {
@@ -625,6 +636,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
+    if (item.locked) return;
 
     double newAngle = startAngle + details.rotation;
 

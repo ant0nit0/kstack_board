@@ -617,6 +617,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     super.lockZOrder = null,
     super.flipX = false,
     super.flipY = false,
+    super.locked = false,
   });
 
   factory StackImageItem.fromJson(Map<String, dynamic> data) {
@@ -628,6 +629,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
           data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
+      locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
       content: ImageItemContent.fromJson(asMap(data['content'])),
@@ -653,6 +655,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     FilterQuality filterQuality = FilterQuality.low,
     bool flipX = false,
     bool flipY = false,
+    bool locked = false,
   }) {
     return StackImageItem(
       id: id,
@@ -661,6 +664,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle,
       status: status,
       lockZOrder: lockZOrder,
+      locked: locked,
       flipX: flipX,
       flipY: flipY,
       content: ImageItemContent.svg(
@@ -698,6 +702,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     FilterQuality filterQuality = FilterQuality.low,
     bool flipX = false,
     bool flipY = false,
+    bool locked = false,
   }) {
     return StackImageItem(
       id: id,
@@ -708,6 +713,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX,
       flipY: flipY,
       lockZOrder: lockZOrder,
+      locked: locked,
       content: ImageItemContent(
         url: url,
         width: width,
@@ -744,6 +750,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     FilterQuality filterQuality = FilterQuality.low,
     bool flipX = false,
     bool flipY = false,
+    bool locked = false,
   }) {
     return StackImageItem(
       id: id,
@@ -754,6 +761,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       lockZOrder: lockZOrder,
       flipX: flipX,
       flipY: flipY,
+      locked: locked,
       content: ImageItemContent(
         assetName: assetName,
         width: width,
@@ -790,6 +798,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     FilterQuality filterQuality = FilterQuality.low,
     bool flipX = false,
     bool flipY = false,
+    bool locked = false,
   }) {
     return StackImageItem(
       id: id,
@@ -800,6 +809,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       lockZOrder: lockZOrder,
       flipX: flipX,
       flipY: flipY,
+      locked: locked,
       content: ImageItemContent(
         file: file,
         width: width,
@@ -836,6 +846,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     FilterQuality filterQuality = FilterQuality.low,
     bool flipX = false,
     bool flipY = false,
+    bool locked = false,
   }) {
     return StackImageItem(
       id: id,
@@ -846,6 +857,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       lockZOrder: lockZOrder,
       flipX: flipX,
       flipY: flipY,
+      locked: locked,
       content: ImageItemContent(
         bytes: bytes,
         width: width,
@@ -892,6 +904,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool? flipX,
     bool? flipY,
     ImageItemContent? content,
+    bool? locked,
   }) {
     return StackImageItem(
       id: id,
@@ -903,6 +916,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX ?? this.flipX,
       flipY: flipY ?? this.flipY,
       content: content ?? this.content,
+      locked: locked ?? this.locked,
     );
   }
 }

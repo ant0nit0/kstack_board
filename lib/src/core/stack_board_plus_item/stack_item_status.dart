@@ -29,7 +29,4 @@ enum StackItemStatus {
 
   /// * Idle
   idle,
-
-  /// * Locked
-  locked,
 }

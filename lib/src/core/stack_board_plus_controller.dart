@@ -63,8 +63,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       );
   StackItem<StackItemContent>? get activeItem => innerData.firstWhereOrNull(
         (StackItem<StackItemContent> item) =>
-            item.status != StackItemStatus.idle &&
-            item.status != StackItemStatus.locked,
+            item.status != StackItemStatus.idle,
       );
 
   /// * get item by id
@@ -194,7 +193,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       final StackItem<StackItemContent> item = data[i];
       final bool selectedOne = item.id == id;
       // Update the status only if the item is not locked
-      if (item.status != StackItemStatus.locked || selectedOne) {
+      if (!item.locked || selectedOne) {
         data[i] = item.copyWith(
             status:
                 selectedOne ? StackItemStatus.selected : StackItemStatus.idle);
@@ -214,7 +213,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
-  void toggleLockZOrder(String id) {
+  void toggleLockItem(String id) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -224,9 +223,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     final wasLocked = currentItem.lockZOrder;
 
     if (wasLocked) {
-      data[_indexMap[id]!] = data[_indexMap[id]!].copyWith(lockZOrder: false);
+      data[_indexMap[id]!] =
+          data[_indexMap[id]!].copyWith(lockZOrder: false, locked: false);
     } else {
-      data[_indexMap[id]!] = data[_indexMap[id]!].copyWith(lockZOrder: true);
+      data[_indexMap[id]!] =
+          data[_indexMap[id]!].copyWith(lockZOrder: true, locked: true);
     }
 
     value = value.copyWith(data: data, indexMap: _newIndexMap);
@@ -239,6 +240,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     final int index = _indexMap[id]!;
 
     final StackItem<StackItemContent> item = innerData[index];
+
+    if (item.locked) {
+      return;
+    }
 
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
@@ -370,7 +375,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     for (int i = 0; i < data.length; i++) {
       final StackItem<StackItemContent> item = data[i];
-      if (item.status != StackItemStatus.locked) {
+      if (!item.locked) {
         data[i] = item.copyWith(
             status: item.status == StackItemStatus.editing
                 ? StackItemStatus.selected
