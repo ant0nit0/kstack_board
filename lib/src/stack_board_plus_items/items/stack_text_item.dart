@@ -45,8 +45,6 @@ class TextItemContent implements StackItemContent {
     this.skewY = 0.0,
     this.horizontalAlignment = TextAlign.center,
     this.verticalAlignment = MainAxisAlignment.center,
-    this.flipHorizontally = false,
-    this.flipVertically = false,
     this.lineHeight = 1.0,
   });
 
@@ -165,12 +163,6 @@ class TextItemContent implements StackItemContent {
           ? MainAxisAlignment.center
           : ExEnum.tryParse<MainAxisAlignment>(MainAxisAlignment.values,
               asT<String>(data['verticalAlignment']))!,
-      flipHorizontally: data['flipHorizontally'] == null
-          ? false
-          : asT<bool>(data['flipHorizontally']),
-      flipVertically: data['flipVertically'] == null
-          ? false
-          : asT<bool>(data['flipVertically']),
       lineHeight:
           data['lineHeight'] == null ? 1.0 : asT<double>(data['lineHeight']),
     );
@@ -218,8 +210,6 @@ class TextItemContent implements StackItemContent {
   double skewY; // Tilt Y axis
   TextAlign horizontalAlignment;
   MainAxisAlignment verticalAlignment;
-  bool flipHorizontally;
-  bool flipVertically;
   double lineHeight;
 
   @override
@@ -285,8 +275,6 @@ class TextItemContent implements StackItemContent {
       'skewY': skewY,
       'horizontalAlignment': horizontalAlignment.toString(),
       'verticalAlignment': verticalAlignment.toString(),
-      'flipHorizontally': flipHorizontally,
-      'flipVertically': flipVertically,
       'lineHeight': lineHeight,
     };
   }
@@ -302,6 +290,8 @@ class StackTextItem extends StackItem<TextItemContent> {
     super.offset,
     super.lockZOrder = null,
     super.status = null,
+    super.flipX = false,
+    super.flipY = false,
   });
 
   factory StackTextItem.fromJson(Map<String, dynamic> data) {
@@ -314,6 +304,8 @@ class StackTextItem extends StackItem<TextItemContent> {
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
       content: TextItemContent.fromJson(asMap(data['content'])),
+      flipX: asNullT<bool>(data['flipX']) ?? false,
+      flipY: asNullT<bool>(data['flipY']) ?? false,
     );
   }
 
@@ -331,6 +323,8 @@ class StackTextItem extends StackItem<TextItemContent> {
     StackItemStatus? status,
     bool? lockZOrder,
     TextItemContent? content,
+    bool? flipX,
+    bool? flipY,
   }) {
     return StackTextItem(
       id: id,
@@ -339,6 +333,8 @@ class StackTextItem extends StackItem<TextItemContent> {
       offset: offset ?? this.offset,
       status: status ?? this.status,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+      flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
       content: content ?? this.content,
     );
   }

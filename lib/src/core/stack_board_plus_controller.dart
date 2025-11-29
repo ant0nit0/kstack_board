@@ -393,6 +393,18 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     value = value.copyWith(data: data);
   }
 
+  void flipItem(String id, {bool flipX = false, bool flipY = false}) {
+    if (!_indexMap.containsKey(id)) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    data[_indexMap[id]!] =
+        data[_indexMap[id]!].copyWith(flipX: flipX, flipY: flipY);
+
+    value = value.copyWith(data: data);
+  }
+
   /// * clear
   void clear() {
     value = StackConfig.init();

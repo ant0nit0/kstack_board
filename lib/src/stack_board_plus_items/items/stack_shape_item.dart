@@ -14,7 +14,7 @@ enum StackShapeType {
 }
 
 /// Data model for a shape's properties
-class StackShapeData {
+class StackShapeContent implements StackItemContent {
   final StackShapeType type;
   final Color fillColor;
   final Color strokeColor;
@@ -23,11 +23,9 @@ class StackShapeData {
   final double tilt; // in degrees
   final double width;
   final double height;
-  final bool flipHorizontal;
-  final bool flipVertical;
   final int? endpoints; // for polygon/star only
 
-  StackShapeData({
+  StackShapeContent({
     required this.type,
     required this.fillColor,
     required this.strokeColor,
@@ -36,12 +34,10 @@ class StackShapeData {
     required this.tilt,
     required this.width,
     required this.height,
-    this.flipHorizontal = false,
-    this.flipVertical = false,
     this.endpoints,
   });
 
-  StackShapeData copyWith({
+  StackShapeContent copyWith({
     StackShapeType? type,
     Color? fillColor,
     Color? strokeColor,
@@ -50,11 +46,9 @@ class StackShapeData {
     double? tilt,
     double? width,
     double? height,
-    bool? flipHorizontal,
-    bool? flipVertical,
     int? endpoints,
   }) {
-    return StackShapeData(
+    return StackShapeContent(
       type: type ?? this.type,
       fillColor: fillColor ?? this.fillColor,
       strokeColor: strokeColor ?? this.strokeColor,
@@ -63,45 +57,51 @@ class StackShapeData {
       tilt: tilt ?? this.tilt,
       width: width ?? this.width,
       height: height ?? this.height,
-      flipHorizontal: flipHorizontal ?? this.flipHorizontal,
-      flipVertical: flipVertical ?? this.flipVertical,
       endpoints: endpoints ?? this.endpoints,
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
 }
 
-class StackShapeItem extends StackItem<StackItemContent> {
-  final StackShapeData data;
+class StackShapeItem extends StackItem<StackShapeContent> {
   StackShapeItem({
-    required this.data,
     required super.size,
+    required super.content,
     super.offset,
     super.angle = null,
     super.status = null,
     super.lockZOrder = null,
+    super.flipX = false,
+    super.flipY = false,
     super.id,
-  }) : super(
-          content: null,
-        );
+  });
 
   @override
   StackShapeItem copyWith({
-    StackShapeData? data,
     Size? size,
     Offset? offset,
     double? angle,
     StackItemStatus? status,
     bool? lockZOrder,
-    StackItemContent? content, // not used, but required for override
+    bool? flipX,
+    bool? flipY,
+    StackShapeContent? content, // not used, but required for override
   }) {
     return StackShapeItem(
-      data: data ?? this.data,
       id: id,
       size: size ?? this.size,
       offset: offset ?? this.offset,
       angle: angle ?? this.angle,
       status: status ?? this.status,
+      flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+      content: content ?? this.content,
     );
   }
-} 
+}

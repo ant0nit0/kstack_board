@@ -4,13 +4,11 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 /// StackDrawItem represents a drawing item that can be added to the stack board.
 /// It provides full access to all DrawingBoard customization options.
 
-
-
 /// A drawing item that can be added to the stack board with full DrawingBoard customization.
-/// 
+///
 /// This class exposes all the configuration options available in the underlying DrawingBoard
 /// widget, allowing users to fully customize the drawing experience.
-/// 
+///
 /// **Basic Usage:**
 /// ```dart
 /// final drawItem = StackDrawItem(
@@ -18,7 +16,7 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 ///   content: StackDrawContent(controller: DrawingController()),
 /// );
 /// ```
-/// 
+///
 /// **Advanced Customization:**
 /// ```dart
 /// final drawItem = StackDrawItem(
@@ -55,7 +53,8 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   final dynamic Function(PointerMoveEvent)? onPointerMove;
   final dynamic Function(PointerUpEvent)? onPointerUp;
   final Clip clipBehavior;
-  final List<DefToolItem> Function(Type, DrawingController)? defaultToolsBuilder;
+  final List<DefToolItem> Function(Type, DrawingController)?
+      defaultToolsBuilder;
   final Clip boardClipBehavior;
   final PanAxis panAxis;
   final EdgeInsets? boardBoundaryMargin;
@@ -70,7 +69,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   final void Function(ScaleUpdateDetails)? onInteractionUpdate;
   final TransformationController? transformationController;
   final AlignmentGeometry alignment;
-  
+
   // Background decoration options
   final Color? backgroundColor;
   final DecorationImage? backgroundImage;
@@ -89,6 +88,8 @@ class StackDrawItem extends StackItem<StackDrawContent> {
     super.offset,
     super.lockZOrder = null,
     super.status = null,
+    super.flipX = false,
+    super.flipY = false,
     this.showDefaultActions = false,
     this.showDefaultTools = false,
     this.onPointerDown,
@@ -123,6 +124,8 @@ class StackDrawItem extends StackItem<StackDrawContent> {
 
   @override
   StackDrawItem copyWith({
+    bool? flipX,
+    bool? flipY,
     Size? size,
     Offset? offset,
     double? angle,
@@ -163,6 +166,8 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   }) {
     return StackDrawItem(
       id: id,
+      flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
       size: size ?? this.size,
       offset: offset ?? this.offset,
       angle: angle ?? this.angle,
@@ -189,7 +194,8 @@ class StackDrawItem extends StackItem<StackDrawContent> {
       onInteractionEnd: onInteractionEnd ?? this.onInteractionEnd,
       onInteractionStart: onInteractionStart ?? this.onInteractionStart,
       onInteractionUpdate: onInteractionUpdate ?? this.onInteractionUpdate,
-      transformationController: transformationController ?? this.transformationController,
+      transformationController:
+          transformationController ?? this.transformationController,
       alignment: alignment ?? this.alignment,
       // Background decoration options
       backgroundColor: backgroundColor ?? this.backgroundColor,

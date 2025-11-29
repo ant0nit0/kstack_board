@@ -105,18 +105,15 @@ class StackTextCase extends StatelessWidget {
     }
 
     // Apply transformations (skew, flip)
-    if (content.skewX != 0 ||
-        content.skewY != 0 ||
-        content.flipHorizontally ||
-        content.flipVertically) {
+    if (content.skewX != 0 || content.skewY != 0 || item.flipX || item.flipY) {
       textWidget = Transform(
         transform: Matrix4.identity()
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
           ..scaleByVector3(
             vm.Vector3(
-              content.flipHorizontally ? -1.0 : 1.0,
-              content.flipVertically ? -1.0 : 1.0,
+              item.flipX ? -1.0 : 1.0,
+              item.flipY ? -1.0 : 1.0,
               1.0,
             ),
           ),

@@ -258,7 +258,7 @@ mixin StackItemManagerMixin {
     final selectedShape = shapes[random.nextInt(shapes.length)];
     final size = 80.0 + random.nextDouble() * 40; // Random size between 80-120
 
-    final shapeData = StackShapeData(
+    final shapeData = StackShapeContent(
       type: selectedShape,
       fillColor: selectedColor.withValues(alpha: 0.7),
       strokeColor: selectedColor,
@@ -267,8 +267,6 @@ mixin StackItemManagerMixin {
       tilt: 0.0,
       width: size,
       height: size,
-      flipHorizontal: false,
-      flipVertical: false,
       endpoints: selectedShape == StackShapeType.star ||
               selectedShape == StackShapeType.polygon
           ? 5 // Default 5 points for star/polygon
@@ -276,7 +274,7 @@ mixin StackItemManagerMixin {
     );
 
     final shapeItem = StackShapeItem(
-      data: shapeData,
+      content: shapeData,
       size: Size(size, size),
       offset: Offset.zero, // Will be auto-positioned by controller
     );

@@ -50,15 +50,15 @@ class _StackShapeCaseState extends State<StackShapeCase> {
     if (widget.customEditorBuilder != null) {
       widget.customEditorBuilder!(context, _item, _updateItem);
       return;
-    } 
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Add gesture handling for resize, rotate, flip, etc. 
+    // Add gesture handling for resize, rotate, flip, etc.
     return GestureDetector(
       onDoubleTap: _onDoubleTap,
-      child: StackShapeContent(data: _item.data),
+      child: StackShapeContentWidget(item: _item),
     );
   }
-} 
+}

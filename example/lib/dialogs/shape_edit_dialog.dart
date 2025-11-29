@@ -5,22 +5,33 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 class ShapeEditDialog extends StatefulWidget {
   final StackShapeItem item;
   final ValueChanged<StackShapeItem> onUpdate;
-  const ShapeEditDialog({super.key, required this.item, required this.onUpdate});
+  const ShapeEditDialog(
+      {super.key, required this.item, required this.onUpdate});
 
   @override
   State<ShapeEditDialog> createState() => _ShapeEditDialogState();
 }
 
 class _ShapeEditDialogState extends State<ShapeEditDialog> {
-  late StackShapeData data;
+  late StackShapeContent data;
 
   @override
   void initState() {
     super.initState();
-    data = widget.item.data;
+    data = widget.item.content ??
+        StackShapeContent(
+          type: StackShapeType.rectangle,
+          fillColor: Colors.white,
+          strokeColor: Colors.black,
+          strokeWidth: 1,
+          opacity: 1,
+          tilt: 0,
+          width: 100,
+          height: 100,
+        );
   }
 
-  void updateData(StackShapeData newData) {
+  void updateData(StackShapeContent newData) {
     setState(() => data = newData);
   }
 
@@ -32,8 +43,10 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
       width: 40,
       height: 40,
       borderRadius: 20,
-      heading: Text('Select color', style: Theme.of(context).textTheme.titleLarge),
-      subheading: Text('Select color shade', style: Theme.of(context).textTheme.titleMedium),
+      heading:
+          Text('Select color', style: Theme.of(context).textTheme.titleLarge),
+      subheading: Text('Select color shade',
+          style: Theme.of(context).textTheme.titleMedium),
       showColorCode: true,
       pickersEnabled: <ColorPickerType, bool>{
         ColorPickerType.both: true,
@@ -60,7 +73,6 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
             SizedBox(
               width: 200,
               child: DropdownButton<StackShapeType>(
-                
                 value: data.type,
                 onChanged: (type) {
                   if (type != null) updateData(data.copyWith(type: type));
@@ -79,7 +91,8 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                 const Text('Fill Color:'),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: () => _pickColor(data.fillColor, (c) => updateData(data.copyWith(fillColor: c))),
+                  onTap: () => _pickColor(data.fillColor,
+                      (c) => updateData(data.copyWith(fillColor: c))),
                   child: _ColorBox(color: data.fillColor),
                 ),
               ],
@@ -90,7 +103,8 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                 const Text('Stroke Color:'),
                 const SizedBox(width: 8),
                 GestureDetector(
-                  onTap: () => _pickColor(data.strokeColor, (c) => updateData(data.copyWith(strokeColor: c))),
+                  onTap: () => _pickColor(data.strokeColor,
+                      (c) => updateData(data.copyWith(strokeColor: c))),
                   child: _ColorBox(color: data.strokeColor),
                 ),
               ],
@@ -182,8 +196,10 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                     Row(
                       children: [
                         Checkbox(
-                          value: data.flipHorizontal,
-                          onChanged: (v) => updateData(data.copyWith(flipHorizontal: v ?? false)),
+                          value: widget.item.flipX,
+                          // Update item directly instead of content
+                          onChanged: (v) => widget.onUpdate(
+                              widget.item.copyWith(flipX: v ?? false)),
                         ),
                         const Text('Horizontal'),
                       ],
@@ -191,9 +207,9 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                     Row(
                       children: [
                         Checkbox(
-                          value: data.flipVertical,
-                          onChanged: (v) => updateData(data.copyWith(flipVertical: v ?? false)),
-                        ),
+                            value: widget.item.flipY,
+                            onChanged: (v) => widget.onUpdate(
+                                widget.item.copyWith(flipY: v ?? false))),
                         const Text('Vertical'),
                       ],
                     ),
@@ -202,7 +218,8 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
               ],
             ),
             // Endpoints (for polygon/star)
-            if (data.type == StackShapeType.polygon || data.type == StackShapeType.star)
+            if (data.type == StackShapeType.polygon ||
+                data.type == StackShapeType.star)
               Row(
                 children: [
                   const Text('Endpoints:'),
@@ -212,7 +229,8 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
                       max: 12,
                       divisions: 9,
                       value: (data.endpoints ?? 5).toDouble(),
-                      onChanged: (v) => updateData(data.copyWith(endpoints: v.toInt())),
+                      onChanged: (v) =>
+                          updateData(data.copyWith(endpoints: v.toInt())),
                     ),
                   ),
                   Text((data.endpoints ?? 5).toString()),
@@ -228,7 +246,8 @@ class _ShapeEditDialogState extends State<ShapeEditDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onUpdate(widget.item.copyWith(data: data, size: Size(data.width, data.height)));
+            widget.onUpdate(widget.item
+                .copyWith(content: data, size: Size(data.width, data.height)));
             Navigator.pop(context);
           },
           child: const Text('Save'),
@@ -253,4 +272,4 @@ class _ColorBox extends StatelessWidget {
       ),
     );
   }
-} 
+}

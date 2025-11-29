@@ -3,42 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import 'package:vector_math/vector_math_64.dart' as vm;
 
-class StackShapeContent extends StatelessWidget {
-  final StackShapeData data;
+class StackShapeContentWidget extends StatelessWidget {
+  final StackShapeItem item;
 
-  const StackShapeContent({super.key, required this.data});
+  const StackShapeContentWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
+    final content = item.content;
+    if (content == null) return const SizedBox.shrink();
     return Transform(
       alignment: Alignment.center,
       transform: Matrix4.identity()
-        ..rotateZ(data.tilt * math.pi / 180)
+        ..rotateZ(content.tilt * math.pi / 180)
         ..scaleByVector3(
           vm.Vector3(
-            data.flipHorizontal ? -1.0 : 1.0,
-            data.flipVertical ? -1.0 : 1.0,
+            item.flipX ? -1.0 : 1.0,
+            item.flipY ? -1.0 : 1.0,
             1.0,
           ),
         ),
       child: Opacity(
-        opacity: data.opacity.clamp(0.0, 1.0),
+        opacity: content.opacity.clamp(0.0, 1.0),
         child: CustomPaint(
-          size: Size(data.width, data.height),
-          painter: _ShapePainter(data),
+          size: Size(content.width, content.height),
+          painter: _ShapePainter(content),
         ),
       ),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    // You can implement this for serialization if needed
-    return {};
-  }
 }
 
 class _ShapePainter extends CustomPainter {
-  final StackShapeData data;
+  final StackShapeContent data;
   _ShapePainter(this.data);
 
   @override

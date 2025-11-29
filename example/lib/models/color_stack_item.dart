@@ -22,6 +22,8 @@ class ColorStackItem extends StackItem<ColorContent> {
     super.angle = null,
     super.status = null,
     super.content,
+    super.flipX = false,
+    super.flipY = false,
   }) : super(
           lockZOrder: true,
         );
@@ -34,6 +36,8 @@ class ColorStackItem extends StackItem<ColorContent> {
     StackItemStatus? status,
     bool? lockZOrder,
     ColorContent? content,
+    bool? flipX,
+    bool? flipY,
   }) {
     return ColorStackItem(
       id: id, // <= must !!
@@ -42,6 +46,8 @@ class ColorStackItem extends StackItem<ColorContent> {
       angle: angle ?? this.angle,
       status: status ?? this.status,
       content: content ?? this.content,
+      flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
     );
   }
 }

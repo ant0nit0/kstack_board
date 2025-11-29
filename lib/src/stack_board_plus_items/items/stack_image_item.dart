@@ -27,8 +27,6 @@ class ImageItemContent extends StackItemContent {
     this.gaplessPlayback = false,
     this.isAntiAlias = false,
     this.filterQuality = FilterQuality.low,
-    this.flipHorizontal = false,
-    this.flipVertical = false,
   }) {
     _init();
   }
@@ -51,8 +49,6 @@ class ImageItemContent extends StackItemContent {
     bool? gaplessPlayback,
     bool? isAntiAlias,
     FilterQuality? filterQuality,
-    bool? flipHorizontal,
-    bool? flipVertical,
   }) {
     return ImageItemContent(
       url: url ?? this.url,
@@ -72,8 +68,6 @@ class ImageItemContent extends StackItemContent {
       gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
       isAntiAlias: isAntiAlias ?? this.isAntiAlias,
       filterQuality: filterQuality ?? this.filterQuality,
-      flipHorizontal: flipHorizontal ?? this.flipHorizontal,
-      flipVertical: flipVertical ?? this.flipVertical,
     );
   }
 
@@ -109,12 +103,6 @@ class ImageItemContent extends StackItemContent {
           : FilterQuality.high,
       bytes: json['bytes'] != null ? base64Decode(json['bytes']) : null,
       file: json['filePath'] != null ? File(json['filePath']) : null,
-      flipHorizontal: json['flipHorizontal'] == null
-          ? false
-          : asT<bool>(json['flipHorizontal']),
-      flipVertical: json['flipVertical'] == null
-          ? false
-          : asT<bool>(json['flipVertical']),
     );
   }
 
@@ -129,8 +117,6 @@ class ImageItemContent extends StackItemContent {
     BoxFit fit = BoxFit.contain,
     bool matchTextDirection = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
   }) {
     return ImageItemContent(
       svgString: svgString,
@@ -143,8 +129,6 @@ class ImageItemContent extends StackItemContent {
       fit: fit,
       matchTextDirection: matchTextDirection,
       filterQuality: filterQuality,
-      flipHorizontal: flipHorizontal,
-      flipVertical: flipVertical,
     );
   }
 
@@ -333,8 +317,6 @@ class ImageItemContent extends StackItemContent {
   Uint8List? bytes;
   File? file;
   FilterQuality filterQuality;
-  bool flipHorizontal;
-  bool flipVertical;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -620,8 +602,6 @@ class ImageItemContent extends StackItemContent {
       'gaplessPlayback': gaplessPlayback,
       'isAntiAlias': isAntiAlias,
       'filterQuality': filterQuality.index,
-      'flipHorizontal': flipHorizontal,
-      'flipVertical': flipVertical,
     };
   }
 }
@@ -635,6 +615,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     super.offset,
     super.status = null,
     super.lockZOrder = null,
+    super.flipX = false,
+    super.flipY = false,
   });
 
   factory StackImageItem.fromJson(Map<String, dynamic> data) {
@@ -646,6 +628,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
           data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
+      flipX: asNullT<bool>(data['flipX']) ?? false,
+      flipY: asNullT<bool>(data['flipY']) ?? false,
       content: ImageItemContent.fromJson(asMap(data['content'])),
     );
   }
@@ -667,8 +651,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     BoxFit fit = BoxFit.contain,
     bool matchTextDirection = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
+    bool flipX = false,
+    bool flipY = false,
   }) {
     return StackImageItem(
       id: id,
@@ -677,6 +661,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle,
       status: status,
       lockZOrder: lockZOrder,
+      flipX: flipX,
+      flipY: flipY,
       content: ImageItemContent.svg(
         svgString: svgString,
         semanticLabel: semanticLabel,
@@ -688,8 +674,6 @@ class StackImageItem extends StackItem<ImageItemContent> {
         fit: fit,
         matchTextDirection: matchTextDirection,
         filterQuality: filterQuality,
-        flipHorizontal: flipHorizontal,
-        flipVertical: flipVertical,
       ),
     );
   }
@@ -712,8 +696,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
+    bool flipX = false,
+    bool flipY = false,
   }) {
     return StackImageItem(
       id: id,
@@ -721,6 +705,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       offset: offset,
       angle: angle,
       status: status,
+      flipX: flipX,
+      flipY: flipY,
       lockZOrder: lockZOrder,
       content: ImageItemContent(
         url: url,
@@ -734,8 +720,6 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
-        flipHorizontal: flipHorizontal,
-        flipVertical: flipVertical,
       ),
     );
   }
@@ -758,8 +742,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
+    bool flipX = false,
+    bool flipY = false,
   }) {
     return StackImageItem(
       id: id,
@@ -768,6 +752,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle,
       status: status,
       lockZOrder: lockZOrder,
+      flipX: flipX,
+      flipY: flipY,
       content: ImageItemContent(
         assetName: assetName,
         width: width,
@@ -780,8 +766,6 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
-        flipHorizontal: flipHorizontal,
-        flipVertical: flipVertical,
       ),
     );
   }
@@ -804,8 +788,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
+    bool flipX = false,
+    bool flipY = false,
   }) {
     return StackImageItem(
       id: id,
@@ -814,6 +798,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle,
       status: status,
       lockZOrder: lockZOrder,
+      flipX: flipX,
+      flipY: flipY,
       content: ImageItemContent(
         file: file,
         width: width,
@@ -826,8 +812,6 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
-        flipHorizontal: flipHorizontal,
-        flipVertical: flipVertical,
       ),
     );
   }
@@ -850,8 +834,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool gaplessPlayback = false,
     bool isAntiAlias = false,
     FilterQuality filterQuality = FilterQuality.low,
-    bool flipHorizontal = false,
-    bool flipVertical = false,
+    bool flipX = false,
+    bool flipY = false,
   }) {
     return StackImageItem(
       id: id,
@@ -860,6 +844,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle,
       status: status,
       lockZOrder: lockZOrder,
+      flipX: flipX,
+      flipY: flipY,
       content: ImageItemContent(
         bytes: bytes,
         width: width,
@@ -872,8 +858,6 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
-        flipHorizontal: flipHorizontal,
-        flipVertical: flipVertical,
       ),
     );
   }
@@ -905,6 +889,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
     double? angle,
     StackItemStatus? status,
     bool? lockZOrder,
+    bool? flipX,
+    bool? flipY,
     ImageItemContent? content,
   }) {
     return StackImageItem(
@@ -914,6 +900,8 @@ class StackImageItem extends StackItem<ImageItemContent> {
       angle: angle ?? this.angle,
       status: status ?? this.status,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+      flipX: flipX ?? this.flipX,
+      flipY: flipY ?? this.flipY,
       content: content ?? this.content,
     );
   }

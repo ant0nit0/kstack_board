@@ -126,8 +126,8 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
       _skewY = content.skewY;
       _horizontalAlignment = content.horizontalAlignment;
       _verticalAlignment = content.verticalAlignment;
-      _flipHorizontally = content.flipHorizontally;
-      _flipVertically = content.flipVertically;
+      _flipHorizontally = widget.item.flipX;
+      _flipVertically = widget.item.flipY;
     } else {
       _textController = TextEditingController(text: 'Sample Text');
     }
@@ -1082,8 +1082,6 @@ class _TextCustomizationDialogState extends State<TextCustomizationDialog> {
       skewY: _skewY,
       horizontalAlignment: _horizontalAlignment,
       verticalAlignment: _verticalAlignment,
-      flipHorizontally: _flipHorizontally,
-      flipVertically: _flipVertically,
       // Keep existing properties
       style: widget.item.content?.style,
       strutStyle: widget.item.content?.strutStyle,

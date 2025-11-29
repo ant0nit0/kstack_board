@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
-
 /// * Generate Id for StackItem
 String _genId() {
   final DateTime now = DateTime.now();
@@ -24,11 +23,15 @@ abstract class StackItem<T extends StackItemContent> {
     double? angle = 0,
     StackItemStatus? status = StackItemStatus.selected,
     bool? lockZOrder = false,
+    bool? flipX = false,
+    bool? flipY = false,
     this.content,
   })  : id = id ?? _genId(),
         offset = offset ?? Offset.zero,
         angle = angle ?? 0,
         lockZOrder = lockZOrder ?? false,
+        flipX = flipX ?? false,
+        flipY = flipY ?? false,
         status = status ?? StackItemStatus.selected;
 
   const StackItem.empty({
@@ -38,6 +41,8 @@ abstract class StackItem<T extends StackItemContent> {
     required this.status,
     required this.content,
     required this.lockZOrder,
+    this.flipX = false,
+    this.flipY = false,
   }) : id = '';
 
   /// id
@@ -57,6 +62,12 @@ abstract class StackItem<T extends StackItemContent> {
 
   final bool lockZOrder;
 
+  /// Flip X
+  final bool flipX;
+
+  /// Flip Y
+  final bool flipY;
+
   /// Content
   final T? content;
 
@@ -67,6 +78,8 @@ abstract class StackItem<T extends StackItemContent> {
     double? angle,
     StackItemStatus? status,
     bool? lockZOrder,
+    bool? flipX,
+    bool? flipY,
     T? content,
   });
 
@@ -80,6 +93,8 @@ abstract class StackItem<T extends StackItemContent> {
       'offset': offset.toJson(),
       'status': status.index,
       'lockZOrder': lockZOrder,
+      'flipX': flipX,
+      'flipY': flipY,
       if (content != null) 'content': content?.toJson(),
     };
   }
