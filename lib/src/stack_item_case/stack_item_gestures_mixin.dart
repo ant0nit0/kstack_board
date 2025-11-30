@@ -32,13 +32,16 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     if (item.locked) return;
 
+    // Commit state before starting gesture
+    controller.commit();
+
     if (item.status != newStatus) {
       if (item.status == StackItemStatus.editing) return;
       if (item.status != StackItemStatus.selected) {
-        controller.selectOne(itemId);
+        controller.selectOne(itemId, addToHistory: false);
       }
-      controller.updateBasic(itemId, status: newStatus);
-      controller.moveItemOnTop(itemId);
+      controller.updateBasic(itemId, status: newStatus, addToHistory: false);
+      controller.moveItemOnTop(itemId, addToHistory: false);
       onStatusChanged(newStatus);
     }
 
@@ -62,7 +65,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
       status = StackItemStatus.selected;
-      controller.updateBasic(itemId, status: status);
+      controller.updateBasic(itemId, status: status, addToHistory: false);
       onStatusChanged(status);
     }
   }
@@ -88,7 +91,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     });
 
     onOffsetChanged(realOffset);
-    controller.updateBasic(itemId, offset: realOffset);
+    controller.updateBasic(itemId, offset: realOffset, addToHistory: false);
   }
 
   void _applySnapping(BuildContext context, Offset currentOffset,
@@ -347,7 +350,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     debugPrint('min size: $minSize');
 
-    controller.updateBasic(itemId, size: newSize, offset: newOffset);
+    controller.updateBasic(itemId,
+        size: newSize, offset: newOffset, addToHistory: false);
   }
 
   void onResizeUpdate(DragUpdateDetails dud, BuildContext context,
@@ -524,7 +528,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     debugPrint('newOffset: $newOffset');
     debugPrint('min size: $minSize');
 
-    controller.updateBasic(itemId, size: newSize, offset: newOffset);
+    controller.updateBasic(itemId,
+        size: newSize, offset: newOffset, addToHistory: false);
   }
 
   // Helper to snap angle to nearest multiple of snapAngle
@@ -603,7 +608,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
 
     onAngleChanged(angle);
-    controller.updateBasic(itemId, angle: angle);
+    controller.updateBasic(itemId, angle: angle, addToHistory: false);
   }
 
   void onGestureStart(ScaleStartDetails details, BuildContext context) {
@@ -612,13 +617,16 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     if (item.locked) return;
 
+    // Commit state before starting gesture
+    controller.commit();
+
     StackItemStatus newStatus = StackItemStatus.moving;
     if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.selected) {
-        controller.selectOne(itemId);
+        controller.selectOne(itemId, addToHistory: false);
       }
-      controller.updateBasic(itemId, status: newStatus);
-      controller.moveItemOnTop(itemId);
+      controller.updateBasic(itemId, status: newStatus, addToHistory: false);
+      controller.moveItemOnTop(itemId, addToHistory: false);
       onStatusChanged(newStatus);
     }
 
@@ -681,7 +689,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     onOffsetChanged(newOffset);
 
     controller.updateBasic(itemId,
-        angle: newAngle, size: newSize, offset: newOffset);
+        angle: newAngle, size: newSize, offset: newOffset, addToHistory: false);
   }
 
   void onGestureEnd(ScaleEndDetails details, BuildContext context) {

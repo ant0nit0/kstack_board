@@ -42,6 +42,7 @@ export 'src/helpers/ex_list.dart';
 export 'src/helpers/ex_enum.dart';
 export 'src/helpers/as_t.dart';
 export 'src/helpers/snap_calculator.dart';
+export 'src/helpers/history_controller_mixin.dart';
 
 // Widgets
 export 'src/widgets/ex_builder.dart';

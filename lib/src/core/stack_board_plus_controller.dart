@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+// ignore: unnecessary_import
+import 'package:stack_board_plus/src/helpers/history_controller_mixin.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 class StackConfig {
@@ -38,7 +40,8 @@ class StackConfig {
 
 @immutable
 // ignore: must_be_immutable
-class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
+class StackBoardPlusController extends SafeValueNotifier<StackConfig>
+    with HistoryControllerMixin<StackConfig> {
   StackBoardPlusController({String? tag})
       : assert(tag != 'def', 'tag can not be "def"'),
         _tag = tag,
@@ -94,6 +97,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     StackItem<StackItemContent> item, {
     StackItemStatus? status,
     Offset? offset,
+    bool addToHistory = true,
   }) {
     if (innerData.contains(item)) {
       print('StackBoardController addItem: item already exists');
@@ -103,41 +107,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    // Initial offset
-    // final double baseOffset = offset?.dx ?? 50;
-    // final double deltaOffset = offset?.dy ?? 10;
-    // double deltaOffsetMultiplicator = 1;
-
     // Set items status to idle
     data.asMap().forEach((int index, StackItem<StackItemContent> item) {
       data[index] = item.copyWith(status: StackItemStatus.idle);
     });
 
-    // If the item has no offset, calculate the offset in order to prevent overlapping
-    // if (item.offset == Offset.zero) {
-    //   for (final StackItem<StackItemContent> item in data) {
-    //     if (item.offset.dx -
-    //                 (item.size.width / 2) -
-    //                 item.offset.dy -
-    //                 (item.size.height / 2) <
-    //             10 &&
-    //         (item.offset.dx - item.size.width / 2) % deltaOffset < 10) {
-    //       deltaOffsetMultiplicator =
-    //           ((item.offset.dx - (item.size.width / 2)) / deltaOffset) + 1;
-    //     }
-    //   }
-
-    //   data.add(item.copyWith(
-    //       offset: Offset(
-    //           item.size.width / 2 +
-    //               baseOffset +
-    //               deltaOffsetMultiplicator * deltaOffset,
-    //           item.size.height / 2 +
-    //               baseOffset +
-    //               deltaOffsetMultiplicator * deltaOffset)));
-    // } else {
-    //   data.add(item);
-    // }
     data.add(
       item.copyWith(
         status: status ?? item.status,
@@ -153,11 +127,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _indexMap[item.id] = data.length - 1;
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * remove item
-  void removeItem(StackItem<StackItemContent> item) {
+  void removeItem(StackItem<StackItemContent> item,
+      {bool addToHistory = true}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -166,11 +142,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * remove item by id
-  void removeById(String id) {
+  void removeById(String id, {bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -181,11 +158,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * select only item
-  void selectOne(String id, {bool forceMoveToTop = false}) {
+  void selectOne(String id,
+      {bool forceMoveToTop = false, bool addToHistory = true}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -210,10 +189,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
-  void toggleLockItem(String id) {
+  void toggleLockItem(String id, {bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -230,11 +210,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
           data[_indexMap[id]!].copyWith(lockZOrder: true, locked: true);
     }
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * update one item status
-  void setItemStatus(String id, StackItemStatus status) {
+  void setItemStatus(String id, StackItemStatus status,
+      {bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final int index = _indexMap[id]!;
@@ -246,11 +228,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     data[index] = item.copyWith(status: status);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
   /// * update all item status
-  void setAllItemStatuses(StackItemStatus status) {
+  void setAllItemStatuses(StackItemStatus status, {bool addToHistory = true}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -259,11 +242,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       data[i] = item.copyWith(status: status);
     }
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * move item on top
-  void moveItemOnTop(String id, {bool force = false}) {
+  void moveItemOnTop(String id,
+      {bool force = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -278,11 +263,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * move item to bottom (index 0)
-  void moveItemToBottom(String id, {bool force = false}) {
+  void moveItemToBottom(String id,
+      {bool force = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -297,11 +284,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * move item one step forward (toward top)
-  void moveItemForward(String id, {bool force = false}) {
+  void moveItemForward(String id,
+      {bool force = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -318,11 +307,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * move item one step backward (toward bottom)
-  void moveItemBackward(String id, {bool force = false}) {
+  void moveItemBackward(String id,
+      {bool force = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -339,11 +330,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * move item to a specific index (0..length-1)
-  void moveItemToIndex(String id, int newIndex, {bool force = false}) {
+  void moveItemToIndex(String id, int newIndex,
+      {bool force = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -361,11 +354,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     _reorder(data);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
   /// * unselect all items
-  void unSelectAll() {
+  void unSelectAll({bool addToHistory = true}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -379,12 +373,17 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       // }
     }
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
   /// * update basic config
   void updateBasic(String id,
-      {Size? size, Offset? offset, double? angle, StackItemStatus? status}) {
+      {Size? size,
+      Offset? offset,
+      double? angle,
+      StackItemStatus? status,
+      bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -397,11 +396,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
       status: status,
     );
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
   /// * update item
-  void updateItem(StackItem<StackItemContent> item) {
+  void updateItem(StackItem<StackItemContent> item,
+      {bool addToHistory = true}) {
     if (!_indexMap.containsKey(item.id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -409,10 +410,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
 
     data[_indexMap[item.id]!] = item;
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
-  void flipItem(String id, {bool flipX = false, bool flipY = false}) {
+  void flipItem(String id,
+      {bool flipX = false, bool flipY = false, bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -425,11 +428,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     data[_indexMap[id]!] =
         currentItem.copyWith(flipX: newFlipX, flipY: newFlipY);
 
+    if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
   /// * clear
-  void clear() {
+  void clear({bool addToHistory = true}) {
+    if (addToHistory) commit();
     value = StackConfig.init();
     _indexMap.clear();
   }
@@ -501,5 +506,17 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig> {
     }
 
     super.dispose();
+  }
+
+  @override
+  set value(StackConfig newValue) {
+    // Rebuild index map when value is set (e.g. from undo/redo)
+    if (super.value != newValue) {
+      _indexMap.clear();
+      for (int i = 0; i < newValue.data.length; i++) {
+        _indexMap[newValue.data[i].id] = i;
+      }
+      super.value = newValue;
+    }
   }
 }

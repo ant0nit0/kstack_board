@@ -598,6 +598,18 @@ class _HomePageState extends State<HomePage>
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ActionButton(
+                  icon: Icons.undo,
+                  label: 'Undo',
+                  color: Colors.blue,
+                  onPressed: () => _boardController.undo(),
+                ),
+                ActionButton(
+                  icon: Icons.redo,
+                  label: 'Redo',
+                  color: Colors.blue,
+                  onPressed: () => _boardController.redo(),
+                ),
+                ActionButton(
                   icon: Icons.text_fields,
                   label: 'Text',
                   color: Colors.blue,
