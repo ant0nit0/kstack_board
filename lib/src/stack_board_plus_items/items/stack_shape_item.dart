@@ -63,8 +63,31 @@ class StackShapeContent implements StackItemContent {
 
   @override
   Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
+    return <String, dynamic>{
+      'type': type.name,
+      'fillColor': fillColor.toARGB32(),
+      'strokeColor': strokeColor.toARGB32(),
+      'strokeWidth': strokeWidth,
+      'opacity': opacity,
+      'tilt': tilt.toString(),
+      'width': width.toString(),
+      'height': height.toString(),
+      'endpoints': endpoints.toString(),
+    };
+  }
+
+  factory StackShapeContent.fromJson(Map<String, dynamic> json) {
+    return StackShapeContent(
+      type: StackShapeType.values.byName(json['type']),
+      fillColor: Color(asNullT<int>(json['fillColor']) ?? 0xFF000000),
+      strokeColor: Color(asNullT<int>(json['strokeColor']) ?? 0xFF000000),
+      strokeWidth: asNullT<double>(json['strokeWidth']) ?? 0.0,
+      opacity: asNullT<double>(json['opacity']) ?? 1.0,
+      tilt: asNullT<double>(json['tilt']) ?? 0.0,
+      width: asNullT<double>(json['width']) ?? 100.0,
+      height: asNullT<double>(json['height']) ?? 100.0,
+      endpoints: asNullT<int>(json['endpoints']),
+    );
   }
 }
 
@@ -105,6 +128,21 @@ class StackShapeItem extends StackItem<StackShapeContent> {
       lockZOrder: lockZOrder ?? this.lockZOrder,
       content: content ?? this.content,
       locked: locked ?? this.locked,
+    );
+  }
+
+  factory StackShapeItem.fromJson(Map<String, dynamic> json) {
+    return StackShapeItem(
+      id: asNullT<String>(json['id']),
+      size: jsonToSize(asMap(json['size'])),
+      offset: jsonToOffset(asMap(json['offset'])),
+      angle: asNullT<double>(json['angle']) ?? 0.0,
+      status: StackItemStatus.values[asNullT<int>(json['status']) ?? 0],
+      lockZOrder: asNullT<bool>(json['lockZOrder']) ?? false,
+      flipX: asNullT<bool>(json['flipX']) ?? false,
+      flipY: asNullT<bool>(json['flipY']) ?? false,
+      locked: asNullT<bool>(json['locked']) ?? false,
+      content: StackShapeContent.fromJson(asMap(json['content'])),
     );
   }
 }
