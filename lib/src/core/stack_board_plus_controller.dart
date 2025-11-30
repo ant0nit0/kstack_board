@@ -216,7 +216,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
   /// * update one item status
   void setItemStatus(String id, StackItemStatus status,
-      {bool addToHistory = true}) {
+      {bool addToHistory = false}) {
     if (!_indexMap.containsKey(id)) return;
 
     final int index = _indexMap[id]!;
