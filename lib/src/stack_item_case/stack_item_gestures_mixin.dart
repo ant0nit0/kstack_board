@@ -365,7 +365,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double sinA = math.sin(-angle);
     final double cosA = math.cos(-angle);
 
-    final Offset globalDelta = dud.globalPosition - startGlobalPoint;
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    final Offset globalDelta =
+        (dud.globalPosition - startGlobalPoint) / (config.zoomLevel ?? 1);
     final double localDx = globalDelta.dx * cosA - globalDelta.dy * sinA;
     final double localDy = globalDelta.dx * sinA + globalDelta.dy * cosA;
 
@@ -394,7 +396,6 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
 
     // Apply Snapping
-    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
     final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
 
@@ -672,7 +673,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
     final Size newSize = Size(newWidth, newHeight);
 
-    final Offset delta = details.focalPoint - startGlobalPoint;
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    final Offset delta =
+        (details.focalPoint - startGlobalPoint) / (config.zoomLevel ?? 1);
     Offset newOffset = startOffset + delta;
 
     if (details.pointerCount == 1) {
