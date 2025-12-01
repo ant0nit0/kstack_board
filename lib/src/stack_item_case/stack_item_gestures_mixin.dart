@@ -81,7 +81,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double sina = math.sin(-angle);
     final double cosa = math.cos(-angle);
 
-    Offset d = dud.delta;
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+
+    Offset d = Offset(dud.delta.dx / (config.zoomLevel ?? 1),
+        dud.delta.dy / (config.zoomLevel ?? 1));
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
     Offset realOffset = item.offset.translate(d.dx, d.dy);

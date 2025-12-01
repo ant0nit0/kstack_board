@@ -12,6 +12,7 @@ class StackBoardPlusConfig extends InheritedWidget {
     this.snapConfig,
     this.rotationSnapConfig,
     this.snapGuideLines = const [],
+    this.zoomLevel,
     required super.child,
   });
 
@@ -21,6 +22,9 @@ class StackBoardPlusConfig extends InheritedWidget {
   final SnapConfig? snapConfig;
   final RotationSnapConfig? rotationSnapConfig;
   final List<SnapGuideLine> snapGuideLines;
+  // If the stackboardplus is wrapped in an interactive viewer, this parameter is used to update the panning/resizingg methods accordingly.
+  // This does not update the UI directly, only interactions.
+  final double? zoomLevel;
 
   static StackBoardPlusConfig of(BuildContext context) {
     final StackBoardPlusConfig? result =
@@ -36,7 +40,8 @@ class StackBoardPlusConfig extends InheritedWidget {
       oldWidget.lockedCaseStyle != lockedCaseStyle ||
       oldWidget.snapConfig != snapConfig ||
       oldWidget.rotationSnapConfig != rotationSnapConfig ||
-      oldWidget.snapGuideLines != snapGuideLines;
+      oldWidget.snapGuideLines != snapGuideLines ||
+      oldWidget.zoomLevel != zoomLevel;
 }
 
 /// StackBoardPlus
@@ -61,6 +66,7 @@ class StackBoardPlus extends StatelessWidget {
     this.rotationSnapConfig,
     this.elevation = 1.0,
     this.minItemSize,
+    this.zoomLevel,
   });
 
   final StackBoardPlusController? controller;
@@ -129,6 +135,10 @@ class StackBoardPlus extends StatelessWidget {
   /// defaults to 2 * caseStyle.buttonSize
   final double? minItemSize;
 
+  /// * zoom level
+  /// defaults to 1.0
+  final double? zoomLevel;
+
   StackBoardPlusController get _controller =>
       controller ?? StackBoardPlusController.def();
 
@@ -141,6 +151,7 @@ class StackBoardPlus extends StatelessWidget {
         lockedCaseStyle: lockedCaseStyle,
         snapConfig: snapConfig,
         rotationSnapConfig: rotationSnapConfig,
+        zoomLevel: zoomLevel,
         child: Material(
           elevation: elevation,
           child: GestureDetector(
