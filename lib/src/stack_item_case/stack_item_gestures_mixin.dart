@@ -85,6 +85,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     Offset d = Offset(dud.delta.dx / (config.zoomLevel ?? 1),
         dud.delta.dy / (config.zoomLevel ?? 1));
+
+    debugPrint('initial delta: ${dud.delta}');
+    debugPrint('scaled delta: $d');
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
     Offset realOffset = item.offset.translate(d.dx, d.dy);
@@ -347,11 +350,6 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
-
-    debugPrint('newSize: $newSize');
-    debugPrint('newOffset: $newOffset');
-
-    debugPrint('min size: $minSize');
 
     controller.updateBasic(itemId,
         size: newSize, offset: newOffset, addToHistory: false);
