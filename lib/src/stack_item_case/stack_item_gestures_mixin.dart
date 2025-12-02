@@ -83,8 +83,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
 
-    Offset d = Offset(dud.delta.dx / (config.zoomLevel ?? 1),
-        dud.delta.dy / (config.zoomLevel ?? 1));
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+
+    Offset d = Offset(dud.delta.dx / zoom, dud.delta.dy / zoom);
 
     debugPrint('initial delta: ${dud.delta}');
     debugPrint('scaled delta: $d');
@@ -366,8 +368,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double cosA = math.cos(-angle);
 
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
-    final Offset globalDelta =
-        (dud.globalPosition - startGlobalPoint) / (config.zoomLevel ?? 1);
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+
+    final Offset globalDelta = (dud.globalPosition - startGlobalPoint) / zoom;
     final double localDx = globalDelta.dx * cosA - globalDelta.dy * sinA;
     final double localDy = globalDelta.dx * sinA + globalDelta.dy * cosA;
 
@@ -674,8 +678,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final Size newSize = Size(newWidth, newHeight);
 
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
-    final Offset delta =
-        (details.focalPoint - startGlobalPoint) / (config.zoomLevel ?? 1);
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+
+    final Offset delta = (details.focalPoint - startGlobalPoint) / zoom;
     Offset newOffset = startOffset + delta;
 
     if (details.pointerCount == 1) {
