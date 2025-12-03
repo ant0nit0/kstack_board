@@ -28,6 +28,7 @@ class ImageItemContent extends StackItemContent {
     this.isAntiAlias = false,
     this.filterQuality = FilterQuality.low,
     this.cornerRadius,
+    this.loading = false,
   }) {
     _init();
   }
@@ -51,6 +52,7 @@ class ImageItemContent extends StackItemContent {
     bool? isAntiAlias,
     FilterQuality? filterQuality,
     double? cornerRadius,
+    bool? loading,
   }) {
     return ImageItemContent(
       url: url ?? this.url,
@@ -71,6 +73,7 @@ class ImageItemContent extends StackItemContent {
       isAntiAlias: isAntiAlias ?? this.isAntiAlias,
       filterQuality: filterQuality ?? this.filterQuality,
       cornerRadius: cornerRadius ?? this.cornerRadius,
+      loading: loading ?? this.loading,
     );
   }
 
@@ -109,6 +112,7 @@ class ImageItemContent extends StackItemContent {
       cornerRadius: json['cornerRadius'] != null
           ? asT<double>(json['cornerRadius'])
           : null,
+      loading: asNullT<bool>(json['loading']) ?? false,
     );
   }
 
@@ -152,13 +156,15 @@ class ImageItemContent extends StackItemContent {
     final nonNullSources =
         sources.entries.where((e) => e.value != null).toList();
 
-    if (nonNullSources.length != 1) {
-      final selected = nonNullSources.map((e) => e.key).join(', ');
-      throw Exception(
-        nonNullSources.isEmpty
-            ? 'One image source must be provided: url, assetName, bytes, file, or svgString.'
-            : 'Only one image source can be used at a time. Found multiple: $selected',
-      );
+    if (!loading) {
+      if (nonNullSources.length != 1) {
+        final selected = nonNullSources.map((e) => e.key).join(', ');
+        throw Exception(
+          nonNullSources.isEmpty
+              ? 'One image source must be provided: url, assetName, bytes, file, or svgString.'
+              : 'Only one image source can be used at a time. Found multiple: $selected',
+        );
+      }
     }
 
     /// Reset loading state for new content
@@ -326,6 +332,7 @@ class ImageItemContent extends StackItemContent {
   File? file;
   FilterQuality filterQuality;
   double? cornerRadius;
+  bool loading;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -366,6 +373,10 @@ class ImageItemContent extends StackItemContent {
 
   /// Create shimmer placeholder
   Widget _buildWidgetWithShimmer() {
+    if (loading) {
+      return _buildShimmerPlaceholder();
+    }
+
     // If already loaded and no error, return the content directly
     if (_isLoaded && !_hasError) {
       return _buildContentWidget();
@@ -612,6 +623,7 @@ class ImageItemContent extends StackItemContent {
       'isAntiAlias': isAntiAlias,
       'filterQuality': filterQuality.index,
       if (cornerRadius != null) 'cornerRadius': cornerRadius,
+      'loading': loading,
     };
   }
 }
@@ -880,6 +892,39 @@ class StackImageItem extends StackItem<ImageItemContent> {
         gaplessPlayback: gaplessPlayback,
         isAntiAlias: isAntiAlias,
         filterQuality: filterQuality,
+      ),
+    );
+  }
+
+  factory StackImageItem.loading({
+    required Size size,
+    String? id,
+    double? angle,
+    Offset? offset,
+    StackItemStatus? status,
+    bool? lockZOrder,
+    double? width,
+    double? height,
+    double? cornerRadius,
+    bool flipX = false,
+    bool flipY = false,
+    bool locked = false,
+  }) {
+    return StackImageItem(
+      id: id,
+      size: size,
+      offset: offset,
+      angle: angle,
+      status: status,
+      lockZOrder: lockZOrder,
+      flipX: flipX,
+      flipY: flipY,
+      locked: locked,
+      content: ImageItemContent(
+        loading: true,
+        width: width,
+        height: height,
+        cornerRadius: cornerRadius,
       ),
     );
   }
