@@ -359,7 +359,9 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * unselect all items
-  void unSelectAll({bool addToHistory = true}) {
+  /// [force] is used to unselect all items even if they are editing.<br/>
+  /// Default to false: if not provided, calling this method will pass all editing items to selected instead of idle (and other items will be idle)<br/>
+  void unSelectAll({bool addToHistory = true, bool force = false}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -367,7 +369,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       final StackItem<StackItemContent> item = data[i];
       // if (!item.locked) {
       data[i] = item.copyWith(
-          status: item.status == StackItemStatus.editing
+          status: item.status == StackItemStatus.editing && !force
               ? StackItemStatus.selected
               : StackItemStatus.idle);
       // }
