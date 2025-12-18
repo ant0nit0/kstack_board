@@ -774,9 +774,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
 
-    debugPrint('newSize: $newSize');
-    debugPrint('newOffset: $newOffset');
-    debugPrint('min size: $minSize');
+    // debugPrint('newSize: $newSize');
+    // debugPrint('newOffset: $newOffset');
+    // debugPrint('min size: $minSize');
 
     controller.updateBasic(itemId,
         size: newSize, offset: newOffset, addToHistory: false);
