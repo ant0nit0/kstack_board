@@ -420,6 +420,7 @@ class _HomePageState extends State<HomePage>
                 caseStyle: CaseStyle(
                   frameBorderColor: Colors.blue.shade700.withValues(alpha: 0.6),
                   frameBorderWidth: 3,
+                  handleHitAreaPadding: 4.0,
                   showHelperButtons: false,
                   isFrameDashed: true,
                   dashWidth: 10,

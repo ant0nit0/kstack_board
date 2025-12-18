@@ -25,6 +25,7 @@ class ResizeHandle extends StatelessWidget {
   Widget build(BuildContext context) {
     // width/height passed here are usually the handle size logic from parent.
     // But the style of the handle itself (container) comes from caseStyle.
+    final hitAreaPadding = caseStyle.handleHitAreaPadding;
 
     return Center(
       child: MouseRegion(
@@ -34,25 +35,28 @@ class ResizeHandle extends StatelessWidget {
           onPanStart: onPanStart,
           onPanUpdate: onPanUpdate,
           onPanEnd: onPanEnd,
-          child: SizedBox(
-            width: width * 3,
-            height: height * 3,
-            child: Center(
-              child: Container(
-                width: width,
-                height: height,
-                decoration: BoxDecoration(
-                  color: caseStyle.resizeHandleStyle?.color ??
-                      caseStyle.buttonStyle.color,
-                  border: Border.all(
-                    width: caseStyle.resizeHandleStyle?.borderWidth ??
-                        caseStyle.buttonStyle.borderWidth ??
-                        1.0,
-                    color: caseStyle.resizeHandleStyle?.borderColor ??
-                        caseStyle.buttonStyle.borderColor ??
-                        Colors.grey,
+          child: Padding(
+            padding: EdgeInsets.all(hitAreaPadding),
+            child: SizedBox(
+              width: width * 3,
+              height: height * 3,
+              child: Center(
+                child: Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: caseStyle.resizeHandleStyle?.color ??
+                        caseStyle.buttonStyle.color,
+                    border: Border.all(
+                      width: caseStyle.resizeHandleStyle?.borderWidth ??
+                          caseStyle.buttonStyle.borderWidth ??
+                          1.0,
+                      color: caseStyle.resizeHandleStyle?.borderColor ??
+                          caseStyle.buttonStyle.borderColor ??
+                          Colors.grey,
+                    ),
+                    borderRadius: BorderRadius.circular(width),
                   ),
-                  borderRadius: BorderRadius.circular(width),
                 ),
               ),
             ),

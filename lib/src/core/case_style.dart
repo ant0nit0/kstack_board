@@ -103,6 +103,7 @@ class CaseStyle {
     this.dashWidth = 5.0,
     this.dashGap = 3.0,
     this.showHelperButtons = true,
+    this.handleHitAreaPadding = 0.0,
   });
 
   factory CaseStyle.fromJson(final Map<String, dynamic> json) {
@@ -130,6 +131,7 @@ class CaseStyle {
       dashWidth: asNullT<double>(json['dashWidth']) ?? 5.0,
       dashGap: asNullT<double>(json['dashGap']) ?? 3.0,
       showHelperButtons: asNullT<bool>(json['showHelperButtons']) ?? true,
+      handleHitAreaPadding: asNullT<double>(json['handleHitAreaPadding']) ?? 0.0,
     );
   }
 
@@ -166,6 +168,10 @@ class CaseStyle {
   /// * Whether to show helper buttons (like delete, rotate etc.)
   final bool showHelperButtons;
 
+  /// * Additional invisible padding around handles for easier touch detection
+  /// * This padding increases the hit area without changing the visual appearance
+  final double handleHitAreaPadding;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'buttonStyle': buttonStyle.toJson(),
         'scaleHandleStyle': scaleHandleStyle?.toJson(),
@@ -177,6 +183,7 @@ class CaseStyle {
         'dashWidth': dashWidth,
         'dashGap': dashGap,
         'showHelperButtons': showHelperButtons,
+        'handleHitAreaPadding': handleHitAreaPadding,
       };
 
   @override
@@ -191,6 +198,7 @@ class CaseStyle {
         dashWidth,
         dashGap,
         showHelperButtons,
+        handleHitAreaPadding,
       );
 
   @override
@@ -207,7 +215,8 @@ class CaseStyle {
           isFrameDashed == other.isFrameDashed &&
           dashWidth == other.dashWidth &&
           dashGap == other.dashGap &&
-          showHelperButtons == other.showHelperButtons;
+          showHelperButtons == other.showHelperButtons &&
+          handleHitAreaPadding == other.handleHitAreaPadding;
 
   /// * Copy with
   CaseStyle copyWith({
@@ -236,6 +245,7 @@ class CaseStyle {
     double? dashWidth,
     double? dashGap,
     bool? showHelperButtons,
+    double? handleHitAreaPadding,
   }) {
     return CaseStyle(
       buttonStyle: buttonStyle ??
@@ -269,6 +279,7 @@ class CaseStyle {
       dashWidth: dashWidth ?? this.dashWidth,
       dashGap: dashGap ?? this.dashGap,
       showHelperButtons: showHelperButtons ?? this.showHelperButtons,
+      handleHitAreaPadding: handleHitAreaPadding ?? this.handleHitAreaPadding,
     );
   }
 }

@@ -233,6 +233,7 @@ class _StackItemCaseState extends State<StackItemCase>
     final double buttonSize = style.buttonStyle.size ?? 24.0;
     final double scaleHandleSize = style.scaleHandleStyle?.size ?? buttonSize;
     final double resizeHandleSize = style.resizeHandleStyle?.size ?? buttonSize;
+    final double hitAreaPadding = style.handleHitAreaPadding;
 
     // The content has a padding of buttonSize/2 on left/right and buttonSize*1.5 on top/bottom
     // We need to align handles with the border which is at:
@@ -252,38 +253,49 @@ class _StackItemCaseState extends State<StackItemCase>
       if (item.status != StackItemStatus.idle) {
         if (item.size.height > getMinSize(context) * 2) {
           widgets.add(Positioned(
-              bottom: bottomBorder - resizeHandleSize / 2,
-              right: rightBorder - resizeHandleSize * 1.5, // width is size/3
-              top: topBorder - resizeHandleSize / 2,
+              bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
+              right: rightBorder -
+                  resizeHandleSize * 1.5 -
+                  hitAreaPadding, // width is size/3
+              top: topBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeXHandle(
                   context, item.status, HandlePosition.right)));
           widgets.add(Positioned(
-              bottom: bottomBorder - resizeHandleSize / 2,
-              left: leftBorder - resizeHandleSize * 1.5, // width is size/3
-              top: topBorder - resizeHandleSize / 2,
+              bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
+              left: leftBorder -
+                  resizeHandleSize * 1.5 -
+                  hitAreaPadding, // width is size/3
+              top: topBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeXHandle(
                   context, item.status, HandlePosition.left)));
         }
         if (item.size.width > getMinSize(context) * 2) {
           widgets.add(Positioned(
-              left: leftBorder - resizeHandleSize / 2,
-              top: topBorder - resizeHandleSize * 1.5, // height is size/3
-              right: rightBorder - resizeHandleSize / 2,
+              left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
+              top: topBorder -
+                  resizeHandleSize * 1.5 -
+                  hitAreaPadding, // height is size/3
+              right: rightBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeYHandle(
                   context, item.status, HandlePosition.top)));
           widgets.add(Positioned(
-              left: leftBorder - resizeHandleSize / 2,
-              bottom: bottomBorder - resizeHandleSize * 1.5, // height is size/3
-              right: rightBorder - resizeHandleSize / 2,
+              left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
+              bottom: bottomBorder -
+                  resizeHandleSize * 1.5 -
+                  hitAreaPadding, // height is size/3
+              right: rightBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeYHandle(
                   context, item.status, HandlePosition.bottom)));
         }
 
-        final double scaleHandleOffsetTop = topBorder - scaleHandleSize / 2;
+        final double scaleHandleOffsetTop =
+            topBorder - scaleHandleSize / 2 - hitAreaPadding;
         final double scaleHandleOffsetBottom =
-            bottomBorder - scaleHandleSize / 2;
-        final double scaleHandleOffsetLeft = leftBorder - scaleHandleSize / 2;
-        final double scaleHandleOffsetRight = rightBorder - scaleHandleSize / 2;
+            bottomBorder - scaleHandleSize / 2 - hitAreaPadding;
+        final double scaleHandleOffsetLeft =
+            leftBorder - scaleHandleSize / 2 - hitAreaPadding;
+        final double scaleHandleOffsetRight =
+            rightBorder - scaleHandleSize / 2 - hitAreaPadding;
 
         if (item.size.height > getMinSize(context) &&
             item.size.width > getMinSize(context)) {
