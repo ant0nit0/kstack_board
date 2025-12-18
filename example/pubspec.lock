@@ -145,10 +145,11 @@ packages:
   flutter_drawing_board:
     dependency: transitive
     description:
-      name: flutter_drawing_board
-      sha256: b7eef8c506a12485853e8b4cdc110d1d307993279b588f3a35902a7d7082dbd4
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: "649e4b4cf821aa41ab1d2e8498bffa201cb6948c"
+      url: "https://github.com/ant0nit0/k_drawing_board.git"
+    source: git
     version: "0.9.8"
   flutter_lints:
     dependency: "direct dev"

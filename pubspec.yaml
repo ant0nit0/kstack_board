@@ -1,11 +1,9 @@
 name: stack_board_plus
 description: "An advanced, stable tool for building photo editing and canvas-based apps with layers, transformations, and interactive elements."
+
 version: 0.0.7
-homepage: https://github.com/M4DGENIUS0/stack_board_plus
-repository: https://github.com/M4DGENIUS0/stack_board_plus
-issue_tracker: https://github.com/M4DGENIUS0/stack_board_plus/issues
 
-
+publish_to: none
 
 environment:
   sdk: ^3.8.1
@@ -17,7 +15,11 @@ dependencies:
   flutter_svg: ^2.2.0
   vector_math: ^2.1.4
   shimmer: ^3.0.0
-  flutter_drawing_board: ^0.9.8
+  # flutter_drawing_board: ^0.9.8
+  flutter_drawing_board:
+    git:
+      url: https://github.com/ant0nit0/k_drawing_board.git
+      ref: master
 
 dev_dependencies:
   flutter_test:
