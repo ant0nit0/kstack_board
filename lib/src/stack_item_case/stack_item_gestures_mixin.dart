@@ -18,6 +18,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   bool _wasSnapping = false;
   bool _wasRotationSnapping = false;
 
+  // Cached snap points for performance optimization
+  List<SnapPoint>? _cachedHorizontalSnaps;
+  List<SnapPoint>? _cachedVerticalSnaps;
+  Size? _cachedBoardSize;
+  Size? _cachedItemSize;
+  SnapConfig? _cachedSnapConfig;
+
   // Callbacks that can be overridden or hooked into
   void onStatusChanged(StackItemStatus status);
   void onOffsetChanged(Offset offset);
@@ -52,6 +59,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     startOffset = item.offset;
     startSize = item.size;
     startAngle = item.angle;
+
+    // Cache snap points when drag starts
+    _cacheSnapPoints(context, item.size);
   }
 
   void onPanEnd(BuildContext context, StackItemStatus status) {
@@ -61,6 +71,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     _wasSnapping = false;
     _wasRotationSnapping = false;
+
+    // Clear cached snap points when drag ends
+    _clearSnapCache();
 
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
@@ -85,11 +98,11 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     double zoom = config.zoomLevel ?? 1;
     if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
-    Offset d = Offset(dud.delta.dx / zoom, dud.delta.dy / zoom);
+    Offset d = Offset(dud.delta.dx / zoom * fittedBoxScale,
+        dud.delta.dy / zoom * fittedBoxScale);
 
-    debugPrint('initial delta: ${dud.delta}');
-    debugPrint('scaled delta: $d');
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
     Offset realOffset = item.offset.translate(d.dx, d.dy);
@@ -102,14 +115,14 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     controller.updateBasic(itemId, offset: realOffset, addToHistory: false);
   }
 
-  void _applySnapping(BuildContext context, Offset currentOffset,
-      Size currentSize, Function(Offset) onSnapped) {
+  /// Cache snap points to avoid recalculating them on every pan update
+  void _cacheSnapPoints(BuildContext context, Size itemSize) {
     try {
       final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
       final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
 
       if (!snapConfig.enabled) {
-        context.updateSnapGuideLines(<SnapGuideLine>[]);
+        _clearSnapCache();
         return;
       }
 
@@ -128,8 +141,128 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
             config: snapConfig,
           );
 
-          final SnapResult snapResult =
-              calculator.calculateSnap(currentOffset, currentSize);
+          // Cache snap points and related data
+          _cachedHorizontalSnaps = calculator.getHorizontalSnapPoints(itemSize);
+          _cachedVerticalSnaps = calculator.getVerticalSnapPoints(itemSize);
+          _cachedBoardSize = boardSize;
+          _cachedItemSize = itemSize;
+          _cachedSnapConfig = snapConfig;
+        }
+      }
+    } catch (_) {
+      _clearSnapCache();
+    }
+  }
+
+  /// Clear cached snap points
+  void _clearSnapCache() {
+    _cachedHorizontalSnaps = null;
+    _cachedVerticalSnaps = null;
+    _cachedBoardSize = null;
+    _cachedItemSize = null;
+    _cachedSnapConfig = null;
+  }
+
+  /// Check if cached snap points are still valid
+  bool _isSnapCacheValid(BuildContext context, Size currentSize) {
+    if (_cachedHorizontalSnaps == null ||
+        _cachedVerticalSnaps == null ||
+        _cachedBoardSize == null ||
+        _cachedSnapConfig == null) {
+      return false;
+    }
+
+    // Check if snap config changed
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+    if (_cachedSnapConfig != snapConfig) {
+      return false;
+    }
+
+    // Check if board size changed
+    final RenderBox? boardBox =
+        context.findAncestorRenderObjectOfType<RenderBox>();
+    if (boardBox == null || !boardBox.hasSize) {
+      return false;
+    }
+    final Size boardSize = boardBox.size;
+    if (_cachedBoardSize != boardSize) {
+      return false;
+    }
+
+    // Check if item size changed significantly (snap points depend on item size for grid calculations)
+    // We allow small differences to avoid recalculating on minor size changes
+    if (_cachedItemSize != null) {
+      const double sizeTolerance = 0.1;
+      if ((_cachedItemSize!.width - currentSize.width).abs() > sizeTolerance ||
+          (_cachedItemSize!.height - currentSize.height).abs() >
+              sizeTolerance) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void _applySnapping(BuildContext context, Offset currentOffset,
+      Size currentSize, Function(Offset) onSnapped) {
+    try {
+      final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+      final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
+
+      if (!snapConfig.enabled) {
+        context.updateSnapGuideLines(<SnapGuideLine>[]);
+        return;
+      }
+
+      final RenderBox? boardBox =
+          context.findAncestorRenderObjectOfType<RenderBox>();
+      if (boardBox != null && boardBox.hasSize) {
+        final Size boardSize = boardBox.size;
+        if (boardSize.width > 0 && boardSize.height > 0) {
+          // Use cached snap points if available and valid
+          List<SnapPoint> horizontalSnaps;
+          List<SnapPoint> verticalSnaps;
+
+          if (_isSnapCacheValid(context, currentSize) &&
+              _cachedHorizontalSnaps != null &&
+              _cachedVerticalSnaps != null &&
+              _cachedBoardSize != null) {
+            // Use cached snap points
+            horizontalSnaps = _cachedHorizontalSnaps!;
+            verticalSnaps = _cachedVerticalSnaps!;
+          } else {
+            // Recalculate and cache snap points
+            final List<StackItem<StackItemContent>> allItems =
+                controller.innerData;
+
+            final SnapCalculator calculator = SnapCalculator(
+              boardSize: boardSize,
+              allItems: allItems,
+              movingItemId: itemId,
+              config: snapConfig,
+            );
+
+            horizontalSnaps = calculator.getHorizontalSnapPoints(currentSize);
+            verticalSnaps = calculator.getVerticalSnapPoints(currentSize);
+
+            // Update cache
+            _cachedHorizontalSnaps = horizontalSnaps;
+            _cachedVerticalSnaps = verticalSnaps;
+            _cachedBoardSize = boardSize;
+            _cachedItemSize = currentSize;
+            _cachedSnapConfig = snapConfig;
+          }
+
+          // Calculate snap result using cached or fresh snap points
+          final SnapResult snapResult = _calculateSnapWithPoints(
+            currentOffset,
+            currentSize,
+            horizontalSnaps,
+            verticalSnaps,
+            boardSize,
+            snapConfig,
+          );
 
           onSnapped(snapResult.offset);
           context.updateSnapGuideLines(snapResult.guideLines);
@@ -145,6 +278,114 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         context.updateSnapGuideLines(<SnapGuideLine>[]);
       } catch (_) {}
     }
+  }
+
+  /// Calculate snap result using pre-computed snap points
+  SnapResult _calculateSnapWithPoints(
+    Offset currentOffset,
+    Size itemSize,
+    List<SnapPoint> horizontalSnaps,
+    List<SnapPoint> verticalSnaps,
+    Size boardSize,
+    SnapConfig snapConfig,
+  ) {
+    final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
+
+    // Calculate item edges in global coordinates
+    final double itemLeft = currentOffset.dx - itemSize.width / 2;
+    final double itemRight = currentOffset.dx + itemSize.width / 2;
+    final double itemTop = currentOffset.dy - itemSize.height / 2;
+    final double itemBottom = currentOffset.dy + itemSize.height / 2;
+
+    // Find nearest horizontal snap (for vertical alignment)
+    double snappedY = currentOffset.dy;
+    SnapPoint? nearestVerticalSnap;
+    double minVerticalDistance = double.infinity;
+
+    for (final SnapPoint snap in verticalSnaps) {
+      // Check if item's top edge should snap
+      final double topDistance = (itemTop - snap.position).abs();
+      if (topDistance < snapConfig.snapThreshold &&
+          topDistance < minVerticalDistance) {
+        minVerticalDistance = topDistance;
+        nearestVerticalSnap = snap;
+        snappedY = snap.position + itemSize.height / 2;
+      }
+
+      // Check if item's bottom edge should snap
+      final double bottomDistance = (itemBottom - snap.position).abs();
+      if (bottomDistance < snapConfig.snapThreshold &&
+          bottomDistance < minVerticalDistance) {
+        minVerticalDistance = bottomDistance;
+        nearestVerticalSnap = snap;
+        snappedY = snap.position - itemSize.height / 2;
+      }
+
+      // Check if item's center should snap
+      final double centerDistance = (currentOffset.dy - snap.position).abs();
+      if (centerDistance < snapConfig.snapThreshold &&
+          centerDistance < minVerticalDistance) {
+        minVerticalDistance = centerDistance;
+        nearestVerticalSnap = snap;
+        snappedY = snap.position;
+      }
+    }
+
+    // Find nearest horizontal snap (for horizontal alignment)
+    double snappedX = currentOffset.dx;
+    SnapPoint? nearestHorizontalSnap;
+    double minHorizontalDistance = double.infinity;
+
+    for (final SnapPoint snap in horizontalSnaps) {
+      // Check if item's left edge should snap
+      final double leftDistance = (itemLeft - snap.position).abs();
+      if (leftDistance < snapConfig.snapThreshold &&
+          leftDistance < minHorizontalDistance) {
+        minHorizontalDistance = leftDistance;
+        nearestHorizontalSnap = snap;
+        snappedX = snap.position + itemSize.width / 2;
+      }
+
+      // Check if item's right edge should snap
+      final double rightDistance = (itemRight - snap.position).abs();
+      if (rightDistance < snapConfig.snapThreshold &&
+          rightDistance < minHorizontalDistance) {
+        minHorizontalDistance = rightDistance;
+        nearestHorizontalSnap = snap;
+        snappedX = snap.position - itemSize.width / 2;
+      }
+
+      // Check if item's center should snap
+      final double centerDistance = (currentOffset.dx - snap.position).abs();
+      if (centerDistance < snapConfig.snapThreshold &&
+          centerDistance < minHorizontalDistance) {
+        minHorizontalDistance = centerDistance;
+        nearestHorizontalSnap = snap;
+        snappedX = snap.position;
+      }
+    }
+
+    // Create guide lines if snapping occurred
+    if (nearestVerticalSnap != null) {
+      guideLines.add(SnapGuideLine(
+        start: Offset(0, nearestVerticalSnap.position),
+        end: Offset(boardSize.width, nearestVerticalSnap.position),
+        orientation: LineOrientation.horizontal,
+      ));
+    }
+
+    if (nearestHorizontalSnap != null) {
+      guideLines.add(SnapGuideLine(
+        start: Offset(nearestHorizontalSnap.position, 0),
+        end: Offset(nearestHorizontalSnap.position, boardSize.height),
+        orientation: LineOrientation.vertical,
+      ));
+    }
+
+    return SnapResult(
+      offset: Offset(snappedX, snappedY),
+      guideLines: guideLines,
+    );
   }
 
   void onScaleUpdate(DragUpdateDetails dud, BuildContext context,
@@ -371,7 +612,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     double zoom = config.zoomLevel ?? 1;
     if (zoom < 1) zoom = 1;
 
-    final Offset globalDelta = (dud.globalPosition - startGlobalPoint) / zoom;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
+
+    final Offset globalDelta =
+        (dud.globalPosition - startGlobalPoint) / zoom * fittedBoxScale;
     final double localDx = globalDelta.dx * cosA - globalDelta.dy * sinA;
     final double localDy = globalDelta.dx * sinA + globalDelta.dy * cosA;
 
@@ -643,6 +887,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     startOffset = item.offset;
     startSize = item.size;
     startAngle = item.angle;
+
+    // Cache snap points when gesture starts
+    _cacheSnapPoints(context, item.size);
   }
 
   void onGestureUpdate(ScaleUpdateDetails details, BuildContext context) {
@@ -680,8 +927,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     double zoom = config.zoomLevel ?? 1;
     if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
-    final Offset delta = (details.focalPoint - startGlobalPoint) / zoom;
+    final Offset delta =
+        (details.focalPoint - startGlobalPoint) / zoom * fittedBoxScale;
     Offset newOffset = startOffset + delta;
 
     if (details.pointerCount == 1) {

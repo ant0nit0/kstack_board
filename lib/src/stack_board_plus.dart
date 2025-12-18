@@ -13,6 +13,7 @@ class StackBoardPlusConfig extends InheritedWidget {
     this.rotationSnapConfig,
     this.snapGuideLines = const [],
     this.zoomLevel,
+    this.fittedBoxScale,
     required super.child,
   });
 
@@ -22,9 +23,26 @@ class StackBoardPlusConfig extends InheritedWidget {
   final SnapConfig? snapConfig;
   final RotationSnapConfig? rotationSnapConfig;
   final List<SnapGuideLine> snapGuideLines;
-  // If the stackboardplus is wrapped in an interactive viewer, this parameter is used to update the panning/resizingg methods accordingly.
-  // This does not update the UI directly, only interactions.
+
+  /// If the stackboardplus is wrapped in an interactive viewer, this parameter is used to update the panning/resizingg methods accordingly.<br/>
+  /// This does not update the UI directly, only interactions.<br/>
+  /// It combines with the fittedBoxScale to calculate the effective zoom level, if provided.<br/>
   final double? zoomLevel;
+
+  /// When the stackboard is wrapped in a FittedBox, this parameter is used to update the panning/resizing methods accordingly.<br/>
+  /// This does not update the UI directly, only interactions.<br/>
+  /// It combines with the zoomLevel to calculate the effective zoom level, if provided.<br/>
+  ///
+  /// Example:
+  ///
+  /// final Size baseSize = Size(backgroundWidth, backgroundHeight);<br/>
+  /// final double availableWidth = MediaQuery.of(context).size.width;<br/>
+  /// final double availableHeight = MediaQuery.of(context).size.height - 200;<br/>
+  /// final width = min(availableWidth, availableHeight * backgroundAspectRatio);<br/>
+  /// final height = width / backgroundAspectRatio;<br/>
+  /// final Size logicalSize = Size(width, height);<br/>
+  /// final double fittedBoxScale = baseSize.width / logicalSize.width;<br/>
+  final double? fittedBoxScale;
 
   static StackBoardPlusConfig of(BuildContext context) {
     final StackBoardPlusConfig? result =
@@ -67,6 +85,7 @@ class StackBoardPlus extends StatelessWidget {
     this.elevation = 1.0,
     this.minItemSize,
     this.zoomLevel,
+    this.fittedBoxScale,
   });
 
   final StackBoardPlusController? controller;
@@ -139,6 +158,10 @@ class StackBoardPlus extends StatelessWidget {
   /// defaults to 1.0
   final double? zoomLevel;
 
+  /// * fitted box scale
+  /// defaults to 1.0
+  final double? fittedBoxScale;
+
   StackBoardPlusController get _controller =>
       controller ?? StackBoardPlusController.def();
 
@@ -152,6 +175,7 @@ class StackBoardPlus extends StatelessWidget {
         snapConfig: snapConfig,
         rotationSnapConfig: rotationSnapConfig,
         zoomLevel: zoomLevel,
+        fittedBoxScale: fittedBoxScale,
         child: Material(
           elevation: elevation,
           child: GestureDetector(

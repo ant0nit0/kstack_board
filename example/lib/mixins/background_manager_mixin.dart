@@ -13,11 +13,13 @@ mixin BackgroundManagerMixin<T extends StatefulWidget> on State<T> {
     end: Alignment.bottomRight,
   );
   File? backgroundImage;
-  double backgroundWidth = 800.0;
-  double backgroundHeight = 600.0;
+  double backgroundWidth = 600.0;
+  double backgroundHeight = 900.0;
+
+  double get backgroundAspectRatio => backgroundWidth / backgroundHeight;
   double backgroundElevation = 1.0;
   BoxFit backgroundFit = BoxFit.cover;
-  bool useGradient = true;  // Start with gradient as default
+  bool useGradient = true; // Start with gradient as default
   bool useImage = false;
 
   /// Background Editor Methods

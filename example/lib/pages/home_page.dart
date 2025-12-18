@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
@@ -224,6 +226,13 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final Size baseSize = Size(backgroundWidth, backgroundHeight);
+    final double availableWidth = MediaQuery.of(context).size.width;
+    final double availableHeight = MediaQuery.of(context).size.height - 200;
+    final width = min(availableWidth, availableHeight * backgroundAspectRatio);
+    final height = width / backgroundAspectRatio;
+    final Size logicalSize = Size(width, height);
+    final double fittedBoxScale = baseSize.width / logicalSize.width;
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
@@ -384,196 +393,200 @@ class _HomePageState extends State<HomePage>
           ),
         ),
         child: Center(
-          child: SizedBox(
-            width: backgroundWidth,
-            height: backgroundHeight,
-            child: StackBoardPlus(
-              rotationSnapConfig: RotationSnapConfig(
-                enabled: true,
-                snapIncrement: math.pi / 6,
-                tolerance: 3 * math.pi / 180,
-                onSnapHapticFeedback: () {
-                  HapticFeedback.lightImpact();
-                },
-              ),
-              elevation: backgroundElevation,
-              onDel: _onDel,
-              controller: _boardController,
-              snapConfig: _snapConfig.copyWith(
-                onSnapHapticFeedback: () {
-                  // Custom haptic feedback when snapping occurs
-                  HapticFeedback.lightImpact();
-                },
-              ),
-              caseStyle: CaseStyle(
-                frameBorderColor: Colors.blue.shade700.withValues(alpha: 0.6),
-                frameBorderWidth: 3,
-                showHelperButtons: false,
-                isFrameDashed: true,
-                dashWidth: 10,
-                dashGap: 10,
-                buttonStyle: HandleStyle(
-                  color: Colors.blue,
-                  borderColor: Colors.blue.shade700,
-                  iconColor: Colors.white,
+          child: FittedBox(
+            child: SizedBox(
+              width: backgroundWidth,
+              height: backgroundHeight,
+              child: StackBoardPlus(
+                fittedBoxScale: fittedBoxScale,
+                rotationSnapConfig: RotationSnapConfig(
+                  enabled: true,
+                  snapIncrement: math.pi / 6,
+                  tolerance: 3 * math.pi / 180,
+                  onSnapHapticFeedback: () {
+                    HapticFeedback.lightImpact();
+                  },
                 ),
-                scaleHandleStyle: HandleStyle(
-                  size: 12,
-                  color: Colors.white,
-                  borderColor: Colors.blue.shade700,
-                  borderWidth: 2,
+                zoomLevel: 1.0,
+                elevation: backgroundElevation,
+                onDel: _onDel,
+                controller: _boardController,
+                snapConfig: _snapConfig.copyWith(
+                  onSnapHapticFeedback: () {
+                    // Custom haptic feedback when snapping occurs
+                    HapticFeedback.lightImpact();
+                  },
                 ),
-                resizeHandleStyle: HandleStyle(
-                  size: 8,
-                  color: Colors.blue.shade700,
+                caseStyle: CaseStyle(
+                  frameBorderColor: Colors.blue.shade700.withValues(alpha: 0.6),
+                  frameBorderWidth: 3,
+                  showHelperButtons: false,
+                  isFrameDashed: true,
+                  dashWidth: 10,
+                  dashGap: 10,
+                  buttonStyle: HandleStyle(
+                    color: Colors.blue,
+                    borderColor: Colors.blue.shade700,
+                    iconColor: Colors.white,
+                  ),
+                  scaleHandleStyle: HandleStyle(
+                    size: 12,
+                    color: Colors.white,
+                    borderColor: Colors.blue.shade700,
+                    borderWidth: 2,
+                  ),
+                  resizeHandleStyle: HandleStyle(
+                    size: 8,
+                    color: Colors.blue.shade700,
+                  ),
                 ),
-              ),
-              minItemSize: 20,
-              background: buildBackground(),
-              customBuilder: (StackItem<StackItemContent> item) {
-                if (item is StackTextItem) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withValues(alpha: 0.1),
-                      //     blurRadius: 8,
-                      //     offset: const Offset(0, 4),
-                      //   ),
-                      // ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: EnhancedStackTextCase(
-                        item: item,
-                        decoration: const InputDecoration.collapsed(
-                            hintText: "Enter text"),
-                        onTap: () => _openTextCustomizationDialog(item),
+                minItemSize: 20,
+                background: buildBackground(),
+                customBuilder: (StackItem<StackItemContent> item) {
+                  if (item is StackTextItem) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.black.withValues(alpha: 0.1),
+                        //     blurRadius: 8,
+                        //     offset: const Offset(0, 4),
+                        //   ),
+                        // ],
                       ),
-                    ),
-                  );
-                } else if (item is StackImageItem) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withValues(alpha: 0.15),
-                      //     blurRadius: 10,
-                      //     offset: const Offset(0, 4),
-                      //   ),
-                      // ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: StackImageCase(item: item),
-                    ),
-                  );
-                } else if (item is ColorStackItem) {
-                  return Container(
-                    width: item.size.width,
-                    height: item.size.height,
-                    decoration: BoxDecoration(
-                      color: item.content?.color,
-                      borderRadius: BorderRadius.circular(12),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withValues(alpha: 0.2),
-                      //     blurRadius: 8,
-                      //     offset: const Offset(0, 4),
-                      //   ),
-                      // ],
-                    ),
-                  );
-                } else if (item is StackDrawItem) {
-                  // Render the drawing canvas for drawing items with controls overlay
-                  return Stack(
-                    children: [
-                      // Main drawing board
-                      StackDrawCase(item: item),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: EnhancedStackTextCase(
+                          item: item,
+                          decoration: const InputDecoration.collapsed(
+                              hintText: "Enter text"),
+                          onTap: () => _openTextCustomizationDialog(item),
+                        ),
+                      ),
+                    );
+                  } else if (item is StackImageItem) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.black.withValues(alpha: 0.15),
+                        //     blurRadius: 10,
+                        //     offset: const Offset(0, 4),
+                        //   ),
+                        // ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: StackImageCase(item: item),
+                      ),
+                    );
+                  } else if (item is ColorStackItem) {
+                    return Container(
+                      width: item.size.width,
+                      height: item.size.height,
+                      decoration: BoxDecoration(
+                        color: item.content?.color,
+                        borderRadius: BorderRadius.circular(12),
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     color: Colors.black.withValues(alpha: 0.2),
+                        //     blurRadius: 8,
+                        //     offset: const Offset(0, 4),
+                        //   ),
+                        // ],
+                      ),
+                    );
+                  } else if (item is StackDrawItem) {
+                    // Render the drawing canvas for drawing items with controls overlay
+                    return Stack(
+                      children: [
+                        // Main drawing board
+                        StackDrawCase(item: item),
 
-                      // Drawing controls overlay (only show when editing)
-                      if (item.status == StackItemStatus.editing)
-                        Positioned(
-                          top: 5,
-                          right: 5,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Undo button
-                                IconButton(
-                                  icon: const Icon(Icons.undo,
-                                      color: Colors.white, size: 18),
-                                  onPressed: () => item.content!.undo(),
-                                  constraints: const BoxConstraints(
-                                      minWidth: 32, minHeight: 32),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                // Redo button
-                                IconButton(
-                                  icon: const Icon(Icons.redo,
-                                      color: Colors.white, size: 18),
-                                  onPressed: () => item.content!.redo(),
-                                  constraints: const BoxConstraints(
-                                      minWidth: 32, minHeight: 32),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                // Clear button
-                                IconButton(
-                                  icon: const Icon(Icons.clear,
-                                      color: Colors.white, size: 18),
-                                  onPressed: () =>
-                                      _showDrawingClearDialog(context, item),
-                                  constraints: const BoxConstraints(
-                                      minWidth: 32, minHeight: 32),
-                                  padding: EdgeInsets.zero,
-                                ),
-                              ],
+                        // Drawing controls overlay (only show when editing)
+                        if (item.status == StackItemStatus.editing)
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Undo button
+                                  IconButton(
+                                    icon: const Icon(Icons.undo,
+                                        color: Colors.white, size: 18),
+                                    onPressed: () => item.content!.undo(),
+                                    constraints: const BoxConstraints(
+                                        minWidth: 32, minHeight: 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  // Redo button
+                                  IconButton(
+                                    icon: const Icon(Icons.redo,
+                                        color: Colors.white, size: 18),
+                                    onPressed: () => item.content!.redo(),
+                                    constraints: const BoxConstraints(
+                                        minWidth: 32, minHeight: 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  // Clear button
+                                  IconButton(
+                                    icon: const Icon(Icons.clear,
+                                        color: Colors.white, size: 18),
+                                    onPressed: () =>
+                                        _showDrawingClearDialog(context, item),
+                                    constraints: const BoxConstraints(
+                                        minWidth: 32, minHeight: 32),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  );
-                } else if (item is StackShapeItem) {
-                  return StackShapeCase(
-                    item: item,
-                    customEditorBuilder: (context, item, onUpdate) {
-                      showDialog(
+                      ],
+                    );
+                  } else if (item is StackShapeItem) {
+                    return StackShapeCase(
+                      item: item,
+                      customEditorBuilder: (context, item, onUpdate) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ShapeEditDialog(
+                            item: item,
+                            onUpdate: (updated) {
+                              onUpdate(updated);
+                            },
+                          ),
+                        );
+                        return const SizedBox.shrink();
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                customActionsBuilder: (item, context) {
+                  // Example using StackItemActionHelper for consistent styling
+                  return [
+                    // Drawing settings for drawing items
+                    if (item is StackDrawItem)
+                      StackItemActionHelper.createCustomActionButton(
                         context: context,
-                        builder: (context) => ShapeEditDialog(
-                          item: item,
-                          onUpdate: (updated) {
-                            onUpdate(updated);
-                          },
-                        ),
-                      );
-                      return const SizedBox.shrink();
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-              customActionsBuilder: (item, context) {
-                // Example using StackItemActionHelper for consistent styling
-                return [
-                  // Drawing settings for drawing items
-                  if (item is StackDrawItem)
-                    StackItemActionHelper.createCustomActionButton(
-                      context: context,
-                      icon: const Icon(Icons.brush),
-                      onTap: () => DrawingUtils.showDrawingSettingsDialog(
-                          context, item.content!.controller),
-                      tooltip: 'Drawing Settings',
-                    ),
-                ];
-              },
+                        icon: const Icon(Icons.brush),
+                        onTap: () => DrawingUtils.showDrawingSettingsDialog(
+                            context, item.content!.controller),
+                        tooltip: 'Drawing Settings',
+                      ),
+                  ];
+                },
+              ),
             ),
           ),
         ),
