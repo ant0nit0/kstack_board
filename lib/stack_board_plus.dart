@@ -32,6 +32,7 @@ export 'src/stack_board_plus_items/items/stack_group_item.dart';
 // Item content (data for items)
 export 'src/stack_board_plus_items/item_content/stack_draw_content.dart';
 export 'src/stack_board_plus_items/item_content/stack_shape_content.dart';
+export 'src/stack_board_plus_items/item_content/stack_group_content.dart';
 
 // Shape controls UI
 
