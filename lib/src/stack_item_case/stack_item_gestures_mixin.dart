@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import '../widgets/snap_guide_provider.dart';
 import 'stack_item_types.dart';
+import '../helpers/group_helpers.dart';
 
 mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   StackBoardPlusController get controller;
@@ -31,6 +32,15 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   void onSizeChanged(Size size);
   void onAngleChanged(double angle);
   double getMinSize(BuildContext context);
+
+  /// Check if item is in a group and that group is selected
+  bool _isItemInSelectedGroup(StackItem<StackItemContent> item) {
+    if (!controller.isItemInGroup(item.id)) return false;
+    final groupId = controller.getGroupForItem(item.id);
+    if (groupId == null) return false;
+    final group = controller.getGroupById(groupId);
+    return group?.status == StackItemStatus.selected;
+  }
 
   void onPanStart(DragStartDetails details, BuildContext context,
       StackItemStatus newStatus) {
@@ -89,6 +99,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
     if (item.locked) return;
+    // Prevent individual item manipulation when in a selected group
+    if (_isItemInSelectedGroup(item)) return;
 
     final double angle = item.angle;
     final double sina = math.sin(-angle);
@@ -393,6 +405,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
+    // Groups can be scaled, but individual items in selected groups cannot
+    if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
 
     double anchorLocalX = 0;
     double anchorLocalY = 0;
@@ -603,6 +617,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
+    // Groups cannot be resized (only scaled)
+    if (isGroupItem(item)) return;
+    // Individual items in selected groups cannot be resized
+    if (_isItemInSelectedGroup(item)) return;
 
     final double angle = item.angle;
     final double sinA = math.sin(-angle);
@@ -898,6 +916,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
     if (item.locked) return;
+    // Prevent individual item manipulation when in a selected group
+    if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
 
     double newAngle = startAngle + details.rotation;
 

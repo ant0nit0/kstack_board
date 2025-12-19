@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stack_board_plus/src/stack_board_plus_items/items/stack_group_item.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 import 'stack_item_types.dart';
@@ -7,6 +8,7 @@ import 'widgets/scale_handle.dart';
 import 'widgets/resize_handle.dart';
 import 'widgets/tool_actions.dart';
 import 'widgets/dashed_border.dart';
+import '../helpers/group_helpers.dart';
 
 /// This is the main class for the stack item case
 /// It is used to wrap the stack item and provide the functions of the stack item
@@ -37,6 +39,7 @@ class StackItemCase extends StatefulWidget {
     this.borderBuilder,
     this.customActionsBuilder,
     this.minItemSize,
+    this.enableLongPressGrouping = true,
   });
 
   /// * StackItemData
@@ -86,6 +89,10 @@ class StackItemCase extends StatefulWidget {
 
   /// * Minimum item size
   final double? minItemSize;
+
+  /// * Enable long press to toggle grouping status
+  /// * Defaults to true
+  final bool enableLongPressGrouping;
 
   @override
   State<StatefulWidget> createState() {
@@ -148,18 +155,51 @@ class _StackItemCaseState extends State<StackItemCase>
   /// * Click
   void _onTap(BuildContext context) {
     widget.onTap?.call();
+    // If item is in a group, select the group instead
+    if (controller.isItemInGroup(itemId)) {
+      final groupId = controller.getGroupForItem(itemId);
+      if (groupId != null) {
+        controller.selectOne(groupId);
+        widget.onStatusChanged?.call(StackItemStatus.selected);
+        return;
+      }
+    }
     controller.selectOne(itemId);
     widget.onStatusChanged?.call(StackItemStatus.selected);
   }
 
+  /// * Long Press - Toggle grouping status
+  void _onLongPress(BuildContext context) {
+    // If long press grouping is disabled, do nothing
+    if (!widget.enableLongPressGrouping) return;
+
+    // Don't toggle grouping if item is in a group (select group instead)
+    if (controller.isItemInGroup(itemId)) {
+      final groupId = controller.getGroupForItem(itemId);
+      if (groupId != null) {
+        controller.selectOne(groupId);
+        widget.onStatusChanged?.call(StackItemStatus.selected);
+        return;
+      }
+    }
+    // Toggle grouping status
+    controller.toggleGroupingStatus(itemId);
+    final item = controller.getById(itemId);
+    if (item != null) {
+      widget.onStatusChanged?.call(item.status);
+    }
+  }
+
   /// * Click edit
-  void _onEdit(BuildContext context, StackItemStatus status) {
+  void _onEdit(BuildContext context, StackItem item) {
+    final status = item.status;
     if (status == StackItemStatus.editing) return;
 
     final StackBoardPlusController stackController = controller;
-    status = StackItemStatus.editing;
     stackController.selectOne(itemId);
-    stackController.updateBasic(itemId, status: status);
+
+    if (item is StackGroupItem) return;
+    stackController.setItemStatus(item.id, StackItemStatus.editing);
     widget.onStatusChanged?.call(status);
   }
 
@@ -200,7 +240,10 @@ class _StackItemCaseState extends State<StackItemCase>
           // if (item.locked) {
           //   return IgnorePointer(child: _content(context, item));
           // }
-          return MouseRegion(
+          final caseStyle = _caseStyle(context);
+          final isGrouping = item.status == StackItemStatus.grouping;
+
+          Widget content = MouseRegion(
             cursor: _cursor(item.status),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -211,10 +254,22 @@ class _StackItemCaseState extends State<StackItemCase>
               onScaleEnd: (ScaleEndDetails details) =>
                   onGestureEnd(details, context),
               onTap: () => _onTap(context),
-              onDoubleTap: () => _onEdit(context, item.status),
+              onDoubleTap: () => _onEdit(context, item),
+              onLongPress: () => _onLongPress(context),
               child: _childrenStack(context, item),
             ),
           );
+
+          // Apply wiggle animation if item is in grouping status
+          if (isGrouping) {
+            content = WiggleAnimation(
+              config: caseStyle.wiggleAnimationConfig,
+              isAnimating: isGrouping,
+              child: content,
+            );
+          }
+
+          return content;
         },
         child: const SizedBox.shrink(),
       ),
@@ -225,10 +280,21 @@ class _StackItemCaseState extends State<StackItemCase>
       BuildContext context, StackItem<StackItemContent> item) {
     final CaseStyle style = _caseStyle(context);
 
+    // Check if item is in a selected group - if so, hide borders/handles
+    final bool isInSelectedGroup = !isGroupItem(item) &&
+        controller.isItemInGroup(item.id) &&
+        controller
+                .getGroupById(controller.getGroupForItem(item.id) ?? '')
+                ?.status ==
+            StackItemStatus.selected;
+
     final List<Widget> widgets = <Widget>[_content(context, item)];
 
-    widgets.add(widget.borderBuilder?.call(item.status) ??
-        _frameBorder(context, item.status));
+    // Show border if not in a selected group, or if in grouping status
+    if (!isInSelectedGroup || item.status == StackItemStatus.grouping) {
+      widgets.add(widget.borderBuilder?.call(item.status) ??
+          _frameBorder(context, item.status));
+    }
 
     final double buttonSize = style.buttonStyle.size ?? 24.0;
     final double scaleHandleSize = style.scaleHandleStyle?.size ?? buttonSize;
@@ -247,11 +313,18 @@ class _StackItemCaseState extends State<StackItemCase>
     final double leftBorder = buttonSize / 2;
     final double rightBorder = buttonSize / 2;
 
+    // Don't show handles/actions if item is in a selected group (unless grouping)
+    if (isInSelectedGroup && item.status != StackItemStatus.grouping) {
+      return Stack(children: widgets);
+    }
+
     if (widget.actionsBuilder != null) {
       widgets.add(widget.actionsBuilder!(item.status, _caseStyle(context)));
     } else if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.idle) {
-        if (item.size.height > getMinSize(context) * 2) {
+        // Groups cannot be resized, only scaled
+        final bool isGroup = isGroupItem(item);
+        if (!isGroup && item.size.height > getMinSize(context) * 2) {
           widgets.add(Positioned(
               bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
               right: rightBorder -
@@ -269,7 +342,7 @@ class _StackItemCaseState extends State<StackItemCase>
               child: _buildResizeXHandle(
                   context, item.status, HandlePosition.left)));
         }
-        if (item.size.width > getMinSize(context) * 2) {
+        if (!isGroup && item.size.width > getMinSize(context) * 2) {
           widgets.add(Positioned(
               left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
               top: topBorder -
@@ -397,6 +470,11 @@ class _StackItemCaseState extends State<StackItemCase>
 
     if (status == StackItemStatus.idle) return const SizedBox.shrink();
 
+    // Use different border color for grouping status
+    final Color borderColor = status == StackItemStatus.grouping
+        ? style.frameBorderColor.withValues(alpha: 0.7)
+        : style.frameBorderColor;
+
     return Positioned(
         top: buttonSize * 1.5,
         bottom: buttonSize * 1.5,
@@ -407,7 +485,7 @@ class _StackItemCaseState extends State<StackItemCase>
           child: style.isFrameDashed
               ? CustomPaint(
                   painter: DashedRectPainter(
-                    color: style.frameBorderColor,
+                    color: borderColor,
                     strokeWidth: style.frameBorderWidth,
                     dashWidth: style.dashWidth,
                     gap: style.dashGap,
@@ -416,7 +494,7 @@ class _StackItemCaseState extends State<StackItemCase>
               : Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: style.frameBorderColor,
+                      color: borderColor,
                       width: style.frameBorderWidth,
                     ),
                   ),

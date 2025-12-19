@@ -2,6 +2,7 @@ library;
 
 // Core
 export 'src/core/case_style.dart';
+export 'src/stack_item_case/widgets/wiggle_animation.dart';
 export 'src/core/snap_config.dart';
 export 'src/core/stack_board_plus_controller.dart';
 export 'src/core/stack_board_plus_item/stack_item.dart';

@@ -1,9 +1,13 @@
 import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 // ignore: unnecessary_import
 import 'package:stack_board_plus/src/helpers/history_controller_mixin.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import '../helpers/group_helpers.dart';
+import '../stack_board_plus_items/items/stack_group_item.dart';
+import '../stack_board_plus_items/item_content/stack_group_content.dart';
 
 class StackConfig {
   StackConfig({
@@ -53,6 +57,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
   final Map<String, int> _indexMap = <String, int>{};
 
+  // Group-item relationship maps
+  final Map<String, String> _itemToGroupMap = <String, String>{};
+  final Map<String, List<String>> _groupToItemsMap = <String, List<String>>{};
+
   static final StackBoardPlusController _defaultController =
       StackBoardPlusController(tag: 'def');
 
@@ -68,6 +76,9 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
         (StackItem<StackItemContent> item) =>
             item.status != StackItemStatus.idle,
       );
+
+  bool get isGrouping =>
+      innerData.any((item) => item.status == StackItemStatus.grouping);
 
   /// * get item by id
   StackItem<StackItemContent>? getById(String id) {
@@ -134,6 +145,42 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   /// * remove item
   void removeItem(StackItem<StackItemContent> item,
       {bool addToHistory = true}) {
+    // If removing a group, also remove it from group maps
+    if (item is StackGroupItem) {
+      final itemIds = _groupToItemsMap.remove(item.id) ?? [];
+      for (final itemId in itemIds) {
+        _itemToGroupMap.remove(itemId);
+      }
+    } else if (isItemInGroup(item.id)) {
+      // If removing an item that's in a group, remove it from the group
+      final groupId = _itemToGroupMap[item.id];
+      if (groupId != null) {
+        final itemIds = _groupToItemsMap[groupId];
+        if (itemIds != null) {
+          itemIds.remove(item.id);
+          if (itemIds.length < 2) {
+            // If group has less than 2 items, ungroup it
+            ungroup(groupId, addToHistory: addToHistory);
+          } else {
+            // Update group content
+            final group = getGroupById(groupId);
+            if (group != null) {
+              final List<StackItem<StackItemContent>> data =
+                  List<StackItem<StackItemContent>>.from(innerData);
+              final groupIndex = _indexMap[groupId]!;
+              final updatedContent = group.content!.copyWith(
+                itemIds: itemIds,
+              );
+              data[groupIndex] = group.copyWith(content: updatedContent);
+              if (addToHistory) commit();
+              value = value.copyWith(data: data);
+            }
+          }
+        }
+        _itemToGroupMap.remove(item.id);
+      }
+    }
+
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -150,39 +197,59 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   void removeById(String id, {bool addToHistory = true}) {
     if (!_indexMap.containsKey(id)) return;
 
-    final List<StackItem<StackItemContent>> data =
-        List<StackItem<StackItemContent>>.from(innerData);
-
-    data.removeAt(_indexMap[id]!);
-    _indexMap.remove(id);
-
-    _reorder(data);
-
-    if (addToHistory) commit();
-    value = value.copyWith(data: data, indexMap: _newIndexMap);
+    final item = innerData[_indexMap[id]!];
+    removeItem(item, addToHistory: addToHistory);
   }
 
   /// * select only item
   void selectOne(String id,
-      {bool forceMoveToTop = false, bool addToHistory = true}) {
+      {bool forceMoveToTop = false, bool addToHistory = false}) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    for (int i = 0; i < data.length; i++) {
-      final StackItem<StackItemContent> item = data[i];
-      final bool selectedOne = item.id == id;
-      // Update the status only if the item is not locked
-      // if (selectedOne) {
-      data[i] = item.copyWith(
-          status:
-              selectedOne ? StackItemStatus.selected : StackItemStatus.idle);
-      // }
+    // If clicking an item that's in a group, select the group instead
+    String? targetId = id;
+    if (isItemInGroup(id)) {
+      targetId = getGroupForItem(id);
+      if (targetId == null) return;
     }
 
-    if (_indexMap.containsKey(id)) {
-      final StackItem<StackItemContent> item = data[_indexMap[id]!];
+    // If in grouping mode, toggle grouping status instead of selecting
+    if (isGrouping) {
+      toggleGroupingStatus(targetId, addToHistory: addToHistory);
+      return;
+    }
+
+    for (int i = 0; i < data.length; i++) {
+      final StackItem<StackItemContent> item = data[i];
+      final bool selectedOne = item.id == targetId;
+
+      // If this item is in the selected group, keep it idle (don't show individual borders)
+      if (selectedOne && item is StackGroupItem) {
+        // Set all child items to idle
+        final childItems = getItemsInGroup(item.id);
+        for (final childItem in childItems) {
+          final childIndex = _indexMap[childItem.id];
+          if (childIndex != null) {
+            data[childIndex] = childItem.copyWith(status: StackItemStatus.idle);
+          }
+        }
+      }
+
+      // Clear grouping status when selecting (unless the selected item is in grouping status)
+      final newStatus = selectedOne
+          ? StackItemStatus.selected
+          : (item.status == StackItemStatus.grouping
+              ? StackItemStatus.grouping
+              : StackItemStatus.idle);
+
+      data[i] = item.copyWith(status: newStatus);
+    }
+
+    if (_indexMap.containsKey(targetId)) {
+      final StackItem<StackItemContent> item = data[_indexMap[targetId]!];
       if (!item.lockZOrder || forceMoveToTop) {
-        data.removeAt(_indexMap[id]!);
+        data.removeAt(_indexMap[targetId]!);
         data.add(item);
       }
     }
@@ -201,6 +268,27 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     final currentItem = data[_indexMap[id]!];
     final wasLocked = currentItem.lockZOrder;
+
+    // If locking a group, lock all child items as well
+    if (currentItem is StackGroupItem) {
+      final childItems = getItemsInGroup(id);
+      for (final childItem in childItems) {
+        final childIndex = _indexMap[childItem.id];
+        if (childIndex != null) {
+          if (wasLocked) {
+            data[childIndex] = childItem.copyWith(
+              lockZOrder: false,
+              locked: false,
+            );
+          } else {
+            data[childIndex] = childItem.copyWith(
+              lockZOrder: false,
+              locked: false,
+            );
+          }
+        }
+      }
+    }
 
     if (wasLocked) {
       data[_indexMap[id]!] =
@@ -379,6 +467,48 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     value = value.copyWith(data: data);
   }
 
+  /// * Toggle grouping status for an item
+  /// Allows multiple items to be in grouping status simultaneously
+  void toggleGroupingStatus(String id, {bool addToHistory = false}) {
+    if (!_indexMap.containsKey(id)) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    final item = data[_indexMap[id]!];
+    final newStatus = item.status == StackItemStatus.grouping
+        ? StackItemStatus.idle
+        : StackItemStatus.grouping;
+
+    data[_indexMap[id]!] = item.copyWith(status: newStatus);
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
+  }
+
+  /// * Get all items in grouping status
+  List<StackItem<StackItemContent>> getGroupingItems() {
+    return innerData
+        .where((item) => item.status == StackItemStatus.grouping)
+        .toList();
+  }
+
+  /// * Clear all grouping statuses
+  void clearGroupingStatus({bool addToHistory = false}) {
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    for (int i = 0; i < data.length; i++) {
+      final StackItem<StackItemContent> item = data[i];
+      if (item.status == StackItemStatus.grouping) {
+        data[i] = item.copyWith(status: StackItemStatus.idle);
+      }
+    }
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
+  }
+
   /// * update basic config
   void updateBasic(String id,
       {Size? size,
@@ -391,7 +521,21 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    data[_indexMap[id]!] = data[_indexMap[id]!].copyWith(
+    final item = data[_indexMap[id]!];
+
+    // If this is a group, update group transform
+    if (item is StackGroupItem) {
+      updateGroupTransform(id,
+          offset: offset, angle: angle, size: size, addToHistory: addToHistory);
+      if (status != null) {
+        data[_indexMap[id]!] = item.copyWith(status: status);
+        if (addToHistory) commit();
+        value = value.copyWith(data: data);
+      }
+      return;
+    }
+
+    data[_indexMap[id]!] = item.copyWith(
       size: size,
       offset: offset,
       angle: angle,
@@ -518,7 +662,268 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       for (int i = 0; i < newValue.data.length; i++) {
         _indexMap[newValue.data[i].id] = i;
       }
+      // Rebuild group maps
+      _rebuildGroupMaps(newValue.data);
       super.value = newValue;
     }
+  }
+
+  // Group management methods
+
+  /// Rebuild group-item relationship maps from data
+  void _rebuildGroupMaps(List<StackItem<StackItemContent>> data) {
+    _itemToGroupMap.clear();
+    _groupToItemsMap.clear();
+
+    for (final item in data) {
+      if (item is StackGroupItem && item.content != null) {
+        final groupId = item.id;
+        final itemIds = item.content!.itemIds;
+        _groupToItemsMap[groupId] = List<String>.from(itemIds);
+        for (final itemId in itemIds) {
+          _itemToGroupMap[itemId] = groupId;
+        }
+      }
+    }
+  }
+
+  /// Check if an item is in a group
+  bool isItemInGroup(String itemId) {
+    return _itemToGroupMap.containsKey(itemId);
+  }
+
+  /// Get the group ID for an item
+  String? getGroupForItem(String itemId) {
+    return _itemToGroupMap[itemId];
+  }
+
+  /// Get group by ID
+  StackGroupItem? getGroupById(String groupId) {
+    final item = getById(groupId);
+    return item is StackGroupItem ? item : null;
+  }
+
+  /// Get all items in a group (direct children only)
+  List<StackItem<StackItemContent>> getItemsInGroup(String groupId) {
+    final itemIds = _groupToItemsMap[groupId];
+    if (itemIds == null) return [];
+
+    return itemIds
+        .map((id) => getById(id))
+        .whereType<StackItem<StackItemContent>>()
+        .toList();
+  }
+
+  /// Calculate bounds for items, handling nested groups
+  Rect _calculateBoundsForGroupItems(List<StackItem<StackItemContent>> items) {
+    final allItems = <StackItem<StackItemContent>>[];
+    for (final item in items) {
+      if (item is StackGroupItem) {
+        // Recursively get all items from nested group
+        allItems.addAll(getGroupItemsRecursive(item, innerData));
+      } else {
+        allItems.add(item);
+      }
+    }
+    return calculateGroupBounds(allItems);
+  }
+
+  /// Create a group from items in grouping status, or from provided item IDs (supports nested groups)
+  void createGroup({List<String>? itemIds, bool addToHistory = true}) {
+    // If no itemIds provided, use items in grouping status
+    final List<String> idsToGroup =
+        itemIds ?? getGroupingItems().map((item) => item.id).toList();
+
+    if (idsToGroup.length < 2) return; // Need at least 2 items to group
+
+    // Create group using the provided or grouping items
+    _createGroupFromIds(idsToGroup, addToHistory: addToHistory);
+
+    // Clear grouping status after creating group
+    if (itemIds == null) {
+      clearGroupingStatus(addToHistory: false);
+    }
+  }
+
+  /// Internal method to create a group from a list of item IDs
+  void _createGroupFromIds(List<String> itemIds, {bool addToHistory = true}) {
+    if (itemIds.length < 2) return; // Need at least 2 items to group
+
+    // Filter out items that don't exist
+    // Allow items that are already in groups (for nested groups)
+    final validItems = <StackItem<StackItemContent>>[];
+    for (final itemId in itemIds) {
+      if (!_indexMap.containsKey(itemId)) continue;
+      final item = innerData[_indexMap[itemId]!];
+      validItems.add(item);
+    }
+
+    if (validItems.length < 2) return; // Need at least 2 valid items
+
+    // For nested groups, use recursive bounds calculation
+    final bounds = _calculateBoundsForGroupItems(validItems);
+    final groupSize = Size(bounds.width, bounds.height);
+    final groupCenter = Offset(
+      bounds.left + bounds.width / 2,
+      bounds.top + bounds.height / 2,
+    );
+
+    // Create group item
+    final groupItem = StackGroupItem(
+      size: groupSize,
+      offset: groupCenter,
+      angle: 0,
+      status: StackItemStatus.selected,
+      content: GroupItemContent(
+        itemIds: validItems.map((item) => item.id).toList(),
+        groupCenter: groupCenter,
+      ),
+    );
+
+    // Add group to data
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    // Set all items to idle and store their relative positions
+    for (int i = 0; i < data.length; i++) {
+      final item = data[i];
+      if (validItems.contains(item)) {
+        data[i] = item.copyWith(status: StackItemStatus.idle);
+      }
+    }
+
+    data.add(groupItem);
+    _indexMap[groupItem.id] = data.length - 1;
+
+    // Update group maps
+    // For nested groups, we need to handle items that are already in groups
+    final allItemIds = <String>[];
+    for (final item in validItems) {
+      if (item is StackGroupItem) {
+        // If item is a group, get all its child items recursively
+        final childItems = getGroupItemsRecursive(item, innerData);
+        allItemIds.addAll(childItems.map((i) => i.id));
+      } else {
+        allItemIds.add(item.id);
+      }
+    }
+    _groupToItemsMap[groupItem.id] = validItems.map((item) => item.id).toList();
+    // Only map direct children, not nested children
+    for (final item in validItems) {
+      // If item is already in a group, don't overwrite its mapping
+      // (it's now in a nested group)
+      if (!_itemToGroupMap.containsKey(item.id)) {
+        _itemToGroupMap[item.id] = groupItem.id;
+      }
+    }
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data, indexMap: _newIndexMap);
+  }
+
+  /// Ungroup a group
+  void ungroup(String groupId, {bool addToHistory = true}) {
+    final group = getGroupById(groupId);
+    if (group == null) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    // Remove group from data
+    data.removeAt(_indexMap[groupId]!);
+    _indexMap.remove(groupId);
+
+    // Remove from group maps
+    final itemIds = _groupToItemsMap.remove(groupId) ?? [];
+    for (final itemId in itemIds) {
+      _itemToGroupMap.remove(itemId);
+    }
+
+    _reorder(data);
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data, indexMap: _newIndexMap);
+  }
+
+  /// Update group transform and apply to all child items (handles nested groups)
+  void updateGroupTransform(String groupId,
+      {Offset? offset, double? angle, Size? size, bool addToHistory = true}) {
+    final group = getGroupById(groupId);
+    if (group == null) return;
+
+    // Get all child items recursively (including nested groups)
+    final childItems = getGroupItemsRecursive(group, innerData);
+    if (childItems.isEmpty) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    final oldGroup = data[_indexMap[groupId]!] as StackGroupItem;
+    final oldCenter = oldGroup.offset;
+    final oldAngle = oldGroup.angle;
+    final oldSize = oldGroup.size;
+
+    final newOffset = offset ?? oldCenter;
+    final newAngle = angle ?? oldAngle;
+    final newSize = size ?? oldSize;
+
+    // Calculate scale factors
+    final scaleX = newSize.width / oldSize.width;
+    final scaleY = newSize.height / oldSize.height;
+
+    // Update child items relative to group center
+    for (final childItem in childItems) {
+      final childIndex = _indexMap[childItem.id]!;
+      final oldChildOffset = childItem.offset;
+      final oldChildAngle = childItem.angle;
+      final oldChildSize = childItem.size;
+
+      // Calculate relative position from old group center
+      final relativeOffset = oldChildOffset - oldCenter;
+
+      // Apply rotation around old center
+      final cosOld = math.cos(-oldAngle);
+      final sinOld = math.sin(-oldAngle);
+      final rotatedX = relativeOffset.dx * cosOld - relativeOffset.dy * sinOld;
+      final rotatedY = relativeOffset.dx * sinOld + relativeOffset.dy * cosOld;
+
+      // Apply scale
+      final scaledX = rotatedX * scaleX;
+      final scaledY = rotatedY * scaleY;
+
+      // Rotate back around new center with new angle
+      final cosNew = math.cos(newAngle);
+      final sinNew = math.sin(newAngle);
+      final finalX = scaledX * cosNew - scaledY * sinNew;
+      final finalY = scaledX * sinNew + scaledY * cosNew;
+
+      // Calculate new child offset
+      final newChildOffset = newOffset + Offset(finalX, finalY);
+
+      // Update child angle (relative to group)
+      final newChildAngle = oldChildAngle - oldAngle + newAngle;
+
+      // Update child size
+      final newChildSize = Size(
+        oldChildSize.width * scaleX,
+        oldChildSize.height * scaleY,
+      );
+
+      data[childIndex] = childItem.copyWith(
+        offset: newChildOffset,
+        angle: newChildAngle,
+        size: newChildSize,
+      );
+    }
+
+    // Update group
+    data[_indexMap[groupId]!] = oldGroup.copyWith(
+      offset: newOffset,
+      angle: newAngle,
+      size: newSize,
+    );
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
   }
 }

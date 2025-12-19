@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+import 'package:stack_board_plus/src/stack_board_plus_items/items/stack_group_item.dart';
 
 import '../dialogs/text_customization_dialog.dart';
 import '../dialogs/snap_config_dialog.dart';
@@ -688,6 +689,51 @@ class _HomePageState extends State<HomePage>
                   label: 'Import',
                   color: Colors.indigo,
                   onPressed: () => generateFromJson(context),
+                ),
+                ValueListenableBuilder<StackConfig>(
+                  valueListenable: _boardController,
+                  builder: (context, stackConfig, _) {
+                    final groupingItems = _boardController.getGroupingItems();
+                    final canGroup = groupingItems.length >= 2 &&
+                        groupingItems.every(
+                            (item) => !_boardController.isItemInGroup(item.id));
+                    if (!canGroup) {
+                      return const SizedBox.shrink();
+                    }
+                    return ActionButton(
+                      icon: Icons.group,
+                      label: 'Group (${groupingItems.length})',
+                      color: Colors.cyan,
+                      onPressed: () {
+                        _boardController.createGroup();
+                      },
+                    );
+                  },
+                ),
+                ValueListenableBuilder<StackConfig>(
+                  valueListenable: _boardController,
+                  builder: (context, stackConfig, _) {
+                    final selectedItems = stackConfig.data
+                        .where(
+                            (item) => item.status == StackItemStatus.selected)
+                        .toList();
+                    if (selectedItems.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final selectedItem = selectedItems.first;
+                    final canUngroup = selectedItem is StackGroupItem;
+                    if (!canUngroup) {
+                      return const SizedBox.shrink();
+                    }
+                    return ActionButton(
+                      icon: Icons.group_remove,
+                      label: 'Ungroup',
+                      color: Colors.cyan.shade700,
+                      onPressed: () {
+                        _boardController.ungroup(selectedItem.id);
+                      },
+                    );
+                  },
                 ),
               ],
             ),

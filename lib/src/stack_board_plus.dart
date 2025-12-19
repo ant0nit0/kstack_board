@@ -86,6 +86,7 @@ class StackBoardPlus extends StatelessWidget {
     this.minItemSize,
     this.zoomLevel,
     this.fittedBoxScale,
+    this.enableLongPressGrouping = true,
   });
 
   final StackBoardPlusController? controller;
@@ -162,6 +163,10 @@ class StackBoardPlus extends StatelessWidget {
   /// defaults to 1.0
   final double? fittedBoxScale;
 
+  /// * Enable long press to toggle grouping status
+  /// * Defaults to true
+  final bool enableLongPressGrouping;
+
   StackBoardPlusController get _controller =>
       controller ?? StackBoardPlusController.def();
 
@@ -206,6 +211,7 @@ class StackBoardPlus extends StatelessWidget {
                             config: snapConfig,
                             allItems: sc.data,
                           ),
+                        // Render all items
                         for (final StackItem<StackItemContent> item in sc.data)
                           _itemBuilder(item),
                         const SnapGuideLayer(),
@@ -241,6 +247,7 @@ class StackBoardPlus extends StatelessWidget {
       actionsBuilder: actionsBuilder,
       borderBuilder: borderBuilder,
       customActionsBuilder: customActionsBuilder,
+      enableLongPressGrouping: enableLongPressGrouping,
     );
   }
 }

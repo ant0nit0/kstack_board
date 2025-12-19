@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 /// * Handle style
@@ -104,6 +103,7 @@ class CaseStyle {
     this.dashGap = 3.0,
     this.showHelperButtons = true,
     this.handleHitAreaPadding = 0.0,
+    this.wiggleAnimationConfig = const WiggleAnimationConfig(),
   });
 
   factory CaseStyle.fromJson(final Map<String, dynamic> json) {
@@ -131,7 +131,26 @@ class CaseStyle {
       dashWidth: asNullT<double>(json['dashWidth']) ?? 5.0,
       dashGap: asNullT<double>(json['dashGap']) ?? 3.0,
       showHelperButtons: asNullT<bool>(json['showHelperButtons']) ?? true,
-      handleHitAreaPadding: asNullT<double>(json['handleHitAreaPadding']) ?? 0.0,
+      handleHitAreaPadding:
+          asNullT<double>(json['handleHitAreaPadding']) ?? 0.0,
+      wiggleAnimationConfig: json['wiggleAnimationConfig'] != null
+          ? WiggleAnimationConfig(
+              enabled:
+                  asNullT<bool>(json['wiggleAnimationConfig']['enabled']) ??
+                      true,
+              duration: Duration(
+                milliseconds:
+                    asNullT<int>(json['wiggleAnimationConfig']['duration']) ??
+                        500,
+              ),
+              rotationAmplitude: asNullT<double>(
+                      json['wiggleAnimationConfig']['rotationAmplitude']) ??
+                  0.05,
+              translationAmplitude: asNullT<double>(
+                      json['wiggleAnimationConfig']['translationAmplitude']) ??
+                  2.0,
+            )
+          : const WiggleAnimationConfig(),
     );
   }
 
@@ -172,6 +191,9 @@ class CaseStyle {
   /// * This padding increases the hit area without changing the visual appearance
   final double handleHitAreaPadding;
 
+  /// * Configuration for wiggle animation when items are in grouping status
+  final WiggleAnimationConfig wiggleAnimationConfig;
+
   Map<String, dynamic> toJson() => <String, dynamic>{
         'buttonStyle': buttonStyle.toJson(),
         'scaleHandleStyle': scaleHandleStyle?.toJson(),
@@ -184,6 +206,12 @@ class CaseStyle {
         'dashGap': dashGap,
         'showHelperButtons': showHelperButtons,
         'handleHitAreaPadding': handleHitAreaPadding,
+        'wiggleAnimationConfig': {
+          'enabled': wiggleAnimationConfig.enabled,
+          'duration': wiggleAnimationConfig.duration.inMilliseconds,
+          'rotationAmplitude': wiggleAnimationConfig.rotationAmplitude,
+          'translationAmplitude': wiggleAnimationConfig.translationAmplitude,
+        },
       };
 
   @override
@@ -199,6 +227,7 @@ class CaseStyle {
         dashGap,
         showHelperButtons,
         handleHitAreaPadding,
+        wiggleAnimationConfig,
       );
 
   @override
@@ -216,7 +245,8 @@ class CaseStyle {
           dashWidth == other.dashWidth &&
           dashGap == other.dashGap &&
           showHelperButtons == other.showHelperButtons &&
-          handleHitAreaPadding == other.handleHitAreaPadding;
+          handleHitAreaPadding == other.handleHitAreaPadding &&
+          wiggleAnimationConfig == other.wiggleAnimationConfig;
 
   /// * Copy with
   CaseStyle copyWith({
@@ -246,6 +276,7 @@ class CaseStyle {
     double? dashGap,
     bool? showHelperButtons,
     double? handleHitAreaPadding,
+    WiggleAnimationConfig? wiggleAnimationConfig,
   }) {
     return CaseStyle(
       buttonStyle: buttonStyle ??
@@ -280,6 +311,8 @@ class CaseStyle {
       dashGap: dashGap ?? this.dashGap,
       showHelperButtons: showHelperButtons ?? this.showHelperButtons,
       handleHitAreaPadding: handleHitAreaPadding ?? this.handleHitAreaPadding,
+      wiggleAnimationConfig:
+          wiggleAnimationConfig ?? this.wiggleAnimationConfig,
     );
   }
 }
