@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import 'package:stack_board_plus/src/stack_board_plus_items/items/stack_group_item.dart';
-
 import '../dialogs/text_customization_dialog.dart';
 import '../dialogs/snap_config_dialog.dart';
 import '../mixins/background_manager_mixin.dart';
@@ -731,6 +729,27 @@ class _HomePageState extends State<HomePage>
                       color: Colors.cyan.shade700,
                       onPressed: () {
                         _boardController.ungroup(selectedItem.id);
+                      },
+                    );
+                  },
+                ),
+                ValueListenableBuilder<StackConfig>(
+                  valueListenable: _boardController,
+                  builder: (context, stackConfig, _) {
+                    final selectedItems = stackConfig.data
+                        .where(
+                            (item) => item.status == StackItemStatus.selected)
+                        .toList();
+                    if (selectedItems.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final selectedItem = selectedItems.first;
+                    return ActionButton(
+                      icon: Icons.delete,
+                      label: 'Delete',
+                      color: Colors.red,
+                      onPressed: () {
+                        _onDel(selectedItem);
                       },
                     );
                   },

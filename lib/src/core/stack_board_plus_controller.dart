@@ -152,12 +152,32 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   /// * remove item
   void removeItem(StackItem<StackItemContent> item,
       {bool addToHistory = true}) {
-    // If removing a group, also remove it from group maps
+    // If removing a group, also remove all items in the group
     if (item is StackGroupItem) {
-      final itemIds = _groupToItemsMap.remove(item.id) ?? [];
-      for (final itemId in itemIds) {
-        _itemToGroupMap.remove(itemId);
+      // Get all child items recursively (handles nested groups)
+      final List<StackItem<StackItemContent>> childItems =
+          getGroupItemsRecursive(item, innerData);
+
+      // Remove group from maps
+      _groupToItemsMap.remove(item.id);
+
+      // Remove all child items from data and maps
+      final List<StackItem<StackItemContent>> data =
+          List<StackItem<StackItemContent>>.from(innerData);
+
+      for (final childItem in childItems) {
+        data.remove(childItem);
+        _indexMap.remove(childItem.id);
+        _itemToGroupMap.remove(childItem.id);
+        // If child is also a group, remove it from group maps
+        if (childItem is StackGroupItem) {
+          _groupToItemsMap.remove(childItem.id);
+        }
       }
+
+      _reorder(data);
+      if (addToHistory) commit();
+      value = value.copyWith(data: data, indexMap: _newIndexMap);
     } else if (isItemInGroup(item.id)) {
       // If removing an item that's in a group, remove it from the group
       final groupId = _itemToGroupMap[item.id];
