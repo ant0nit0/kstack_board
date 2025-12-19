@@ -27,6 +27,7 @@ export 'src/stack_board_plus_items/items/stack_draw_item.dart';
 export 'src/stack_board_plus_items/items/stack_image_item.dart';
 export 'src/stack_board_plus_items/items/stack_text_item.dart';
 export 'src/stack_board_plus_items/items/stack_shape_item.dart';
+export 'src/stack_board_plus_items/items/stack_group_item.dart';
 
 // Item content (data for items)
 export 'src/stack_board_plus_items/item_content/stack_draw_content.dart';

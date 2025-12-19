@@ -12,7 +12,7 @@ class StackGroupItem extends StackItem<GroupItemContent> {
     required super.size,
     super.offset,
     super.lockZOrder = false,
-    super.status = StackItemStatus.selected,
+    super.status = null,
     super.flipX = false,
     super.flipY = false,
     super.locked = false,
