@@ -123,9 +123,16 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       data[index] = item.copyWith(status: StackItemStatus.idle);
     });
 
+    // Normalize item status - grouping status should not be preserved from JSON
+    // Grouping status should only be set by user interaction
+    StackItemStatus normalizedStatus = status ?? item.status;
+    if (normalizedStatus == StackItemStatus.grouping) {
+      normalizedStatus = StackItemStatus.selected;
+    }
+
     data.add(
       item.copyWith(
-        status: status ?? item.status,
+        status: normalizedStatus,
         offset: offset ??
             (item.offset == Offset.zero
                 ? Offset(
