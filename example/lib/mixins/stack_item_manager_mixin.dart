@@ -52,17 +52,112 @@ mixin StackItemManagerMixin {
     try {
       final List<dynamic> items = jsonDecode(jsonString) as List<dynamic>;
 
+      // Separate groups from regular items
+      final List<dynamic> regularItems = [];
+      final List<dynamic> groupItems = [];
+
       for (final dynamic item in items) {
+        if (item['type'] == 'StackGroupItem') {
+          groupItems.add(item);
+        } else {
+          regularItems.add(item);
+        }
+      }
+
+      // First, load all regular items (non-groups)
+      for (final dynamic item in regularItems) {
         if (item['type'] == 'StackTextItem') {
           boardController.addItem(
             StackTextItem.fromJson(item),
+            addToHistory: false,
           );
         } else if (item['type'] == 'StackImageItem') {
           boardController.addItem(
             StackImageItem.fromJson(item),
+            addToHistory: false,
+          );
+        } else if (item['type'] == 'StackShapeItem') {
+          boardController.addItem(
+            StackShapeItem.fromJson(item),
+            addToHistory: false,
+          );
+        } else if (item['type'] == 'ColorStackItem') {
+          boardController.addItem(
+            ColorStackItem.fromJson(item),
+            addToHistory: false,
           );
         }
       }
+
+      // Then, load groups (which reference the item IDs)
+      // Sort groups topologically to handle nested groups correctly
+      // Groups that don't contain other groups should be loaded first
+      final Map<String, List<String>> groupDependencies = {};
+      final Set<String> allGroupIds = {};
+
+      // First, collect all group IDs
+      for (final dynamic item in groupItems) {
+        final groupId = item['id'] as String?;
+        if (groupId != null) {
+          allGroupIds.add(groupId);
+        }
+      }
+
+      // Build dependency map: which groups contain which other groups
+      for (final dynamic item in groupItems) {
+        final groupId = item['id'] as String?;
+        if (groupId == null) continue;
+        final content = item['content'] as Map<String, dynamic>?;
+        final itemIds = (content?['itemIds'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [];
+        // Only include IDs that are actually groups (exist in allGroupIds)
+        groupDependencies[groupId] =
+            itemIds.where((id) => allGroupIds.contains(id)).toList();
+      }
+
+      // Topological sort: groups with no group dependencies first
+      final List<dynamic> sortedGroups = [];
+      final Set<String> loadedGroupIds = {};
+
+      while (sortedGroups.length < groupItems.length) {
+        bool found = false;
+        for (final dynamic item in groupItems) {
+          final groupId = item['id'] as String?;
+          if (groupId == null || loadedGroupIds.contains(groupId)) continue;
+
+          final dependencies = groupDependencies[groupId] ?? [];
+          // Check if all dependencies are already loaded
+          if (dependencies.every((depId) => loadedGroupIds.contains(depId))) {
+            sortedGroups.add(item);
+            loadedGroupIds.add(groupId);
+            found = true;
+          }
+        }
+        // If no progress, there might be a circular dependency or missing group
+        // Load remaining groups anyway
+        if (!found) {
+          for (final dynamic item in groupItems) {
+            final groupId = item['id'] as String?;
+            if (groupId != null && !loadedGroupIds.contains(groupId)) {
+              sortedGroups.add(item);
+              loadedGroupIds.add(groupId);
+            }
+          }
+          break;
+        }
+      }
+
+      for (final dynamic item in sortedGroups) {
+        boardController.addItem(
+          StackGroupItem.fromJson(item),
+          addToHistory: false,
+        );
+      }
+
+      // Commit all changes to history at once
+      boardController.commit();
     } catch (e) {
       _showAlertDialog(context: context, title: 'Error', content: e.toString());
     }

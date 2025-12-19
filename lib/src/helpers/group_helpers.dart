@@ -19,7 +19,7 @@ Rect calculateGroupBounds(List<StackItem<StackItemContent>> items) {
   for (final item in items) {
     // Get all four corners of the item (considering rotation)
     final corners = _getItemCorners(item);
-    
+
     for (final corner in corners) {
       minX = math.min(minX, corner.dx);
       minY = math.min(minY, corner.dy);
@@ -35,13 +35,13 @@ Rect calculateGroupBounds(List<StackItem<StackItemContent>> items) {
 List<Offset> _getItemCorners(StackItem<StackItemContent> item) {
   final halfWidth = item.size.width / 2;
   final halfHeight = item.size.height / 2;
-  
+
   // Local corners (relative to item center)
   final localCorners = [
     Offset(-halfWidth, -halfHeight), // top-left
-    Offset(halfWidth, -halfHeight),  // top-right
-    Offset(-halfWidth, halfHeight),  // bottom-left
-    Offset(halfWidth, halfHeight),   // bottom-right
+    Offset(halfWidth, -halfHeight), // top-right
+    Offset(-halfWidth, halfHeight), // bottom-left
+    Offset(halfWidth, halfHeight), // bottom-right
   ];
 
   // Apply rotation
@@ -54,7 +54,7 @@ List<Offset> _getItemCorners(StackItem<StackItemContent> item) {
     // Rotate around origin
     final rotatedX = corner.dx * cosA - corner.dy * sinA;
     final rotatedY = corner.dx * sinA + corner.dy * cosA;
-    
+
     // Translate to item's position
     return Offset(
       item.offset.dx + rotatedX,
@@ -107,21 +107,22 @@ List<StackItem<StackItemContent>> getGroupItemsRecursive(
   List<StackItem<StackItemContent>> allItems,
 ) {
   final List<StackItem<StackItemContent>> result = [];
-  
+
   for (final itemId in group.content?.itemIds ?? []) {
     final item = allItems.firstWhere(
       (item) => item.id == itemId,
       orElse: () => throw StateError('Item $itemId not found in group'),
     );
-    
+
     if (item is StackGroupItem) {
+      result.add(item);
       // Recursively get items from nested group
       result.addAll(getGroupItemsRecursive(item, allItems));
     } else {
       result.add(item);
     }
   }
-  
+
   return result;
 }
 
@@ -133,4 +134,3 @@ Rect calculateGroupBoundsRecursive(
   final items = getGroupItemsRecursive(group, allItems);
   return calculateGroupBounds(items);
 }
-

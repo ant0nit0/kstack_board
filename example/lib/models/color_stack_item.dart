@@ -6,6 +6,12 @@ class ColorContent extends StackItemContent {
 
   Color color;
 
+  factory ColorContent.fromJson(Map<String, dynamic> json) {
+    return ColorContent(
+      color: Color(json['color'] as int),
+    );
+  }
+
   @override
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
@@ -51,6 +57,22 @@ class ColorStackItem extends StackItem<ColorContent> {
       flipY: flipY ?? this.flipY,
       locked: locked ?? this.locked,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+    );
+  }
+
+  factory ColorStackItem.fromJson(Map<String, dynamic> data) {
+    return ColorStackItem(
+      id: data['id'] == null ? null : asT<String>(data['id']),
+      angle: data['angle'] == null ? null : asT<double>(data['angle']),
+      size: jsonToSize(asMap(data['size'])),
+      offset:
+          data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
+      status: StackItemStatus.values[data['status'] as int],
+      lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
+      locked: asNullT<bool>(data['locked']) ?? false,
+      flipX: asNullT<bool>(data['flipX']) ?? false,
+      flipY: asNullT<bool>(data['flipY']) ?? false,
+      content: ColorContent.fromJson(asMap(data['content'])),
     );
   }
 }
