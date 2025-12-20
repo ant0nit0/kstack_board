@@ -595,11 +595,104 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
         List<StackItem<StackItemContent>>.from(innerData);
 
     final currentItem = data[_indexMap[id]!];
+
+    // If this is a group, handle group flipping
+    if (currentItem is StackGroupItem) {
+      _flipGroup(id, flipX: flipX, flipY: flipY, addToHistory: addToHistory);
+      return;
+    }
+
+    // For non-group items, just toggle the flip properties
     final newFlipX = flipX ? !currentItem.flipX : currentItem.flipX;
     final newFlipY = flipY ? !currentItem.flipY : currentItem.flipY;
 
     data[_indexMap[id]!] =
         currentItem.copyWith(flipX: newFlipX, flipY: newFlipY);
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
+  }
+
+  /// Flip a group and all its child items around the group center
+  void _flipGroup(String groupId,
+      {bool flipX = false, bool flipY = false, bool addToHistory = true}) {
+    final group = getGroupById(groupId);
+    if (group == null) return;
+
+    // Get all child items recursively (including nested groups)
+    final childItems = getGroupItemsRecursive(group, innerData);
+    if (childItems.isEmpty) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    final oldGroup = data[_indexMap[groupId]!] as StackGroupItem;
+    final groupCenter = oldGroup.offset;
+    final groupAngle = oldGroup.angle;
+
+    // Calculate new flip values
+    final newFlipX = flipX ? !oldGroup.flipX : oldGroup.flipX;
+    final newFlipY = flipY ? !oldGroup.flipY : oldGroup.flipY;
+
+    // Determine if we're actually flipping (changing state)
+    final isFlippingX = flipX && (newFlipX != oldGroup.flipX);
+    final isFlippingY = flipY && (newFlipY != oldGroup.flipY);
+
+    // Update child items relative to group center
+    for (final childItem in childItems) {
+      final childIndex = _indexMap[childItem.id]!;
+      final oldChildOffset = childItem.offset;
+
+      // Calculate relative position from group center
+      final relativeOffset = oldChildOffset - groupCenter;
+
+      // Transform to group's local coordinate system (undo rotation)
+      double localX = relativeOffset.dx;
+      double localY = relativeOffset.dy;
+      if (groupAngle != 0) {
+        final cosAngle = math.cos(-groupAngle);
+        final sinAngle = math.sin(-groupAngle);
+        localX = relativeOffset.dx * cosAngle - relativeOffset.dy * sinAngle;
+        localY = relativeOffset.dx * sinAngle + relativeOffset.dy * cosAngle;
+      }
+
+      // Apply flip transformation in local space
+      if (isFlippingX) {
+        localX = -localX;
+      }
+      if (isFlippingY) {
+        localY = -localY;
+      }
+
+      // Transform back to global coordinate system (apply rotation)
+      double finalX = localX;
+      double finalY = localY;
+      if (groupAngle != 0) {
+        final cosAngle = math.cos(groupAngle);
+        final sinAngle = math.sin(groupAngle);
+        finalX = localX * cosAngle - localY * sinAngle;
+        finalY = localX * sinAngle + localY * cosAngle;
+      }
+
+      // Calculate new child offset
+      final newChildOffset = groupCenter + Offset(finalX, finalY);
+
+      // Toggle child's flipX/flipY to maintain visual appearance
+      final newChildFlipX = isFlippingX ? !childItem.flipX : childItem.flipX;
+      final newChildFlipY = isFlippingY ? !childItem.flipY : childItem.flipY;
+
+      data[childIndex] = childItem.copyWith(
+        offset: newChildOffset,
+        flipX: newChildFlipX,
+        flipY: newChildFlipY,
+      );
+    }
+
+    // Update group's flip properties
+    data[_indexMap[groupId]!] = oldGroup.copyWith(
+      flipX: newFlipX,
+      flipY: newFlipY,
+    );
 
     if (addToHistory) commit();
     value = value.copyWith(data: data);

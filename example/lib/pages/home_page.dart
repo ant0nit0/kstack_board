@@ -744,13 +744,40 @@ class _HomePageState extends State<HomePage>
                       return const SizedBox.shrink();
                     }
                     final selectedItem = selectedItems.first;
-                    return ActionButton(
-                      icon: Icons.delete,
-                      label: 'Delete',
-                      color: Colors.red,
-                      onPressed: () {
-                        _onDel(selectedItem);
-                      },
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ActionButton(
+                          icon: Icons.flip,
+                          label: 'Flip H',
+                          color: Colors.orange,
+                          onPressed: () {
+                            _boardController.flipItem(
+                              selectedItem.id,
+                              flipX: true,
+                            );
+                          },
+                        ),
+                        ActionButton(
+                          icon: Icons.flip_camera_android,
+                          label: 'Flip V',
+                          color: Colors.orange.shade700,
+                          onPressed: () {
+                            _boardController.flipItem(
+                              selectedItem.id,
+                              flipY: true,
+                            );
+                          },
+                        ),
+                        ActionButton(
+                          icon: Icons.delete,
+                          label: 'Delete',
+                          color: Colors.red,
+                          onPressed: () {
+                            _onDel(selectedItem);
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
