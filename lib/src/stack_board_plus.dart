@@ -87,9 +87,15 @@ class StackBoardPlus extends StatelessWidget {
     this.zoomLevel,
     this.fittedBoxScale,
     this.enableLongPressGrouping = true,
+    this.onTapOutside,
   });
 
   final StackBoardPlusController? controller;
+
+  /// * onTapOutside callback
+  /// * Called when the user taps outside the board
+  /// If not set, default to unselecting all items
+  final VoidCallback? onTapOutside;
 
   /// * background
   final Widget? background;
@@ -184,7 +190,7 @@ class StackBoardPlus extends StatelessWidget {
         child: Material(
           elevation: elevation,
           child: GestureDetector(
-            onTap: () => _controller.unSelectAll(),
+            onTap: onTapOutside ?? () => _controller.unSelectAll(),
             behavior: HitTestBehavior.opaque,
             child: ExBuilder<StackConfig>(
               valueListenable: _controller,
