@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import '../widgets/snap_guide_provider.dart';
 import 'stack_item_types.dart';
-import '../helpers/group_helpers.dart';
 
 mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   StackBoardPlusController get controller;

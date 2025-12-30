@@ -231,7 +231,10 @@ class _HomePageState extends State<HomePage>
     final width = min(availableWidth, availableHeight * backgroundAspectRatio);
     final height = width / backgroundAspectRatio;
     final Size logicalSize = Size(width, height);
-    final double fittedBoxScale = baseSize.width / logicalSize.width;
+    final double fittedBoxScale = baseSize.width > availableWidth
+        ? baseSize.width / logicalSize.width
+        : 1.0;
+    print('fittedBoxScale: $fittedBoxScale');
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,

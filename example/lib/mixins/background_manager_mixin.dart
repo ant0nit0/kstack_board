@@ -13,8 +13,8 @@ mixin BackgroundManagerMixin<T extends StatefulWidget> on State<T> {
     end: Alignment.bottomRight,
   );
   File? backgroundImage;
-  double backgroundWidth = 600.0;
-  double backgroundHeight = 900.0;
+  double backgroundWidth = 900.0;
+  double backgroundHeight = 600.0;
 
   double get backgroundAspectRatio => backgroundWidth / backgroundHeight;
   double backgroundElevation = 1.0;

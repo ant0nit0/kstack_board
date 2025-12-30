@@ -1,17 +1,17 @@
 // StackDrawContent holds the drawing data for a StackDrawItem.
-// 
+//
 // Available Methods for UI Implementation:
-// 
+//
 // Drawing Controls:
 // - undo()           - Undo the last drawing action
-// - redo()           - Redo the last undone action  
+// - redo()           - Redo the last undone action
 // - clear()          - Clear all drawing content
-// 
+//
 // Data Management:
 // - getDrawingData() - Export drawing data as JSON
 // - loadDrawingData() - Import drawing data from JSON
 // - toJson()         - Serialize content for board export
-// 
+//
 // State Checking:
 // - canUndo()        - Check if undo is available
 // - canRedo()        - Check if redo is available
@@ -19,10 +19,10 @@
 // Usage Example:
 // ```dart
 // final item = stackDrawItem;
-// 
+//
 // // Drawing controls
 // item.content!.undo();
-// item.content!.redo(); 
+// item.content!.redo();
 // item.content!.clear();
 //
 // // Export/Import
@@ -37,9 +37,11 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 
 class StackDrawContent implements StackItemContent {
   final DrawingController controller;
+  final bool resized;
 
   StackDrawContent({
     required this.controller,
+    this.resized = false,
   });
 
   @override
@@ -48,20 +50,23 @@ class StackDrawContent implements StackItemContent {
       'type': 'StackDrawContent',
       // Serialize drawing data for export/import
       'drawingData': controller.getJsonList(),
+      'resized': resized,
     };
   }
 
   /// Create StackDrawContent from JSON (for import)
   factory StackDrawContent.fromJson(Map<String, dynamic> json) {
     final controller = DrawingController();
-    
+
     // Load drawing data if available
     if (json['drawingData'] != null) {
       // Note: Full deserialization implementation needed
       // final List<dynamic> drawingData = json['drawingData'] as List<dynamic>;
     }
-    
-    return StackDrawContent(controller: controller);
+
+    return StackDrawContent(
+        controller: controller,
+        resized: asNullT<bool>(json['resized']) ?? false);
   }
 
   /// Save drawing data to storage/export
@@ -104,4 +109,4 @@ class StackDrawContent implements StackItemContent {
     // Note: You might need to track this manually or check controller state
     return true; // Placeholder
   }
-} 
+}
