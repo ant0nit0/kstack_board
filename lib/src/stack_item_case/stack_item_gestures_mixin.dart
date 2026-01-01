@@ -439,16 +439,53 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double anchorDy = anchorLocalX * sinA + anchorLocalY * cosA;
     final Offset anchorGlobal = startOffset + Offset(anchorDx, anchorDy);
 
-    final double distStart = (startGlobalPoint - anchorGlobal).distance;
-    if (distStart == 0) return;
+    // Special handling for topLeft handle - use direct distance ratio
+    double scale;
 
-    final Offset vStart = startGlobalPoint - anchorGlobal;
-    final Offset vCurr = dud.globalPosition - anchorGlobal;
-    final double dot = vCurr.dx * vStart.dx + vCurr.dy * vStart.dy;
+    final Offset vStartFromCenter = startGlobalPoint - centerPoint;
+    final double distStartFromCenter = vStartFromCenter.distance;
+    if (distStartFromCenter == 0) return;
 
-    double scale = 0;
-    if (dot > 0) {
-      scale = dot / (distStart * distStart);
+    final Offset vCurrFromCenter = dud.globalPosition - centerPoint;
+    final double distCurrFromCenter = vCurrFromCenter.distance;
+
+    // Calculate scale as ratio of distances from center
+    // This directly reflects how far the handle has moved from center
+    scale = distCurrFromCenter / distStartFromCenter;
+    if (handle == HandlePosition.topLeft) {
+      final Offset vStartFromCenter = startGlobalPoint - centerPoint;
+      final double distStartFromCenter = vStartFromCenter.distance;
+      if (distStartFromCenter == 0) return;
+
+      final Offset vCurrFromCenter = dud.globalPosition - centerPoint;
+      final double distCurrFromCenter = vCurrFromCenter.distance;
+
+      // Calculate scale as ratio of distances from center
+      // This directly reflects how far the handle has moved from center
+      scale = distCurrFromCenter / distStartFromCenter;
+    } else {
+      // For other corners, use the anchor-based dot product approach
+      final Offset vStart = startGlobalPoint - anchorGlobal;
+      final double distStartSq = vStart.distanceSquared;
+      if (distStartSq == 0) return;
+      final double distStart = math.sqrt(distStartSq);
+
+      final Offset vCurr = dud.globalPosition - anchorGlobal;
+
+      // Calculate the dot product to get the projection along the start direction
+      final double dot = vCurr.dx * vStart.dx + vCurr.dy * vStart.dy;
+
+      // Normalize by the start distance squared to get the scale factor
+      scale = dot / distStartSq;
+
+      // If the projection is negative or too small, fall back to distance ratio
+      if (scale <= 0.01) {
+        final double distCurrent = vCurr.distance;
+        scale = distCurrent / distStart;
+        if (scale <= 0) {
+          scale = 0.01;
+        }
+      }
     }
 
     // Apply Snapping
@@ -928,6 +965,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
       }
     }
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
     double newScale = details.scale;
     double newWidth = startSize.width * newScale;
@@ -942,11 +983,6 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       newHeight = startSize.height * newScale;
     }
     final Size newSize = Size(newWidth, newHeight);
-
-    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
-    double zoom = config.zoomLevel ?? 1;
-    if (zoom < 1) zoom = 1;
-    final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
     final Offset delta =
         (details.focalPoint - startGlobalPoint) / zoom * fittedBoxScale;
