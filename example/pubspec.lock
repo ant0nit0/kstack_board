@@ -147,7 +147,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "94bc7750562f036aee8adf6af8f6e9ebe0f5fd73"
+      resolved-ref: cbca9ca38c6e68a637c69e0057c9b869fb9425c7
       url: "https://github.com/ant0nit0/k_drawing_board.git"
     source: git
     version: "0.9.8"

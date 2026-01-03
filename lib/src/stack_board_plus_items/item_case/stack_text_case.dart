@@ -65,6 +65,7 @@ class StackTextCase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('build: ${item.content?.fontSize}');
     return item.status == StackItemStatus.editing
         ? _buildEditing(context)
         : _buildNormal(context);
@@ -88,7 +89,9 @@ class StackTextCase extends StatelessWidget {
           color: content.backgroundColor,
           border: content.borderWidth > 0 && content.borderColor != null
               ? Border.all(
-                  color: content.borderColor!, width: content.borderWidth)
+                  color: content.borderColor!,
+                  width: content.borderWidth,
+                )
               : null,
           borderRadius: BorderRadius.circular(4),
         ),
@@ -98,10 +101,7 @@ class StackTextCase extends StatelessWidget {
 
     // Apply margin
     if (content.margin != null) {
-      textWidget = Padding(
-        padding: content.margin!,
-        child: textWidget,
-      );
+      textWidget = Padding(padding: content.margin!, child: textWidget);
     }
 
     // Apply transformations (skew, flip)
@@ -111,11 +111,7 @@ class StackTextCase extends StatelessWidget {
           ..setEntry(0, 1, content.skewX)
           ..setEntry(1, 0, content.skewY)
           ..scaleByVector3(
-            vm.Vector3(
-              item.flipX ? -1.0 : 1.0,
-              item.flipY ? -1.0 : 1.0,
-              1.0,
-            ),
+            vm.Vector3(item.flipX ? -1.0 : 1.0, item.flipY ? -1.0 : 1.0, 1.0),
           ),
         alignment: Alignment.center,
         child: textWidget,
@@ -124,10 +120,7 @@ class StackTextCase extends StatelessWidget {
 
     // Apply opacity
     if (content.opacity < 1.0) {
-      textWidget = Opacity(
-        opacity: content.opacity,
-        child: textWidget,
-      );
+      textWidget = Opacity(opacity: content.opacity, child: textWidget);
     }
 
     // Apply arc transformation if needed
@@ -141,8 +134,10 @@ class StackTextCase extends StatelessWidget {
 
     // Wrap in alignment container
     return Container(
-      alignment:
-          _getAlignment(content.horizontalAlignment, content.verticalAlignment),
+      alignment: _getAlignment(
+        content.horizontalAlignment,
+        content.verticalAlignment,
+      ),
       child: FittedBox(child: textWidget),
     );
   }
@@ -193,7 +188,8 @@ class StackTextCase extends StatelessWidget {
       return Text(
         text,
         style: finalStyle.copyWith(
-          color: content.textColor?.withValues(alpha: content.opacity) ??
+          color:
+              content.textColor?.withValues(alpha: content.opacity) ??
               finalStyle.color?.withValues(alpha: content.opacity),
         ),
         textAlign: content.textAlign ?? content.horizontalAlignment,

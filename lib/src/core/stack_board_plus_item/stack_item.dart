@@ -89,6 +89,36 @@ abstract class StackItem<T extends StackItemContent> {
     T? content,
   });
 
+  /// * Resize item based on board size change
+  /// * [newBoardSize] is the new board size
+  /// * [oldBoardSize] is the old board size
+  /// * Returns a new StackItem instance with resized size, offset, and content
+  StackItem<T> resize(Size newBoardSize, Size oldBoardSize) {
+    // Calculate scale factor (assuming aspect ratio is preserved)
+    final scaleFactor = newBoardSize.width / oldBoardSize.width;
+
+    // Scale item size
+    final newSize = Size(
+      size.width * scaleFactor,
+      size.height * scaleFactor,
+    );
+
+    // Scale item offset
+    final newOffset = Offset(
+      offset.dx * scaleFactor,
+      offset.dy * scaleFactor,
+    );
+
+    // Resize content if it exists
+    final newContent = content?.resize(scaleFactor) as T?;
+
+    return copyWith(
+      size: newSize,
+      offset: newOffset,
+      content: newContent,
+    );
+  }
+
   /// to json
   Map<String, dynamic> toJson() {
     return <String, dynamic>{

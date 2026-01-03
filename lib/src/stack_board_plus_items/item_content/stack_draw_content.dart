@@ -39,10 +39,7 @@ class StackDrawContent implements StackItemContent {
   final DrawingController controller;
   final bool resized;
 
-  StackDrawContent({
-    required this.controller,
-    this.resized = false,
-  });
+  StackDrawContent({required this.controller, this.resized = false});
 
   @override
   Map<String, dynamic> toJson() {
@@ -65,8 +62,9 @@ class StackDrawContent implements StackItemContent {
     }
 
     return StackDrawContent(
-        controller: controller,
-        resized: asNullT<bool>(json['resized']) ?? false);
+      controller: controller,
+      resized: asNullT<bool>(json['resized']) ?? false,
+    );
   }
 
   /// Save drawing data to storage/export
@@ -108,5 +106,12 @@ class StackDrawContent implements StackItemContent {
   bool canRedo() {
     // Note: You might need to track this manually or check controller state
     return true; // Placeholder
+  }
+
+  @override
+  StackDrawContent resize(double scaleFactor) {
+    // TODO: Implement a resize method for drawing controller.
+    controller.resize(scaleFactor);
+    return this;
   }
 }

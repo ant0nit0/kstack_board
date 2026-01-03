@@ -1046,4 +1046,33 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
+
+  /// * Resize the entire stack board
+  /// * [newSize] is the new board size
+  /// * [oldSize] is the current/old board size
+  /// * Only resizes if aspect ratio is preserved (does nothing otherwise)
+  void resize(Size newSize, Size oldSize, {bool addToHistory = true}) {
+    // Check if aspect ratio is preserved
+    final oldAspectRatio = oldSize.width / oldSize.height;
+    final newAspectRatio = newSize.width / newSize.height;
+
+    // Use a small epsilon for floating point comparison
+    const epsilon = 0.0001;
+    if ((oldAspectRatio - newAspectRatio).abs() > epsilon) {
+      // Aspect ratio changed, do nothing
+      return;
+    }
+
+    // Resize all items
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    for (int i = 0; i < data.length; i++) {
+      final item = data[i];
+      data[i] = item.resize(newSize, oldSize);
+    }
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data, indexMap: _newIndexMap);
+  }
 }

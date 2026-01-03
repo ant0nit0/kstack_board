@@ -89,6 +89,15 @@ class StackShapeContent implements StackItemContent {
       endpoints: asNullT<int>(json['endpoints']),
     );
   }
+
+  @override
+  StackShapeContent resize(double scaleFactor) {
+    return copyWith(
+      strokeWidth: strokeWidth * scaleFactor,
+      width: width * scaleFactor,
+      height: height * scaleFactor,
+    );
+  }
 }
 
 class StackShapeItem extends StackItem<StackShapeContent> {

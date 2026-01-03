@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 import '../dialogs/text_customization_dialog.dart';
 import '../dialogs/snap_config_dialog.dart';
+import '../dialogs/resize_board_dialog.dart';
 import '../mixins/background_manager_mixin.dart';
 import '../mixins/stack_item_manager_mixin.dart';
 import '../models/color_stack_item.dart';
@@ -279,6 +280,34 @@ class _HomePageState extends State<HomePage>
             },
             icon: const Icon(Icons.grid_on, color: Colors.white),
             tooltip: 'Snap Settings',
+          ),
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (BuildContext dialogContext) => ResizeBoardDialog(
+                  currentWidth: backgroundWidth,
+                  currentHeight: backgroundHeight,
+                  onResize: (newWidth, newHeight) {
+                    debugPrint('newWidth: $newWidth, newHeight: $newHeight');
+                    setState(() {
+                      final oldSize = Size(backgroundWidth, backgroundHeight);
+                      final newSize = Size(newWidth, newHeight);
+
+                      // Update background dimensions
+                      backgroundWidth = newWidth;
+                      backgroundHeight = newHeight;
+
+                      // Resize all items on the board
+                      _boardController.resize(newSize, oldSize);
+                    });
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.aspect_ratio, color: Colors.white),
+            tooltip: 'Resize Board',
           ),
           IconButton(
             onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),

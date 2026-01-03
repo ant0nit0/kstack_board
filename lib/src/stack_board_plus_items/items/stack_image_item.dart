@@ -626,6 +626,15 @@ class ImageItemContent extends StackItemContent {
       'loading': loading,
     };
   }
+
+  @override
+  ImageItemContent resize(double scaleFactor) {
+    return copyWith(
+      width: width != null ? width! * scaleFactor : null,
+      height: height != null ? height! * scaleFactor : null,
+      cornerRadius: cornerRadius != null ? cornerRadius! * scaleFactor : null,
+    );
+  }
 }
 
 class StackImageItem extends StackItem<ImageItemContent> {

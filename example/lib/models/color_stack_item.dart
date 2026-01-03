@@ -18,6 +18,12 @@ class ColorContent extends StackItemContent {
       'color': color.toARGB32(),
     };
   }
+
+  @override
+  ColorContent resize(double scaleFactor) {
+    // Color content doesn't need to resize anything
+    return ColorContent(color: color);
+  }
 }
 
 class ColorStackItem extends StackItem<ColorContent> {

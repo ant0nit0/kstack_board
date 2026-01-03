@@ -43,4 +43,18 @@ class GroupItemContent implements StackItemContent {
       if (groupCenter != null) 'groupCenter': groupCenter!.toJson(),
     };
   }
+
+  @override
+  GroupItemContent resize(double scaleFactor) {
+    // Group content doesn't need to resize itself
+    // The group center will be updated by the StackItem resize method
+    return copyWith(
+      groupCenter: groupCenter != null
+          ? Offset(
+              groupCenter!.dx * scaleFactor,
+              groupCenter!.dy * scaleFactor,
+            )
+          : null,
+    );
+  }
 }

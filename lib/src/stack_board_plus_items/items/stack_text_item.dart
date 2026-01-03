@@ -168,6 +168,77 @@ class TextItemContent implements StackItemContent {
     );
   }
 
+  @override
+  TextItemContent resize(double scaleFactor) {
+    return TextItemContent(
+      data: data,
+      style: style?.copyWith(
+        fontSize: fontSize * scaleFactor,
+        letterSpacing: letterSpacing * scaleFactor,
+        wordSpacing: wordSpacing * scaleFactor,
+        height: lineHeight * scaleFactor,
+      ),
+      strutStyle: strutStyle,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      locale: locale,
+      softWrap: softWrap,
+      overflow: overflow,
+      textScaleFactor: textScaleFactor,
+      maxLines: maxLines,
+      semanticsLabel: semanticsLabel,
+      textWidthBasis: textWidthBasis,
+      textHeightBehavior: textHeightBehavior,
+      selectionColor: selectionColor,
+      fontFamily: fontFamily,
+      fontSize: fontSize * scaleFactor,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      isUnderlined: isUnderlined,
+      textColor: textColor,
+      textGradient: textGradient,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth * scaleFactor,
+      shadowColor: shadowColor,
+      shadowOffset: shadowOffset != null
+          ? Offset(
+              shadowOffset!.dx * scaleFactor,
+              shadowOffset!.dy * scaleFactor,
+            )
+          : null,
+      shadowBlurRadius: shadowBlurRadius * scaleFactor,
+      shadowSpreadRadius: shadowSpreadRadius * scaleFactor,
+      arcDegree: arcDegree,
+      letterSpacing: letterSpacing * scaleFactor,
+      wordSpacing: wordSpacing * scaleFactor,
+      backgroundColor: backgroundColor,
+      borderColor: borderColor,
+      borderWidth: borderWidth * scaleFactor,
+      opacity: opacity,
+      padding: padding != null
+          ? EdgeInsets.fromLTRB(
+              padding!.left * scaleFactor,
+              padding!.top * scaleFactor,
+              padding!.right * scaleFactor,
+              padding!.bottom * scaleFactor,
+            )
+          : null,
+      margin: margin != null
+          ? EdgeInsets.fromLTRB(
+              margin!.left * scaleFactor,
+              margin!.top * scaleFactor,
+              margin!.right * scaleFactor,
+              margin!.bottom * scaleFactor,
+            )
+          : null,
+      skewX: skewX,
+      skewY: skewY,
+      horizontalAlignment: horizontalAlignment,
+      verticalAlignment: verticalAlignment,
+      lineHeight: lineHeight,
+    );
+  }
+
   String? data;
   TextStyle? style;
   StackTextStrutStyle? strutStyle;

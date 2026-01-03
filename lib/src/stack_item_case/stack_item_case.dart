@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:stack_board_plus/src/stack_board_plus_items/items/stack_group_item.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
-import 'stack_item_types.dart';
 import 'stack_item_gestures_mixin.dart';
-import 'widgets/scale_handle.dart';
-import 'widgets/resize_handle.dart';
-import 'widgets/tool_actions.dart';
+import 'stack_item_types.dart';
 import 'widgets/dashed_border.dart';
-import '../helpers/group_helpers.dart';
+import 'widgets/resize_handle.dart';
+import 'widgets/scale_handle.dart';
+import 'widgets/tool_actions.dart';
 
 /// This is the main class for the stack item case
 /// It is used to wrap the stack item and provide the functions of the stack item
@@ -78,14 +76,16 @@ class StackItemCase extends StatefulWidget {
 
   /// * Operation layer builder
   final Widget Function(StackItemStatus operatState, CaseStyle caseStyle)?
-      actionsBuilder;
+  actionsBuilder;
 
   /// * Border builder
   final Widget Function(StackItemStatus operatState)? borderBuilder;
 
   final List<Widget> Function(
-          StackItem<StackItemContent> item, BuildContext context)?
-      customActionsBuilder;
+    StackItem<StackItemContent> item,
+    BuildContext context,
+  )?
+  customActionsBuilder;
 
   /// * Minimum item size
   final double? minItemSize;
@@ -125,7 +125,8 @@ class _StackItemCaseState extends State<StackItemCase>
   /// * Outer frame style
   CaseStyle _caseStyle(BuildContext context) {
     if (widget.stackItem.locked) {
-      final CaseStyle? lockedStyle = widget.lockedCaseStyle ??
+      final CaseStyle? lockedStyle =
+          widget.lockedCaseStyle ??
           StackBoardPlusConfig.of(context).lockedCaseStyle;
       if (lockedStyle != null) return lockedStyle;
     }
@@ -221,12 +222,11 @@ class _StackItemCaseState extends State<StackItemCase>
           left: item.offset.dx,
           child: Transform.translate(
             offset: Offset(
-                -item.size.width / 2 -
-                    (item.status != StackItemStatus.idle ? buttonSize / 2 : 0),
-                -item.size.height / 2 -
-                    (item.status != StackItemStatus.idle
-                        ? buttonSize * 1.5
-                        : 0)),
+              -item.size.width / 2 -
+                  (item.status != StackItemStatus.idle ? buttonSize / 2 : 0),
+              -item.size.height / 2 -
+                  (item.status != StackItemStatus.idle ? buttonSize * 1.5 : 0),
+            ),
             child: Transform.rotate(angle: item.angle, child: c),
           ),
         );
@@ -235,7 +235,10 @@ class _StackItemCaseState extends State<StackItemCase>
         itemId,
         shouldRebuild:
             (StackItem<StackItemContent> p, StackItem<StackItemContent> n) =>
-                p.status != n.status,
+                p.status != n.status ||
+                p.size != n.size ||
+                p.offset != n.offset ||
+                p.angle != n.angle,
         childBuilder: (StackItem<StackItemContent> item, Widget c) {
           // if (item.locked) {
           //   return IgnorePointer(child: _content(context, item));
@@ -277,11 +280,14 @@ class _StackItemCaseState extends State<StackItemCase>
   }
 
   Widget _childrenStack(
-      BuildContext context, StackItem<StackItemContent> item) {
+    BuildContext context,
+    StackItem<StackItemContent> item,
+  ) {
     final CaseStyle style = _caseStyle(context);
 
     // Check if item is in a selected group - if so, hide borders/handles
-    final bool isInSelectedGroup = !isGroupItem(item) &&
+    final bool isInSelectedGroup =
+        !isGroupItem(item) &&
         controller.isItemInGroup(item.id) &&
         controller
                 .getGroupById(controller.getGroupForItem(item.id) ?? '')
@@ -292,8 +298,10 @@ class _StackItemCaseState extends State<StackItemCase>
 
     // Show border if not in a selected group, or if in grouping status
     if (!isInSelectedGroup || item.status == StackItemStatus.grouping) {
-      widgets.add(widget.borderBuilder?.call(item.status) ??
-          _frameBorder(context, item.status));
+      widgets.add(
+        widget.borderBuilder?.call(item.status) ??
+            _frameBorder(context, item.status),
+      );
     }
 
     final double buttonSize = style.buttonStyle.size ?? 24.0;
@@ -325,40 +333,68 @@ class _StackItemCaseState extends State<StackItemCase>
         // Groups cannot be resized, only scaled
         final bool isGroup = isGroupItem(item);
         if (!isGroup && item.size.height > getMinSize(context) * 2) {
-          widgets.add(Positioned(
+          widgets.add(
+            Positioned(
               bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
-              right: rightBorder -
+              right:
+                  rightBorder -
                   resizeHandleSize * 1.5 -
                   hitAreaPadding, // width is size/3
               top: topBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeXHandle(
-                  context, item.status, HandlePosition.right)));
-          widgets.add(Positioned(
+                context,
+                item.status,
+                HandlePosition.right,
+              ),
+            ),
+          );
+          widgets.add(
+            Positioned(
               bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
-              left: leftBorder -
+              left:
+                  leftBorder -
                   resizeHandleSize * 1.5 -
                   hitAreaPadding, // width is size/3
               top: topBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeXHandle(
-                  context, item.status, HandlePosition.left)));
+                context,
+                item.status,
+                HandlePosition.left,
+              ),
+            ),
+          );
         }
         if (!isGroup && item.size.width > getMinSize(context) * 2) {
-          widgets.add(Positioned(
+          widgets.add(
+            Positioned(
               left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
-              top: topBorder -
+              top:
+                  topBorder -
                   resizeHandleSize * 1.5 -
                   hitAreaPadding, // height is size/3
               right: rightBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeYHandle(
-                  context, item.status, HandlePosition.top)));
-          widgets.add(Positioned(
+                context,
+                item.status,
+                HandlePosition.top,
+              ),
+            ),
+          );
+          widgets.add(
+            Positioned(
               left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
-              bottom: bottomBorder -
+              bottom:
+                  bottomBorder -
                   resizeHandleSize * 1.5 -
                   hitAreaPadding, // height is size/3
               right: rightBorder - resizeHandleSize / 2 - hitAreaPadding,
               child: _buildResizeYHandle(
-                  context, item.status, HandlePosition.bottom)));
+                context,
+                item.status,
+                HandlePosition.bottom,
+              ),
+            ),
+          );
         }
 
         final double scaleHandleOffsetTop =
@@ -372,22 +408,30 @@ class _StackItemCaseState extends State<StackItemCase>
 
         if (item.size.height > getMinSize(context) &&
             item.size.width > getMinSize(context)) {
-          widgets.add(Positioned(
+          widgets.add(
+            Positioned(
               top: scaleHandleOffsetTop,
               right: scaleHandleOffsetRight,
               child: _buildScaleHandle(
-                  context,
-                  item.status,
-                  SystemMouseCursors.resizeUpRightDownLeft,
-                  HandlePosition.topRight)));
-          widgets.add(Positioned(
+                context,
+                item.status,
+                SystemMouseCursors.resizeUpRightDownLeft,
+                HandlePosition.topRight,
+              ),
+            ),
+          );
+          widgets.add(
+            Positioned(
               bottom: scaleHandleOffsetBottom,
               left: scaleHandleOffsetLeft,
               child: _buildScaleHandle(
-                  context,
-                  item.status,
-                  SystemMouseCursors.resizeUpRightDownLeft,
-                  HandlePosition.bottomLeft)));
+                context,
+                item.status,
+                SystemMouseCursors.resizeUpRightDownLeft,
+                HandlePosition.bottomLeft,
+              ),
+            ),
+          );
         }
         widgets.addAll(<Widget>[
           if (style.showHelperButtons)
@@ -413,21 +457,25 @@ class _StackItemCaseState extends State<StackItemCase>
                 ),
               ),
           Positioned(
-              top: scaleHandleOffsetTop,
-              left: scaleHandleOffsetLeft,
-              child: _buildScaleHandle(
-                  context,
-                  item.status,
-                  SystemMouseCursors.resizeUpLeftDownRight,
-                  HandlePosition.topLeft)),
+            top: scaleHandleOffsetTop,
+            left: scaleHandleOffsetLeft,
+            child: _buildScaleHandle(
+              context,
+              item.status,
+              SystemMouseCursors.resizeUpLeftDownRight,
+              HandlePosition.topLeft,
+            ),
+          ),
           Positioned(
-              bottom: scaleHandleOffsetBottom,
-              right: scaleHandleOffsetRight,
-              child: _buildScaleHandle(
-                  context,
-                  item.status,
-                  SystemMouseCursors.resizeUpLeftDownRight,
-                  HandlePosition.bottomRight)),
+            bottom: scaleHandleOffsetBottom,
+            right: scaleHandleOffsetRight,
+            child: _buildScaleHandle(
+              context,
+              item.status,
+              SystemMouseCursors.resizeUpLeftDownRight,
+              HandlePosition.bottomRight,
+            ),
+          ),
         ]);
       }
     } else {
@@ -453,11 +501,16 @@ class _StackItemCaseState extends State<StackItemCase>
               p.size != n.size || p.status != n.status,
       childBuilder: (StackItem<StackItemContent> item, Widget c) {
         return Padding(
-            padding: item.status == StackItemStatus.idle
-                ? EdgeInsets.zero
-                : EdgeInsets.fromLTRB(buttonSize / 2, buttonSize * 1.5,
-                    buttonSize / 2, buttonSize * 1.5),
-            child: SizedBox.fromSize(size: item.size, child: c));
+          padding: item.status == StackItemStatus.idle
+              ? EdgeInsets.zero
+              : EdgeInsets.fromLTRB(
+                  buttonSize / 2,
+                  buttonSize * 1.5,
+                  buttonSize / 2,
+                  buttonSize * 1.5,
+                ),
+          child: SizedBox.fromSize(size: item.size, child: c),
+        );
       },
       child: content,
     );
@@ -476,30 +529,31 @@ class _StackItemCaseState extends State<StackItemCase>
         : style.frameBorderColor;
 
     return Positioned(
-        top: buttonSize * 1.5,
-        bottom: buttonSize * 1.5,
-        left: buttonSize / 2,
-        right: buttonSize / 2,
-        child: IgnorePointer(
-          ignoring: true,
-          child: style.isFrameDashed
-              ? CustomPaint(
-                  painter: DashedRectPainter(
+      top: buttonSize * 1.5,
+      bottom: buttonSize * 1.5,
+      left: buttonSize / 2,
+      right: buttonSize / 2,
+      child: IgnorePointer(
+        ignoring: true,
+        child: style.isFrameDashed
+            ? CustomPaint(
+                painter: DashedRectPainter(
+                  color: borderColor,
+                  strokeWidth: style.frameBorderWidth,
+                  dashWidth: style.dashWidth,
+                  gap: style.dashGap,
+                ),
+              )
+            : Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
                     color: borderColor,
-                    strokeWidth: style.frameBorderWidth,
-                    dashWidth: style.dashWidth,
-                    gap: style.dashGap,
-                  ),
-                )
-              : Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: borderColor,
-                      width: style.frameBorderWidth,
-                    ),
+                    width: style.frameBorderWidth,
                   ),
                 ),
-        ));
+              ),
+      ),
+    );
   }
 
   /// * Delete handle
@@ -528,9 +582,9 @@ class _StackItemCaseState extends State<StackItemCase>
             ),
             child: IconTheme(
               data: Theme.of(context).iconTheme.copyWith(
-                    color: style.buttonStyle.iconColor ?? Colors.grey,
-                    size: buttonSize * 0.6,
-                  ),
+                color: style.buttonStyle.iconColor ?? Colors.grey,
+                size: buttonSize * 0.6,
+              ),
               child: const Icon(Icons.delete),
             ),
           ),
@@ -539,8 +593,12 @@ class _StackItemCaseState extends State<StackItemCase>
     );
   }
 
-  Widget _buildScaleHandle(BuildContext context, StackItemStatus status,
-      MouseCursor cursor, HandlePosition handle) {
+  Widget _buildScaleHandle(
+    BuildContext context,
+    StackItemStatus status,
+    MouseCursor cursor,
+    HandlePosition handle,
+  ) {
     final CaseStyle style = _caseStyle(context);
 
     return ScaleHandle(
@@ -554,7 +612,10 @@ class _StackItemCaseState extends State<StackItemCase>
   }
 
   Widget _buildResizeXHandle(
-      BuildContext context, StackItemStatus status, HandlePosition handle) {
+    BuildContext context,
+    StackItemStatus status,
+    HandlePosition handle,
+  ) {
     final CaseStyle style = _caseStyle(context);
     final double size =
         style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
@@ -570,7 +631,10 @@ class _StackItemCaseState extends State<StackItemCase>
   }
 
   Widget _buildResizeYHandle(
-      BuildContext context, StackItemStatus status, HandlePosition handle) {
+    BuildContext context,
+    StackItemStatus status,
+    HandlePosition handle,
+  ) {
     final CaseStyle style = _caseStyle(context);
     final double size =
         style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
