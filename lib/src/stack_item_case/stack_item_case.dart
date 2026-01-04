@@ -238,6 +238,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 p.status != n.status ||
                 p.size != n.size ||
                 p.offset != n.offset ||
+                p.opacity != n.opacity ||
                 p.angle != n.angle,
         childBuilder: (StackItem<StackItemContent> item, Widget c) {
           // if (item.locked) {
