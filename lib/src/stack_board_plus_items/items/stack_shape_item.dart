@@ -112,6 +112,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
     super.flipY = false,
     super.id,
     super.locked = false,
+    super.opacity = 1,
   });
 
   @override
@@ -125,6 +126,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
     bool? flipY,
     StackShapeContent? content, // not used, but required for override
     bool? locked,
+    double? opacity,
   }) {
     return StackShapeItem(
       id: id,
@@ -137,6 +139,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
       lockZOrder: lockZOrder ?? this.lockZOrder,
       content: content ?? this.content,
       locked: locked ?? this.locked,
+      opacity: opacity ?? this.opacity,
     );
   }
 
@@ -151,6 +154,7 @@ class StackShapeItem extends StackItem<StackShapeContent> {
       flipX: asNullT<bool>(json['flipX']) ?? false,
       flipY: asNullT<bool>(json['flipY']) ?? false,
       locked: asNullT<bool>(json['locked']) ?? false,
+      opacity: asNullT<double>(json['opacity']) ?? 1.0,
       content: StackShapeContent.fromJson(asMap(json['content'])),
     );
   }

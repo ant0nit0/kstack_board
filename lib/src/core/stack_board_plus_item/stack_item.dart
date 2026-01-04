@@ -26,15 +26,17 @@ abstract class StackItem<T extends StackItemContent> {
     bool? locked = false,
     bool? flipX = false,
     bool? flipY = false,
+    double? opacity = 1,
     this.content,
-  })  : id = id ?? _genId(),
-        offset = offset ?? Offset.zero,
-        angle = angle ?? 0,
-        lockZOrder = lockZOrder ?? false,
-        flipX = flipX ?? false,
-        flipY = flipY ?? false,
-        status = status ?? StackItemStatus.selected,
-        locked = locked ?? false;
+  }) : id = id ?? _genId(),
+       offset = offset ?? Offset.zero,
+       angle = angle ?? 0,
+       lockZOrder = lockZOrder ?? false,
+       flipX = flipX ?? false,
+       flipY = flipY ?? false,
+       status = status ?? StackItemStatus.selected,
+       locked = locked ?? false,
+       opacity = opacity ?? 1;
 
   const StackItem.empty({
     required this.size,
@@ -46,6 +48,7 @@ abstract class StackItem<T extends StackItemContent> {
     required this.locked,
     this.flipX = false,
     this.flipY = false,
+    this.opacity = 1,
   }) : id = '';
 
   /// id
@@ -76,6 +79,9 @@ abstract class StackItem<T extends StackItemContent> {
   /// Content
   final T? content;
 
+  /// Opacity
+  final double opacity;
+
   /// Update content and return new instance
   StackItem<T> copyWith({
     Size? size,
@@ -87,6 +93,7 @@ abstract class StackItem<T extends StackItemContent> {
     bool? flipX,
     bool? flipY,
     T? content,
+    double? opacity,
   });
 
   /// * Resize item based on board size change
@@ -98,16 +105,10 @@ abstract class StackItem<T extends StackItemContent> {
     final scaleFactor = newBoardSize.width / oldBoardSize.width;
 
     // Scale item size
-    final newSize = Size(
-      size.width * scaleFactor,
-      size.height * scaleFactor,
-    );
+    final newSize = Size(size.width * scaleFactor, size.height * scaleFactor);
 
     // Scale item offset
-    final newOffset = Offset(
-      offset.dx * scaleFactor,
-      offset.dy * scaleFactor,
-    );
+    final newOffset = Offset(offset.dx * scaleFactor, offset.dy * scaleFactor);
 
     // Resize content if it exists
     final newContent = content?.resize(scaleFactor) as T?;
@@ -116,6 +117,7 @@ abstract class StackItem<T extends StackItemContent> {
       size: newSize,
       offset: newOffset,
       content: newContent,
+      opacity: opacity,
     );
   }
 
@@ -132,6 +134,7 @@ abstract class StackItem<T extends StackItemContent> {
       'locked': locked,
       'flipX': flipX,
       'flipY': flipY,
+      'opacity': opacity,
       if (content != null) 'content': content?.toJson(),
     };
   }

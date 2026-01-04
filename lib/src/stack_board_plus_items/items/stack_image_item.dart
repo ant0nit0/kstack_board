@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -80,10 +80,12 @@ class ImageItemContent extends StackItemContent {
   factory ImageItemContent.fromJson(Map<String, dynamic> json) {
     return ImageItemContent(
       url: json['url'] != null ? asT<String>(json['url']) : null,
-      assetName:
-          json['assetName'] != null ? asT<String>(json['assetName']) : null,
-      svgString:
-          json['svgString'] != null ? asT<String>(json['svgString']) : null,
+      assetName: json['assetName'] != null
+          ? asT<String>(json['assetName'])
+          : null,
+      svgString: json['svgString'] != null
+          ? asT<String>(json['svgString'])
+          : null,
       semanticLabel: json['semanticLabel'] != null
           ? asT<String>(json['semanticLabel'])
           : null,
@@ -153,8 +155,9 @@ class ImageItemContent extends StackItemContent {
       'svgString': svgString,
     };
 
-    final nonNullSources =
-        sources.entries.where((e) => e.value != null).toList();
+    final nonNullSources = sources.entries
+        .where((e) => e.value != null)
+        .toList();
 
     if (!loading) {
       if (nonNullSources.length != 1) {
@@ -570,19 +573,22 @@ class ImageItemContent extends StackItemContent {
     _loadingCompleter = Completer<void>();
 
     if (file != null) {
-      file!.exists().then((exists) {
-        if (!_loadingCompleter!.isCompleted) {
-          if (exists) {
-            _markAsLoaded();
-          } else {
-            _markAsError();
-          }
-        }
-      }).catchError((_) {
-        if (!_loadingCompleter!.isCompleted) {
-          _markAsError();
-        }
-      });
+      file!
+          .exists()
+          .then((exists) {
+            if (!_loadingCompleter!.isCompleted) {
+              if (exists) {
+                _markAsLoaded();
+              } else {
+                _markAsError();
+              }
+            }
+          })
+          .catchError((_) {
+            if (!_loadingCompleter!.isCompleted) {
+              _markAsError();
+            }
+          });
     } else {
       _markAsError();
     }
@@ -649,6 +655,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     super.flipX = false,
     super.flipY = false,
     super.locked = false,
+    super.opacity = 1,
   });
 
   factory StackImageItem.fromJson(Map<String, dynamic> data) {
@@ -656,13 +663,15 @@ class StackImageItem extends StackItem<ImageItemContent> {
       id: data['id'] == null ? null : asT<String>(data['id']),
       angle: data['angle'] == null ? null : asT<double>(data['angle']),
       size: jsonToSize(asMap(data['size'])),
-      offset:
-          data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
+      offset: data['offset'] == null
+          ? null
+          : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
       locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
+      opacity: asNullT<double>(data['opacity']) ?? 1.0,
       content: ImageItemContent.fromJson(asMap(data['content'])),
     );
   }
@@ -687,6 +696,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -698,6 +708,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       locked: locked,
       flipX: flipX,
       flipY: flipY,
+      opacity: opacity,
       content: ImageItemContent.svg(
         svgString: svgString,
         semanticLabel: semanticLabel,
@@ -734,6 +745,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -745,6 +757,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipY: flipY,
       lockZOrder: lockZOrder,
       locked: locked,
+      opacity: opacity,
       content: ImageItemContent(
         url: url,
         width: width,
@@ -782,6 +795,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -793,6 +807,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX,
       flipY: flipY,
       locked: locked,
+      opacity: opacity,
       content: ImageItemContent(
         assetName: assetName,
         width: width,
@@ -830,6 +845,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -841,6 +857,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX,
       flipY: flipY,
       locked: locked,
+      opacity: opacity,
       content: ImageItemContent(
         file: file,
         width: width,
@@ -878,6 +895,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -889,6 +907,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX,
       flipY: flipY,
       locked: locked,
+      opacity: opacity,
       content: ImageItemContent(
         bytes: bytes,
         width: width,
@@ -918,6 +937,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool flipX = false,
     bool flipY = false,
     bool locked = false,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -929,6 +949,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       flipX: flipX,
       flipY: flipY,
       locked: locked,
+      opacity: opacity,
       content: ImageItemContent(
         loading: true,
         width: width,
@@ -969,6 +990,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
     bool? flipY,
     ImageItemContent? content,
     bool? locked,
+    double? opacity,
   }) {
     return StackImageItem(
       id: id,
@@ -979,6 +1001,7 @@ class StackImageItem extends StackItem<ImageItemContent> {
       lockZOrder: lockZOrder ?? this.lockZOrder,
       flipX: flipX ?? this.flipX,
       flipY: flipY ?? this.flipY,
+      opacity: opacity ?? this.opacity,
       content: content ?? this.content,
       locked: locked ?? this.locked,
     );

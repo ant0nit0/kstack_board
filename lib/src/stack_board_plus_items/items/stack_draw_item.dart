@@ -54,7 +54,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   final dynamic Function(PointerUpEvent)? onPointerUp;
   final Clip clipBehavior;
   final List<DefToolItem> Function(Type, DrawingController)?
-      defaultToolsBuilder;
+  defaultToolsBuilder;
   final Clip boardClipBehavior;
   final PanAxis panAxis;
   final EdgeInsets? boardBoundaryMargin;
@@ -91,6 +91,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
     super.flipX = false,
     super.flipY = false,
     super.locked = false,
+    super.opacity = 1,
     this.showDefaultActions = false,
     this.showDefaultTools = false,
     this.onPointerDown,
@@ -125,6 +126,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
 
   @override
   StackDrawItem copyWith({
+    double? opacity,
     bool? flipX,
     bool? flipY,
     bool? locked,
@@ -168,6 +170,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
   }) {
     return StackDrawItem(
       id: id,
+      opacity: opacity ?? this.opacity,
       flipX: flipX ?? this.flipX,
       flipY: flipY ?? this.flipY,
       size: size ?? this.size,

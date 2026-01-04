@@ -1,6 +1,5 @@
 import 'package:flutter/painting.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../item_content/stack_group_content.dart';
 
 /// StackGroupItem represents a group of stack items
 /// Groups behave as a single unit for transformations
@@ -16,6 +15,7 @@ class StackGroupItem extends StackItem<GroupItemContent> {
     super.flipX = false,
     super.flipY = false,
     super.locked = false,
+    super.opacity = 1,
   });
 
   factory StackGroupItem.fromJson(Map<String, dynamic> data) {
@@ -23,13 +23,15 @@ class StackGroupItem extends StackItem<GroupItemContent> {
       id: data['id'] == null ? null : asT<String>(data['id']),
       angle: data['angle'] == null ? 0.0 : asT<double>(data['angle']),
       size: jsonToSize(asMap(data['size'])),
-      offset:
-          data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
+      offset: data['offset'] == null
+          ? null
+          : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
       locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
+      opacity: asNullT<double>(data['opacity']) ?? 1.0,
       content: GroupItemContent.fromJson(asMap(data['content'])),
     );
   }
@@ -45,6 +47,7 @@ class StackGroupItem extends StackItem<GroupItemContent> {
     bool? flipX,
     bool? flipY,
     bool? locked,
+    double? opacity,
   }) {
     return StackGroupItem(
       id: id,
@@ -57,6 +60,7 @@ class StackGroupItem extends StackItem<GroupItemContent> {
       flipY: flipY ?? this.flipY,
       content: content ?? this.content,
       locked: locked ?? this.locked,
+      opacity: opacity ?? this.opacity,
     );
   }
 }

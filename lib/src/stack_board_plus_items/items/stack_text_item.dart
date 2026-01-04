@@ -51,26 +51,34 @@ class TextItemContent implements StackItemContent {
   factory TextItemContent.fromJson(Map<String, dynamic> data) {
     return TextItemContent(
       data: data['data'] == null ? null : asT<String>(data['data']),
-      style:
-          data['style'] == null ? null : jsonToTextStyle(asMap(data['style'])),
+      style: data['style'] == null
+          ? null
+          : jsonToTextStyle(asMap(data['style'])),
       strutStyle: data['strutStyle'] == null
           ? null
           : StackTextStrutStyle.fromJson(asMap(data['strutStyle'])),
       textAlign: data['textAlign'] == null
           ? null
           : ExEnum.tryParse<TextAlign>(
-              TextAlign.values, asT<String>(data['textAlign'])),
+              TextAlign.values,
+              asT<String>(data['textAlign']),
+            ),
       textDirection: data['textDirection'] == null
           ? null
           : ExEnum.tryParse<TextDirection>(
-              TextDirection.values, asT<String>(data['textDirection'])),
-      locale:
-          data['locale'] == null ? null : jsonToLocale(asMap(data['locale'])),
+              TextDirection.values,
+              asT<String>(data['textDirection']),
+            ),
+      locale: data['locale'] == null
+          ? null
+          : jsonToLocale(asMap(data['locale'])),
       softWrap: data['softWrap'] == null ? null : asT<bool>(data['softWrap']),
       overflow: data['overflow'] == null
           ? null
           : ExEnum.tryParse<TextOverflow>(
-              TextOverflow.values, asT<String>(data['overflow'])),
+              TextOverflow.values,
+              asT<String>(data['overflow']),
+            ),
       textScaleFactor: data['textScaleFactor'] == null
           ? null
           : asT<double>(data['textScaleFactor']),
@@ -81,7 +89,9 @@ class TextItemContent implements StackItemContent {
       textWidthBasis: data['textWidthBasis'] == null
           ? null
           : ExEnum.tryParse<TextWidthBasis>(
-              TextWidthBasis.values, asT<String>(data['textWidthBasis'])),
+              TextWidthBasis.values,
+              asT<String>(data['textWidthBasis']),
+            ),
       textHeightBehavior: data['textHeightBehavior'] == null
           ? null
           : jsonToTextHeightBehavior(asMap(data['textHeightBehavior'])),
@@ -89,8 +99,9 @@ class TextItemContent implements StackItemContent {
           ? null
           : Color(asT<int>(data['selectionColor'])),
       // Enhanced customization properties
-      fontFamily:
-          data['fontFamily'] == null ? null : asT<String>(data['fontFamily']),
+      fontFamily: data['fontFamily'] == null
+          ? null
+          : asT<String>(data['fontFamily']),
       fontSize: data['fontSize'] == null ? 16.0 : asT<double>(data['fontSize']),
       fontWeight: data['fontWeight'] == null
           ? null
@@ -101,41 +112,48 @@ class TextItemContent implements StackItemContent {
       isUnderlined: data['isUnderlined'] == null
           ? false
           : asT<bool>(data['isUnderlined']),
-      textColor:
-          data['textColor'] == null ? null : Color(asT<int>(data['textColor'])),
+      textColor: data['textColor'] == null
+          ? null
+          : Color(asT<int>(data['textColor'])),
       strokeColor: data['strokeColor'] == null
           ? null
           : Color(asT<int>(data['strokeColor'])),
-      strokeWidth:
-          data['strokeWidth'] == null ? 0.0 : asT<double>(data['strokeWidth']),
+      strokeWidth: data['strokeWidth'] == null
+          ? 0.0
+          : asT<double>(data['strokeWidth']),
       shadowColor: data['shadowColor'] == null
           ? null
           : Color(asT<int>(data['shadowColor'])),
       shadowOffset: data['shadowOffset'] == null
           ? null
-          : Offset(asT<double>(data['shadowOffset']['dx']),
-              asT<double>(data['shadowOffset']['dy'])),
+          : Offset(
+              asT<double>(data['shadowOffset']['dx']),
+              asT<double>(data['shadowOffset']['dy']),
+            ),
       shadowBlurRadius: data['shadowBlurRadius'] == null
           ? 0.0
           : asT<double>(data['shadowBlurRadius']),
       shadowSpreadRadius: data['shadowSpreadRadius'] == null
           ? 0.0
           : asT<double>(data['shadowSpreadRadius']),
-      arcDegree:
-          data['arcDegree'] == null ? 0.0 : asT<double>(data['arcDegree']),
+      arcDegree: data['arcDegree'] == null
+          ? 0.0
+          : asT<double>(data['arcDegree']),
       letterSpacing: data['letterSpacing'] == null
           ? 0.0
           : asT<double>(data['letterSpacing']),
-      wordSpacing:
-          data['wordSpacing'] == null ? 0.0 : asT<double>(data['wordSpacing']),
+      wordSpacing: data['wordSpacing'] == null
+          ? 0.0
+          : asT<double>(data['wordSpacing']),
       backgroundColor: data['backgroundColor'] == null
           ? null
           : Color(asT<int>(data['backgroundColor'])),
       borderColor: data['borderColor'] == null
           ? null
           : Color(asT<int>(data['borderColor'])),
-      borderWidth:
-          data['borderWidth'] == null ? 0.0 : asT<double>(data['borderWidth']),
+      borderWidth: data['borderWidth'] == null
+          ? 0.0
+          : asT<double>(data['borderWidth']),
       opacity: data['opacity'] == null ? 1.0 : asT<double>(data['opacity']),
       padding: data['padding'] == null
           ? null
@@ -158,13 +176,18 @@ class TextItemContent implements StackItemContent {
       horizontalAlignment: data['horizontalAlignment'] == null
           ? TextAlign.center
           : ExEnum.tryParse<TextAlign>(
-              TextAlign.values, asT<String>(data['horizontalAlignment']))!,
+              TextAlign.values,
+              asT<String>(data['horizontalAlignment']),
+            )!,
       verticalAlignment: data['verticalAlignment'] == null
           ? MainAxisAlignment.center
-          : ExEnum.tryParse<MainAxisAlignment>(MainAxisAlignment.values,
-              asT<String>(data['verticalAlignment']))!,
-      lineHeight:
-          data['lineHeight'] == null ? 1.0 : asT<double>(data['lineHeight']),
+          : ExEnum.tryParse<MainAxisAlignment>(
+              MainAxisAlignment.values,
+              asT<String>(data['verticalAlignment']),
+            )!,
+      lineHeight: data['lineHeight'] == null
+          ? 1.0
+          : asT<double>(data['lineHeight']),
     );
   }
 
@@ -364,6 +387,7 @@ class StackTextItem extends StackItem<TextItemContent> {
     super.flipX = false,
     super.flipY = false,
     super.locked = false,
+    super.opacity = 1,
   });
 
   factory StackTextItem.fromJson(Map<String, dynamic> data) {
@@ -371,18 +395,19 @@ class StackTextItem extends StackItem<TextItemContent> {
       id: data['id'] == null ? null : asT<String>(data['id']),
       angle: data['angle'] == null ? null : asT<double>(data['angle']),
       size: jsonToSize(asMap(data['size'])),
-      offset:
-          data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
+      offset: data['offset'] == null
+          ? null
+          : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
       locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
+      opacity: asNullT<double>(data['opacity']) ?? 1.0,
       content: TextItemContent.fromJson(asMap(data['content'])),
     );
   }
 
-  /// * 覆盖文本
   /// * Override text
   void setData(String str) {
     content!.data = str;
@@ -399,6 +424,7 @@ class StackTextItem extends StackItem<TextItemContent> {
     bool? flipX,
     bool? flipY,
     bool? locked,
+    double? opacity,
   }) {
     return StackTextItem(
       id: id,
@@ -411,6 +437,7 @@ class StackTextItem extends StackItem<TextItemContent> {
       flipY: flipY ?? this.flipY,
       content: content ?? this.content,
       locked: locked ?? this.locked,
+      opacity: opacity ?? this.opacity,
     );
   }
 }
