@@ -245,17 +245,34 @@ class _StackItemCaseState extends State<StackItemCase>
           // }
           final caseStyle = _caseStyle(context);
           final isGrouping = item.status == StackItemStatus.grouping;
+          final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+
+          // When requireSelectionForInteraction is enabled and item is idle,
+          // don't provide scale handlers so pan/zoom gestures can pass through
+          // to InteractiveViewer, while still allowing taps to be detected
+          final bool shouldAllowGesturePassthrough =
+              config.requireSelectionForInteraction &&
+              item.status == StackItemStatus.idle;
 
           Widget content = MouseRegion(
             cursor: _cursor(item.status),
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onScaleStart: (ScaleStartDetails details) =>
-                  onGestureStart(details, context),
-              onScaleUpdate: (ScaleUpdateDetails details) =>
-                  onGestureUpdate(details, context),
-              onScaleEnd: (ScaleEndDetails details) =>
-                  onGestureEnd(details, context),
+              // Use translucent when allowing passthrough, opaque otherwise
+              // to ensure proper gesture capture when handling gestures
+              behavior: shouldAllowGesturePassthrough
+                  ? HitTestBehavior.translucent
+                  : HitTestBehavior.opaque,
+              onScaleStart: shouldAllowGesturePassthrough
+                  ? null
+                  : (ScaleStartDetails details) =>
+                        onGestureStart(details, context),
+              onScaleUpdate: shouldAllowGesturePassthrough
+                  ? null
+                  : (ScaleUpdateDetails details) =>
+                        onGestureUpdate(details, context),
+              onScaleEnd: shouldAllowGesturePassthrough
+                  ? null
+                  : (ScaleEndDetails details) => onGestureEnd(details, context),
               onTap: () => _onTap(context),
               onDoubleTap: () => _onEdit(context, item),
               onLongPress: () => _onLongPress(context),

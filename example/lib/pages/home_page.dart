@@ -1,20 +1,20 @@
+import 'dart:math' as math;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../dialogs/text_customization_dialog.dart';
-import '../dialogs/snap_config_dialog.dart';
+
 import '../dialogs/resize_board_dialog.dart';
+import '../dialogs/shape_edit_dialog.dart';
+import '../dialogs/snap_config_dialog.dart';
+import '../dialogs/text_customization_dialog.dart';
 import '../mixins/background_manager_mixin.dart';
 import '../mixins/stack_item_manager_mixin.dart';
 import '../models/color_stack_item.dart';
 import '../utils/drawing_utils.dart';
 import '../widgets/action_button.dart';
 import '../widgets/enhanced_stack_text_case.dart';
-import '../dialogs/shape_edit_dialog.dart';
-
-import 'dart:math' as math;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -54,7 +54,8 @@ class _HomePageState extends State<HomePage>
           height: size,
           child: FittedBox(
             fit: BoxFit.cover,
-            child: content?.svgWidget ??
+            child:
+                content?.svgWidget ??
                 (content?.image != null
                     ? Image(image: content!.image!)
                     : const Icon(Icons.image, size: size)),
@@ -93,8 +94,11 @@ class _HomePageState extends State<HomePage>
     }
     if (item is ColorStackItem) {
       final Color color = item.content?.color ?? Colors.grey;
-      String hex =
-          color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+      String hex = color
+          .toARGB32()
+          .toRadixString(16)
+          .padLeft(8, '0')
+          .toUpperCase();
       return '#${hex.substring(2)}';
     }
     if (item is StackDrawItem) return 'Drawing';
@@ -128,15 +132,15 @@ class _HomePageState extends State<HomePage>
           elevation: 10,
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded,
-                  color: Colors.orange[600], size: 28),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange[600],
+                size: 28,
+              ),
               const SizedBox(width: 12),
               const Text(
                 'Delete Item',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -148,8 +152,10 @@ class _HomePageState extends State<HomePage>
             TextButton(
               onPressed: () => Navigator.pop(context, false),
               style: TextButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               child: const Text(
                 'Cancel',
@@ -161,8 +167,10 @@ class _HomePageState extends State<HomePage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -205,8 +213,9 @@ class _HomePageState extends State<HomePage>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Drawing'),
-        content:
-            const Text('Are you sure you want to clear all drawing content?'),
+        content: const Text(
+          'Are you sure you want to clear all drawing content?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -339,27 +348,36 @@ class _HomePageState extends State<HomePage>
                 child: ValueListenableBuilder<StackConfig>(
                   valueListenable: _boardController,
                   builder: (context, stackConfig, _) {
-                    final List<StackItem<StackItemContent>> items =
-                        List.of(stackConfig.data);
+                    final List<StackItem<StackItemContent>> items = List.of(
+                      stackConfig.data,
+                    );
                     // Show top-most first
-                    final List<StackItem<StackItemContent>> ordered =
-                        items.reversed.toList();
+                    final List<StackItem<StackItemContent>> ordered = items
+                        .reversed
+                        .toList();
                     return ListView.separated(
                       itemCount: ordered.length,
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final StackItem<StackItemContent> item = ordered[index];
-                        final int actualIndex =
-                            items.indexOf(item); // 0 = bottom, last = top
+                        final int actualIndex = items.indexOf(
+                          item,
+                        ); // 0 = bottom, last = top
                         final bool isTop = actualIndex == items.length - 1;
                         final bool isBottom = actualIndex == 0;
                         return ListTile(
                           dense: true,
                           leading: _buildLayerPreview(item),
-                          title: Text(_layerLabel(item),
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text(item.runtimeType.toString(),
-                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          title: Text(
+                            _layerLabel(item),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.runtimeType.toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -376,8 +394,9 @@ class _HomePageState extends State<HomePage>
                                 onPressed: isBottom
                                     ? null
                                     : () {
-                                        _boardController
-                                            .moveItemBackward(item.id);
+                                        _boardController.moveItemBackward(
+                                          item.id,
+                                        );
                                       },
                               ),
                               IconButton(
@@ -386,8 +405,9 @@ class _HomePageState extends State<HomePage>
                                 onPressed: isTop
                                     ? null
                                     : () {
-                                        _boardController
-                                            .moveItemForward(item.id);
+                                        _boardController.moveItemForward(
+                                          item.id,
+                                        );
                                       },
                               ),
                               IconButton(
@@ -403,7 +423,9 @@ class _HomePageState extends State<HomePage>
                             // Select without changing z-order
                             _boardController.unSelectAll();
                             _boardController.setItemStatus(
-                                item.id, StackItemStatus.selected);
+                              item.id,
+                              StackItemStatus.selected,
+                            );
                           },
                         );
                       },
@@ -429,6 +451,7 @@ class _HomePageState extends State<HomePage>
               width: backgroundWidth,
               height: backgroundHeight,
               child: StackBoardPlus(
+                requireSelectionForInteraction: true,
                 fittedBoxScale: fittedBoxScale,
                 rotationSnapConfig: RotationSnapConfig(
                   enabled: true,
@@ -492,7 +515,8 @@ class _HomePageState extends State<HomePage>
                         child: EnhancedStackTextCase(
                           item: item,
                           decoration: const InputDecoration.collapsed(
-                              hintText: "Enter text"),
+                            hintText: "Enter text",
+                          ),
                           onTap: () => _openTextCustomizationDialog(item),
                         ),
                       ),
@@ -553,30 +577,45 @@ class _HomePageState extends State<HomePage>
                                 children: [
                                   // Undo button
                                   IconButton(
-                                    icon: const Icon(Icons.undo,
-                                        color: Colors.white, size: 18),
+                                    icon: const Icon(
+                                      Icons.undo,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
                                     onPressed: () => item.content!.undo(),
                                     constraints: const BoxConstraints(
-                                        minWidth: 32, minHeight: 32),
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
                                     padding: EdgeInsets.zero,
                                   ),
                                   // Redo button
                                   IconButton(
-                                    icon: const Icon(Icons.redo,
-                                        color: Colors.white, size: 18),
+                                    icon: const Icon(
+                                      Icons.redo,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
                                     onPressed: () => item.content!.redo(),
                                     constraints: const BoxConstraints(
-                                        minWidth: 32, minHeight: 32),
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
                                     padding: EdgeInsets.zero,
                                   ),
                                   // Clear button
                                   IconButton(
-                                    icon: const Icon(Icons.clear,
-                                        color: Colors.white, size: 18),
+                                    icon: const Icon(
+                                      Icons.clear,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
                                     onPressed: () =>
                                         _showDrawingClearDialog(context, item),
                                     constraints: const BoxConstraints(
-                                        minWidth: 32, minHeight: 32),
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
                                     padding: EdgeInsets.zero,
                                   ),
                                 ],
@@ -613,7 +652,9 @@ class _HomePageState extends State<HomePage>
                         context: context,
                         icon: const Icon(Icons.brush),
                         onTap: () => DrawingUtils.showDrawingSettingsDialog(
-                            context, item.content!.controller),
+                          context,
+                          item.content!.controller,
+                        ),
                         tooltip: 'Drawing Settings',
                       ),
                   ];
@@ -724,9 +765,11 @@ class _HomePageState extends State<HomePage>
                   valueListenable: _boardController,
                   builder: (context, stackConfig, _) {
                     final groupingItems = _boardController.getGroupingItems();
-                    final canGroup = groupingItems.length >= 2 &&
+                    final canGroup =
+                        groupingItems.length >= 2 &&
                         groupingItems.every(
-                            (item) => !_boardController.isItemInGroup(item.id));
+                          (item) => !_boardController.isItemInGroup(item.id),
+                        );
                     if (!canGroup) {
                       return const SizedBox.shrink();
                     }
@@ -745,7 +788,8 @@ class _HomePageState extends State<HomePage>
                   builder: (context, stackConfig, _) {
                     final selectedItems = stackConfig.data
                         .where(
-                            (item) => item.status == StackItemStatus.selected)
+                          (item) => item.status == StackItemStatus.selected,
+                        )
                         .toList();
                     if (selectedItems.isEmpty) {
                       return const SizedBox.shrink();
@@ -770,7 +814,8 @@ class _HomePageState extends State<HomePage>
                   builder: (context, stackConfig, _) {
                     final selectedItems = stackConfig.data
                         .where(
-                            (item) => item.status == StackItemStatus.selected)
+                          (item) => item.status == StackItemStatus.selected,
+                        )
                         .toList();
                     if (selectedItems.isEmpty) {
                       return const SizedBox.shrink();
