@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import 'widgets/snap_guide_provider.dart';
+
 import 'widgets/all_snap_lines_overlay.dart';
+import 'widgets/snap_guide_provider.dart';
 
 class StackBoardPlusConfig extends InheritedWidget {
   const StackBoardPlusConfig({
@@ -14,6 +15,7 @@ class StackBoardPlusConfig extends InheritedWidget {
     this.snapGuideLines = const [],
     this.zoomLevel,
     this.fittedBoxScale,
+    this.requireSelectionForInteraction = false,
     required super.child,
   });
 
@@ -44,9 +46,15 @@ class StackBoardPlusConfig extends InheritedWidget {
   /// final double fittedBoxScale = baseSize.width / logicalSize.width;<br/>
   final double? fittedBoxScale;
 
+  /// If true, items must be selected (via tap) before they can be moved, zoomed, or rotated.<br/>
+  /// When enabled, pan/zoom gestures on unselected items will be ignored, allowing canvas pan/zoom instead.<br/>
+  /// Items can only be selected via tap (not via drag or zoom gestures).<br/>
+  /// Defaults to false (current behavior: items are automatically selected and moved when touched during pan/zoom).
+  final bool requireSelectionForInteraction;
+
   static StackBoardPlusConfig of(BuildContext context) {
-    final StackBoardPlusConfig? result =
-        context.dependOnInheritedWidgetOfExactType<StackBoardPlusConfig>();
+    final StackBoardPlusConfig? result = context
+        .dependOnInheritedWidgetOfExactType<StackBoardPlusConfig>();
     assert(result != null, 'No StackBoardPlusConfig found in context');
     return result!;
   }
@@ -59,7 +67,10 @@ class StackBoardPlusConfig extends InheritedWidget {
       oldWidget.snapConfig != snapConfig ||
       oldWidget.rotationSnapConfig != rotationSnapConfig ||
       oldWidget.snapGuideLines != snapGuideLines ||
-      oldWidget.zoomLevel != zoomLevel;
+      oldWidget.zoomLevel != zoomLevel ||
+      oldWidget.fittedBoxScale != fittedBoxScale ||
+      oldWidget.requireSelectionForInteraction !=
+          requireSelectionForInteraction;
 }
 
 /// StackBoardPlus
@@ -87,6 +98,7 @@ class StackBoardPlus extends StatelessWidget {
     this.zoomLevel,
     this.fittedBoxScale,
     this.enableLongPressGrouping = true,
+    this.requireSelectionForInteraction = false,
     this.onTapOutside,
   });
 
@@ -118,34 +130,38 @@ class StackBoardPlus extends StatelessWidget {
   /// * size changed callback
   /// * return value can control whether to continue
   final bool? Function(StackItem<StackItemContent> item, Size size)?
-      onSizeChanged;
+  onSizeChanged;
 
   /// * offset changed callback
   /// * return value can control whether to continue
   final bool? Function(StackItem<StackItemContent> item, Offset offset)?
-      onOffsetChanged;
+  onOffsetChanged;
 
   /// * angle changed callback
   /// * return value can control whether to continue
   final bool? Function(StackItem<StackItemContent> item, double angle)?
-      onAngleChanged;
+  onAngleChanged;
 
   /// * edit status changed callback
   /// * return value can control whether to continue
   final bool? Function(
-          StackItem<StackItemContent> item, StackItemStatus operatState)?
-      onStatusChanged;
+    StackItem<StackItemContent> item,
+    StackItemStatus operatState,
+  )?
+  onStatusChanged;
 
   /// * actions builder
   final Widget Function(StackItemStatus operatState, CaseStyle caseStyle)?
-      actionsBuilder;
+  actionsBuilder;
 
   /// * border builder
   final Widget Function(StackItemStatus operatState)? borderBuilder;
 
   final List<Widget> Function(
-          StackItem<StackItemContent> item, BuildContext context)?
-      customActionsBuilder;
+    StackItem<StackItemContent> item,
+    BuildContext context,
+  )?
+  customActionsBuilder;
 
   /// * Snap configuration
   final SnapConfig? snapConfig;
@@ -173,6 +189,12 @@ class StackBoardPlus extends StatelessWidget {
   /// * Defaults to true
   final bool enableLongPressGrouping;
 
+  /// If true, items must be selected (via tap) before they can be moved, zoomed, or rotated.<br/>
+  /// When enabled, pan/zoom gestures on unselected items will be ignored, allowing canvas pan/zoom instead.<br/>
+  /// Items can only be selected via tap (not via drag or zoom gestures).<br/>
+  /// Defaults to false (current behavior: items are automatically selected and moved when touched during pan/zoom).
+  final bool requireSelectionForInteraction;
+
   StackBoardPlusController get _controller =>
       controller ?? StackBoardPlusController.def();
 
@@ -187,6 +209,7 @@ class StackBoardPlus extends StatelessWidget {
         rotationSnapConfig: rotationSnapConfig,
         zoomLevel: zoomLevel,
         fittedBoxScale: fittedBoxScale,
+        requireSelectionForInteraction: requireSelectionForInteraction,
         child: Material(
           elevation: elevation,
           child: GestureDetector(
@@ -203,8 +226,9 @@ class StackBoardPlus extends StatelessWidget {
                       constraints.maxWidth,
                       constraints.maxHeight,
                     );
-                    final SnapConfig? snapConfig =
-                        StackBoardPlusConfig.of(context).snapConfig;
+                    final SnapConfig? snapConfig = StackBoardPlusConfig.of(
+                      context,
+                    ).snapConfig;
                     return Stack(
                       fit: StackFit.expand,
                       children: <Widget>[

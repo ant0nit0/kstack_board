@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
+
 import '../widgets/snap_guide_provider.dart';
 import 'stack_item_types.dart';
 
@@ -41,8 +43,11 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     return group?.status == StackItemStatus.selected;
   }
 
-  void onPanStart(DragStartDetails details, BuildContext context,
-      StackItemStatus newStatus) {
+  void onPanStart(
+    DragStartDetails details,
+    BuildContext context,
+    StackItemStatus newStatus,
+  ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
 
@@ -63,7 +68,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
     centerPoint = renderBox.localToGlobal(
-        Offset(renderBox.size.width / 2, renderBox.size.height / 2));
+      Offset(renderBox.size.width / 2, renderBox.size.height / 2),
+    );
     startGlobalPoint = details.globalPosition;
     startOffset = item.offset;
     startSize = item.size;
@@ -111,8 +117,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (zoom < 1) zoom = 1;
     final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
-    Offset d = Offset(dud.delta.dx / zoom * fittedBoxScale,
-        dud.delta.dy / zoom * fittedBoxScale);
+    Offset d = Offset(
+      dud.delta.dx / zoom * fittedBoxScale,
+      dud.delta.dy / zoom * fittedBoxScale,
+    );
 
     d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
 
@@ -137,8 +145,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         return;
       }
 
-      final RenderBox? boardBox =
-          context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? boardBox = context
+          .findAncestorRenderObjectOfType<RenderBox>();
       if (boardBox != null && boardBox.hasSize) {
         final Size boardSize = boardBox.size;
         if (boardSize.width > 0 && boardSize.height > 0) {
@@ -191,8 +199,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
 
     // Check if board size changed
-    final RenderBox? boardBox =
-        context.findAncestorRenderObjectOfType<RenderBox>();
+    final RenderBox? boardBox = context
+        .findAncestorRenderObjectOfType<RenderBox>();
     if (boardBox == null || !boardBox.hasSize) {
       return false;
     }
@@ -215,8 +223,12 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     return true;
   }
 
-  void _applySnapping(BuildContext context, Offset currentOffset,
-      Size currentSize, Function(Offset) onSnapped) {
+  void _applySnapping(
+    BuildContext context,
+    Offset currentOffset,
+    Size currentSize,
+    Function(Offset) onSnapped,
+  ) {
     try {
       final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
       final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
@@ -226,8 +238,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         return;
       }
 
-      final RenderBox? boardBox =
-          context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? boardBox = context
+          .findAncestorRenderObjectOfType<RenderBox>();
       if (boardBox != null && boardBox.hasSize) {
         final Size boardSize = boardBox.size;
         if (boardSize.width > 0 && boardSize.height > 0) {
@@ -378,19 +390,23 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     // Create guide lines if snapping occurred
     if (nearestVerticalSnap != null) {
-      guideLines.add(SnapGuideLine(
-        start: Offset(0, nearestVerticalSnap.position),
-        end: Offset(boardSize.width, nearestVerticalSnap.position),
-        orientation: LineOrientation.horizontal,
-      ));
+      guideLines.add(
+        SnapGuideLine(
+          start: Offset(0, nearestVerticalSnap.position),
+          end: Offset(boardSize.width, nearestVerticalSnap.position),
+          orientation: LineOrientation.horizontal,
+        ),
+      );
     }
 
     if (nearestHorizontalSnap != null) {
-      guideLines.add(SnapGuideLine(
-        start: Offset(nearestHorizontalSnap.position, 0),
-        end: Offset(nearestHorizontalSnap.position, boardSize.height),
-        orientation: LineOrientation.vertical,
-      ));
+      guideLines.add(
+        SnapGuideLine(
+          start: Offset(nearestHorizontalSnap.position, 0),
+          end: Offset(nearestHorizontalSnap.position, boardSize.height),
+          orientation: LineOrientation.vertical,
+        ),
+      );
     }
 
     return SnapResult(
@@ -399,8 +415,12 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     );
   }
 
-  void onScaleUpdate(DragUpdateDetails dud, BuildContext context,
-      StackItemStatus status, HandlePosition handle) {
+  void onScaleUpdate(
+    DragUpdateDetails dud,
+    BuildContext context,
+    StackItemStatus status,
+    HandlePosition handle,
+  ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
@@ -494,8 +514,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
 
     if (snapConfig.enabled && snapConfig.snapToScale) {
-      final RenderBox? boardBox =
-          context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? boardBox = context
+          .findAncestorRenderObjectOfType<RenderBox>();
       if (boardBox != null && boardBox.hasSize) {
         final SnapCalculator calculator = SnapCalculator(
           boardSize: boardBox.size,
@@ -509,8 +529,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         final double candidateHeight = startSize.height * scale;
 
         // Check horizontal snaps
-        final List<SnapPoint> hSnaps = calculator
-            .getHorizontalSnapPoints(Size(candidateWidth, candidateHeight));
+        final List<SnapPoint> hSnaps = calculator.getHorizontalSnapPoints(
+          Size(candidateWidth, candidateHeight),
+        );
 
         double? scaleX;
         SnapPoint? snapX;
@@ -538,8 +559,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         }
 
         // Check vertical snaps
-        final List<SnapPoint> vSnaps = calculator
-            .getVerticalSnapPoints(Size(candidateWidth, candidateHeight));
+        final List<SnapPoint> vSnaps = calculator.getVerticalSnapPoints(
+          Size(candidateWidth, candidateHeight),
+        );
 
         double? scaleY;
         SnapPoint? snapY;
@@ -571,39 +593,47 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
           if ((scale - scaleX).abs() < (scale - scaleY).abs()) {
             bestScale = scaleX;
             if (snapX != null) {
-              guideLines.add(SnapGuideLine(
-                start: Offset(snapX.position, 0),
-                end: Offset(snapX.position, boardBox.size.height),
-                orientation: LineOrientation.vertical,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(snapX.position, 0),
+                  end: Offset(snapX.position, boardBox.size.height),
+                  orientation: LineOrientation.vertical,
+                ),
+              );
             }
           } else {
             bestScale = scaleY;
             if (snapY != null) {
-              guideLines.add(SnapGuideLine(
-                start: Offset(0, snapY.position),
-                end: Offset(boardBox.size.width, snapY.position),
-                orientation: LineOrientation.horizontal,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(0, snapY.position),
+                  end: Offset(boardBox.size.width, snapY.position),
+                  orientation: LineOrientation.horizontal,
+                ),
+              );
             }
           }
         } else if (scaleX != null) {
           bestScale = scaleX;
           if (snapX != null) {
-            guideLines.add(SnapGuideLine(
-              start: Offset(snapX.position, 0),
-              end: Offset(snapX.position, boardBox.size.height),
-              orientation: LineOrientation.vertical,
-            ));
+            guideLines.add(
+              SnapGuideLine(
+                start: Offset(snapX.position, 0),
+                end: Offset(snapX.position, boardBox.size.height),
+                orientation: LineOrientation.vertical,
+              ),
+            );
           }
         } else if (scaleY != null) {
           bestScale = scaleY;
           if (snapY != null) {
-            guideLines.add(SnapGuideLine(
-              start: Offset(0, snapY.position),
-              end: Offset(boardBox.size.width, snapY.position),
-              orientation: LineOrientation.horizontal,
-            ));
+            guideLines.add(
+              SnapGuideLine(
+                start: Offset(0, snapY.position),
+                end: Offset(boardBox.size.width, snapY.position),
+                orientation: LineOrientation.horizontal,
+              ),
+            );
           }
         }
 
@@ -644,12 +674,20 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
 
-    controller.updateBasic(itemId,
-        size: newSize, offset: newOffset, addToHistory: false);
+    controller.updateBasic(
+      itemId,
+      size: newSize,
+      offset: newOffset,
+      addToHistory: false,
+    );
   }
 
-  void onResizeUpdate(DragUpdateDetails dud, BuildContext context,
-      StackItemStatus status, HandlePosition handle) {
+  void onResizeUpdate(
+    DragUpdateDetails dud,
+    BuildContext context,
+    StackItemStatus status,
+    HandlePosition handle,
+  ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
@@ -702,8 +740,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
 
     if (snapConfig.enabled && snapConfig.snapToResize) {
-      final RenderBox? boardBox =
-          context.findAncestorRenderObjectOfType<RenderBox>();
+      final RenderBox? boardBox = context
+          .findAncestorRenderObjectOfType<RenderBox>();
       if (boardBox != null && boardBox.hasSize) {
         final SnapCalculator calculator = SnapCalculator(
           boardSize: boardBox.size,
@@ -714,8 +752,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
         // Horizontal snaps (Vertical lines) - affects Width/X
         if (handle == HandlePosition.left || handle == HandlePosition.right) {
-          final List<SnapPoint> hSnaps =
-              calculator.getHorizontalSnapPoints(Size(newWidth, newHeight));
+          final List<SnapPoint> hSnaps = calculator.getHorizontalSnapPoints(
+            Size(newWidth, newHeight),
+          );
           SnapPoint? snap;
 
           if (handle == HandlePosition.right) {
@@ -727,11 +766,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
             snap = calculator.checkSnap(movingRight, hSnaps);
             if (snap != null) {
               newWidth = snap.position - fixedLeft;
-              guideLines.add(SnapGuideLine(
-                start: Offset(snap.position, 0),
-                end: Offset(snap.position, boardBox.size.height),
-                orientation: LineOrientation.vertical,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(snap.position, 0),
+                  end: Offset(snap.position, boardBox.size.height),
+                  orientation: LineOrientation.vertical,
+                ),
+              );
             }
           } else {
             // Snap Left Edge
@@ -741,11 +782,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
             snap = calculator.checkSnap(movingLeft, hSnaps);
             if (snap != null) {
               newWidth = fixedRight - snap.position;
-              guideLines.add(SnapGuideLine(
-                start: Offset(snap.position, 0),
-                end: Offset(snap.position, boardBox.size.height),
-                orientation: LineOrientation.vertical,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(snap.position, 0),
+                  end: Offset(snap.position, boardBox.size.height),
+                  orientation: LineOrientation.vertical,
+                ),
+              );
             }
           }
           if (newWidth < minSize) newWidth = minSize;
@@ -753,8 +796,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
         // Vertical snaps (Horizontal lines) - affects Height/Y
         if (handle == HandlePosition.top || handle == HandlePosition.bottom) {
-          final List<SnapPoint> vSnaps =
-              calculator.getVerticalSnapPoints(Size(newWidth, newHeight));
+          final List<SnapPoint> vSnaps = calculator.getVerticalSnapPoints(
+            Size(newWidth, newHeight),
+          );
           SnapPoint? snap;
 
           if (handle == HandlePosition.bottom) {
@@ -763,11 +807,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
             snap = calculator.checkSnap(movingBottom, vSnaps);
             if (snap != null) {
               newHeight = snap.position - fixedTop;
-              guideLines.add(SnapGuideLine(
-                start: Offset(0, snap.position),
-                end: Offset(boardBox.size.width, snap.position),
-                orientation: LineOrientation.horizontal,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(0, snap.position),
+                  end: Offset(boardBox.size.width, snap.position),
+                  orientation: LineOrientation.horizontal,
+                ),
+              );
             }
           } else {
             final double fixedBottom = startOffset.dy + startSize.height / 2;
@@ -775,11 +821,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
             snap = calculator.checkSnap(movingTop, vSnaps);
             if (snap != null) {
               newHeight = fixedBottom - snap.position;
-              guideLines.add(SnapGuideLine(
-                start: Offset(0, snap.position),
-                end: Offset(boardBox.size.width, snap.position),
-                orientation: LineOrientation.horizontal,
-              ));
+              guideLines.add(
+                SnapGuideLine(
+                  start: Offset(0, snap.position),
+                  end: Offset(boardBox.size.width, snap.position),
+                  orientation: LineOrientation.horizontal,
+                ),
+              );
             }
           }
           if (newHeight < minSize) newHeight = minSize;
@@ -832,14 +880,21 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // debugPrint('newOffset: $newOffset');
     // debugPrint('min size: $minSize');
 
-    controller.updateBasic(itemId,
-        size: newSize, offset: newOffset, addToHistory: false);
+    controller.updateBasic(
+      itemId,
+      size: newSize,
+      offset: newOffset,
+      addToHistory: false,
+    );
   }
 
   // Helper to snap angle to nearest multiple of snapAngle
   // If the difference is within tolerance, snap it.
   double _snapAngle(
-      double angle, RotationSnapConfig snapConfig, BuildContext context) {
+    double angle,
+    RotationSnapConfig snapConfig,
+    BuildContext context,
+  ) {
     if (!snapConfig.enabled) return angle;
 
     final double snapIncrement = snapConfig.snapIncrement;
@@ -873,7 +928,10 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   }
 
   void onRotateUpdate(
-      DragUpdateDetails dud, BuildContext context, StackItemStatus status) {
+    DragUpdateDetails dud,
+    BuildContext context,
+    StackItemStatus status,
+  ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
@@ -885,15 +943,19 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double direct =
         startToCenterX * endToCenterY - startToCenterY * endToCenterX;
     final double startToCenter = math.sqrt(
-        math.pow(centerPoint.dx - startGlobalPoint.dx, 2) +
-            math.pow(centerPoint.dy - startGlobalPoint.dy, 2));
+      math.pow(centerPoint.dx - startGlobalPoint.dx, 2) +
+          math.pow(centerPoint.dy - startGlobalPoint.dy, 2),
+    );
     final double endToCenter = math.sqrt(
-        math.pow(centerPoint.dx - dud.globalPosition.dx, 2) +
-            math.pow(centerPoint.dy - dud.globalPosition.dy, 2));
+      math.pow(centerPoint.dx - dud.globalPosition.dx, 2) +
+          math.pow(centerPoint.dy - dud.globalPosition.dy, 2),
+    );
     final double startToEnd = math.sqrt(
-        math.pow(startGlobalPoint.dx - dud.globalPosition.dx, 2) +
-            math.pow(startGlobalPoint.dy - dud.globalPosition.dy, 2));
-    final double cosA = (math.pow(startToCenter, 2) +
+      math.pow(startGlobalPoint.dx - dud.globalPosition.dx, 2) +
+          math.pow(startGlobalPoint.dy - dud.globalPosition.dy, 2),
+    );
+    final double cosA =
+        (math.pow(startToCenter, 2) +
             math.pow(endToCenter, 2) -
             math.pow(startToEnd, 2)) /
         (2 * startToCenter * endToCenter);
@@ -905,8 +967,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
 
     // Apply rotation snap
-    final RotationSnapConfig? rotationSnapConfig =
-        StackBoardPlusConfig.of(context).rotationSnapConfig;
+    final RotationSnapConfig? rotationSnapConfig = StackBoardPlusConfig.of(
+      context,
+    ).rotationSnapConfig;
     if (rotationSnapConfig != null) {
       angle = _snapAngle(angle, rotationSnapConfig, context);
     }
@@ -921,13 +984,30 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     if (item.locked) return;
 
+    // Check if selection is required for interaction
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    if (config.requireSelectionForInteraction) {
+      // If selection is required, only allow interaction if item is already selected
+      if (item.status != StackItemStatus.selected &&
+          item.status != StackItemStatus.moving &&
+          item.status != StackItemStatus.scaling &&
+          item.status != StackItemStatus.resizing &&
+          item.status != StackItemStatus.roating) {
+        // Item is not selected, ignore the gesture
+        return;
+      }
+    }
+
     // Commit state before starting gesture
     controller.commit();
 
     StackItemStatus newStatus = StackItemStatus.moving;
     if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.selected) {
-        controller.selectOne(itemId, addToHistory: false);
+        // Only auto-select if selection is not required for interaction
+        if (!config.requireSelectionForInteraction) {
+          controller.selectOne(itemId, addToHistory: false);
+        }
       }
       controller.updateBasic(itemId, status: newStatus, addToHistory: false);
       controller.moveItemOnTop(itemId, addToHistory: false);
@@ -936,7 +1016,8 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     final RenderBox renderBox = context.findRenderObject() as RenderBox;
     centerPoint = renderBox.localToGlobal(
-        Offset(renderBox.size.width / 2, renderBox.size.height / 2));
+      Offset(renderBox.size.width / 2, renderBox.size.height / 2),
+    );
     startGlobalPoint = details.focalPoint;
     startOffset = item.offset;
     startSize = item.size;
@@ -955,17 +1036,29 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // Prevent individual item manipulation when in a selected group
     if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
 
+    // Check if selection is required for interaction
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    if (config.requireSelectionForInteraction) {
+      // If selection is required, only allow interaction if item is in an active state
+      if (item.status != StackItemStatus.selected &&
+          item.status != StackItemStatus.moving &&
+          item.status != StackItemStatus.scaling &&
+          item.status != StackItemStatus.resizing &&
+          item.status != StackItemStatus.roating) {
+        // Item is not selected, ignore the gesture update
+        return;
+      }
+    }
+
     double newAngle = startAngle + details.rotation;
 
     // Snap to 45 degrees (pi/4) if within tolerance
     if (details.pointerCount > 1) {
-      final RotationSnapConfig? rotationSnapConfig =
-          StackBoardPlusConfig.of(context).rotationSnapConfig;
+      final RotationSnapConfig? rotationSnapConfig = config.rotationSnapConfig;
       if (rotationSnapConfig != null) {
         newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
       }
     }
-    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     double zoom = config.zoomLevel ?? 1;
     if (zoom < 1) zoom = 1;
     final double fittedBoxScale = config.fittedBoxScale ?? 1;
@@ -1002,8 +1095,13 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     onSizeChanged(newSize);
     onOffsetChanged(newOffset);
 
-    controller.updateBasic(itemId,
-        angle: newAngle, size: newSize, offset: newOffset, addToHistory: false);
+    controller.updateBasic(
+      itemId,
+      angle: newAngle,
+      size: newSize,
+      offset: newOffset,
+      addToHistory: false,
+    );
   }
 
   void onGestureEnd(ScaleEndDetails details, BuildContext context) {
