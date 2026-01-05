@@ -427,27 +427,42 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // Groups can be scaled, but individual items in selected groups cannot
     if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
 
+    // Anchor is the opposite corner of the handle being dragged
     double anchorLocalX = 0;
     double anchorLocalY = 0;
     final double w2 = startSize.width / 2;
     final double h2 = startSize.height / 2;
 
+    // Direction multipliers: determines which direction increases scale
+    // For bottomRight: dragging right (+X) or down (+Y) should increase scale
+    // For topLeft: dragging left (-X) or up (-Y) should increase scale
+    double dirX = 1;
+    double dirY = 1;
+
     switch (handle) {
       case HandlePosition.topLeft:
         anchorLocalX = w2;
         anchorLocalY = h2;
+        dirX = -1; // dragging left increases scale
+        dirY = -1; // dragging up increases scale
         break;
       case HandlePosition.topRight:
         anchorLocalX = -w2;
         anchorLocalY = h2;
+        dirX = 1; // dragging right increases scale
+        dirY = -1; // dragging up increases scale
         break;
       case HandlePosition.bottomLeft:
         anchorLocalX = w2;
         anchorLocalY = -h2;
+        dirX = -1; // dragging left increases scale
+        dirY = 1; // dragging down increases scale
         break;
       case HandlePosition.bottomRight:
         anchorLocalX = -w2;
         anchorLocalY = -h2;
+        dirX = 1; // dragging right increases scale
+        dirY = 1; // dragging down increases scale
         break;
       default:
         return;
@@ -459,53 +474,37 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double anchorDy = anchorLocalX * sinA + anchorLocalY * cosA;
     final Offset anchorGlobal = startOffset + Offset(anchorDx, anchorDy);
 
-    // Special handling for topLeft handle - use direct distance ratio
-    double scale;
+    // Calculate the global delta from start position to current position
+    final Offset globalDelta = dud.globalPosition - startGlobalPoint;
 
-    final Offset vStartFromCenter = startGlobalPoint - centerPoint;
-    final double distStartFromCenter = vStartFromCenter.distance;
-    if (distStartFromCenter == 0) return;
+    // Transform global delta to local (unrotated) coordinates
+    // Using inverse rotation: rotate by -startAngle
+    final double localDeltaX = globalDelta.dx * cosA + globalDelta.dy * sinA;
+    final double localDeltaY = -globalDelta.dx * sinA + globalDelta.dy * cosA;
 
-    final Offset vCurrFromCenter = dud.globalPosition - centerPoint;
-    final double distCurrFromCenter = vCurrFromCenter.distance;
+    // Calculate scale contribution from each axis
+    // Apply direction multipliers so that the correct direction increases scale
+    final double deltaX = localDeltaX * dirX;
+    final double deltaY = localDeltaY * dirY;
 
-    // Calculate scale as ratio of distances from center
-    // This directly reflects how far the handle has moved from center
-    scale = distCurrFromCenter / distStartFromCenter;
-    if (handle == HandlePosition.topLeft) {
-      final Offset vStartFromCenter = startGlobalPoint - centerPoint;
-      final double distStartFromCenter = vStartFromCenter.distance;
-      if (distStartFromCenter == 0) return;
+    // The initial distance from anchor to handle in local coordinates is the full diagonal
+    // which equals sqrt(width^2 + height^2)
+    // But we want uniform scaling based on both axes contributing equally
+    // So we calculate scale based on how much each axis has moved relative to its dimension
 
-      final Offset vCurrFromCenter = dud.globalPosition - centerPoint;
-      final double distCurrFromCenter = vCurrFromCenter.distance;
+    // Scale contribution from X axis: how much the width should change
+    final double scaleFromX = 1.0 + (deltaX / startSize.width);
+    // Scale contribution from Y axis: how much the height should change
+    final double scaleFromY = 1.0 + (deltaY / startSize.height);
 
-      // Calculate scale as ratio of distances from center
-      // This directly reflects how far the handle has moved from center
-      scale = distCurrFromCenter / distStartFromCenter;
-    } else {
-      // For other corners, use the anchor-based dot product approach
-      final Offset vStart = startGlobalPoint - anchorGlobal;
-      final double distStartSq = vStart.distanceSquared;
-      if (distStartSq == 0) return;
-      final double distStart = math.sqrt(distStartSq);
+    // Average the two scale contributions for uniform scaling
+    // This ensures that dragging 100px right has the same effect as dragging 100px down
+    // (proportional to their respective dimensions)
+    double scale = (scaleFromX + scaleFromY) / 2.0;
 
-      final Offset vCurr = dud.globalPosition - anchorGlobal;
-
-      // Calculate the dot product to get the projection along the start direction
-      final double dot = vCurr.dx * vStart.dx + vCurr.dy * vStart.dy;
-
-      // Normalize by the start distance squared to get the scale factor
-      scale = dot / distStartSq;
-
-      // If the projection is negative or too small, fall back to distance ratio
-      if (scale <= 0.01) {
-        final double distCurrent = vCurr.distance;
-        scale = distCurrent / distStart;
-        if (scale <= 0) {
-          scale = 0.01;
-        }
-      }
+    // Ensure scale doesn't go negative
+    if (scale <= 0.01) {
+      scale = 0.01;
     }
 
     // Apply Snapping

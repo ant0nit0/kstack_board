@@ -7,16 +7,12 @@ class ColorContent extends StackItemContent {
   Color color;
 
   factory ColorContent.fromJson(Map<String, dynamic> json) {
-    return ColorContent(
-      color: Color(json['color'] as int),
-    );
+    return ColorContent(color: Color(json['color'] as int));
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'color': color.toARGB32(),
-    };
+    return <String, dynamic>{'color': color.toARGB32()};
   }
 
   @override
@@ -38,6 +34,7 @@ class ColorStackItem extends StackItem<ColorContent> {
     super.flipY = false,
     super.locked = false,
     super.lockZOrder = false,
+    super.opacity = 1,
   });
 
   @override
@@ -51,6 +48,7 @@ class ColorStackItem extends StackItem<ColorContent> {
     bool? flipX,
     bool? flipY,
     bool? locked,
+    double? opacity,
   }) {
     return ColorStackItem(
       id: id, // <= must !!
@@ -63,6 +61,7 @@ class ColorStackItem extends StackItem<ColorContent> {
       flipY: flipY ?? this.flipY,
       locked: locked ?? this.locked,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+      opacity: opacity ?? this.opacity,
     );
   }
 
@@ -71,13 +70,15 @@ class ColorStackItem extends StackItem<ColorContent> {
       id: data['id'] == null ? null : asT<String>(data['id']),
       angle: data['angle'] == null ? null : asT<double>(data['angle']),
       size: jsonToSize(asMap(data['size'])),
-      offset:
-          data['offset'] == null ? null : jsonToOffset(asMap(data['offset'])),
+      offset: data['offset'] == null
+          ? null
+          : jsonToOffset(asMap(data['offset'])),
       status: StackItemStatus.values[data['status'] as int],
       lockZOrder: asNullT<bool>(data['lockZOrder']) ?? false,
       locked: asNullT<bool>(data['locked']) ?? false,
       flipX: asNullT<bool>(data['flipX']) ?? false,
       flipY: asNullT<bool>(data['flipY']) ?? false,
+      opacity: asNullT<double>(data['opacity']) ?? 1.0,
       content: ColorContent.fromJson(asMap(data['content'])),
     );
   }
