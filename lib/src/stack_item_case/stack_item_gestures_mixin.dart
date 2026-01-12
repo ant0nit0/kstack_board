@@ -62,7 +62,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         controller.selectOne(itemId, addToHistory: false);
       }
       controller.updateBasic(itemId, status: newStatus, addToHistory: false);
-      controller.moveItemOnTop(itemId, addToHistory: false);
+      // controller.moveItemOnTop(itemId, addToHistory: false);
       onStatusChanged(newStatus);
     }
 
@@ -1009,7 +1009,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
         }
       }
       controller.updateBasic(itemId, status: newStatus, addToHistory: false);
-      controller.moveItemOnTop(itemId, addToHistory: false);
+      // controller.moveItemOnTop(itemId, addToHistory: false);
       onStatusChanged(newStatus);
     }
 
