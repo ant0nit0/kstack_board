@@ -1,24 +1,18 @@
-import 'dart:ui';
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 // ignore: unnecessary_import
 import 'package:stack_board_plus/src/helpers/history_controller_mixin.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
-import '../helpers/group_helpers.dart';
-import '../stack_board_plus_items/items/stack_group_item.dart';
-import '../stack_board_plus_items/item_content/stack_group_content.dart';
 
 class StackConfig {
-  StackConfig({
-    required this.data,
-    required this.indexMap,
-  });
+  StackConfig({required this.data, required this.indexMap});
 
   factory StackConfig.init() => StackConfig(
-        data: <StackItem<StackItemContent>>[],
-        indexMap: <String, int>{},
-      );
+    data: <StackItem<StackItemContent>>[],
+    indexMap: <String, int>{},
+  );
 
   final List<StackItem<StackItemContent>> data;
 
@@ -47,9 +41,9 @@ class StackConfig {
 class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     with HistoryControllerMixin<StackConfig> {
   StackBoardPlusController({String? tag})
-      : assert(tag != 'def', 'tag can not be "def"'),
-        _tag = tag,
-        super(StackConfig.init());
+    : assert(tag != 'def', 'tag can not be "def"'),
+      _tag = tag,
+      super(StackConfig.init());
 
   factory StackBoardPlusController.def() => _defaultController;
 
@@ -69,13 +63,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   Map<String, int> get _newIndexMap => Map<String, int>.from(_indexMap);
 
   StackItem<StackItemContent>? get selectedItem => innerData.firstWhereOrNull(
-        (StackItem<StackItemContent> item) =>
-            item.status == StackItemStatus.selected,
-      );
+    (StackItem<StackItemContent> item) =>
+        item.status == StackItemStatus.selected,
+  );
   StackItem<StackItemContent>? get activeItem => innerData.firstWhereOrNull(
-        (StackItem<StackItemContent> item) =>
-            item.status != StackItemStatus.idle,
-      );
+    (StackItem<StackItemContent> item) => item.status != StackItemStatus.idle,
+  );
 
   bool get isGrouping =>
       innerData.any((item) => item.status == StackItemStatus.grouping);
@@ -93,7 +86,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
   /// * reorder index
   List<StackItem<StackItemContent>> _reorder(
-      List<StackItem<StackItemContent>> data) {
+    List<StackItem<StackItemContent>> data,
+  ) {
     for (int i = 0; i < data.length; i++) {
       _indexMap[data[i].id] = i;
     }
@@ -133,12 +127,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     data.add(
       item.copyWith(
         status: normalizedStatus,
-        offset: offset ??
+        offset:
+            offset ??
             (item.offset == Offset.zero
-                ? Offset(
-                    40 + item.size.width / 2,
-                    40 + item.size.height / 2,
-                  )
+                ? Offset(40 + item.size.width / 2, 40 + item.size.height / 2)
                 : item.offset),
       ),
     );
@@ -150,8 +142,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * remove item
-  void removeItem(StackItem<StackItemContent> item,
-      {bool addToHistory = true}) {
+  void removeItem(
+    StackItem<StackItemContent> item, {
+    bool addToHistory = true,
+  }) {
     // If removing a group, also remove all items in the group
     if (item is StackGroupItem) {
       // Get all child items recursively (handles nested groups)
@@ -195,9 +189,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
               final List<StackItem<StackItemContent>> data =
                   List<StackItem<StackItemContent>>.from(innerData);
               final groupIndex = _indexMap[groupId]!;
-              final updatedContent = group.content!.copyWith(
-                itemIds: itemIds,
-              );
+              final updatedContent = group.content!.copyWith(itemIds: itemIds);
               data[groupIndex] = group.copyWith(content: updatedContent);
               if (addToHistory) commit();
               value = value.copyWith(data: data);
@@ -229,8 +221,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * select only item
-  void selectOne(String id,
-      {bool forceMoveToTop = false, bool addToHistory = false}) {
+  void selectOne(
+    String id, {
+    bool forceMoveToTop = false,
+    bool addToHistory = false,
+  }) {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -267,8 +262,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       final newStatus = selectedOne
           ? StackItemStatus.selected
           : (item.status == StackItemStatus.grouping
-              ? StackItemStatus.grouping
-              : StackItemStatus.idle);
+                ? StackItemStatus.grouping
+                : StackItemStatus.idle);
 
       data[i] = item.copyWith(status: newStatus);
     }
@@ -318,11 +313,15 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     }
 
     if (wasLocked) {
-      data[_indexMap[id]!] =
-          data[_indexMap[id]!].copyWith(lockZOrder: false, locked: false);
+      data[_indexMap[id]!] = data[_indexMap[id]!].copyWith(
+        lockZOrder: false,
+        locked: false,
+      );
     } else {
-      data[_indexMap[id]!] =
-          data[_indexMap[id]!].copyWith(lockZOrder: true, locked: true);
+      data[_indexMap[id]!] = data[_indexMap[id]!].copyWith(
+        lockZOrder: true,
+        locked: true,
+      );
     }
 
     if (addToHistory) commit();
@@ -330,8 +329,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * update one item status
-  void setItemStatus(String id, StackItemStatus status,
-      {bool addToHistory = false}) {
+  void setItemStatus(
+    String id,
+    StackItemStatus status, {
+    bool addToHistory = false,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final int index = _indexMap[id]!;
@@ -362,8 +364,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item on top
-  void moveItemOnTop(String id,
-      {bool force = false, bool addToHistory = true}) {
+  void moveItemOnTop(
+    String id, {
+    bool force = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -383,8 +388,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item to bottom (index 0)
-  void moveItemToBottom(String id,
-      {bool force = false, bool addToHistory = true}) {
+  void moveItemToBottom(
+    String id, {
+    bool force = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -404,8 +412,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item one step forward (toward top)
-  void moveItemForward(String id,
-      {bool force = false, bool addToHistory = true}) {
+  void moveItemForward(
+    String id, {
+    bool force = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -427,8 +438,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item one step backward (toward bottom)
-  void moveItemBackward(String id,
-      {bool force = false, bool addToHistory = true}) {
+  void moveItemBackward(
+    String id, {
+    bool force = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -450,8 +464,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item to a specific index (0..length-1)
-  void moveItemToIndex(String id, int newIndex,
-      {bool force = false, bool addToHistory = true}) {
+  void moveItemToIndex(
+    String id,
+    int newIndex, {
+    bool force = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -484,9 +502,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       final StackItem<StackItemContent> item = data[i];
       // if (!item.locked) {
       data[i] = item.copyWith(
-          status: item.status == StackItemStatus.editing && !force
-              ? StackItemStatus.selected
-              : StackItemStatus.idle);
+        status: item.status == StackItemStatus.editing && !force
+            ? StackItemStatus.selected
+            : StackItemStatus.idle,
+      );
       // }
     }
 
@@ -537,12 +556,14 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * update basic config
-  void updateBasic(String id,
-      {Size? size,
-      Offset? offset,
-      double? angle,
-      StackItemStatus? status,
-      bool addToHistory = true}) {
+  void updateBasic(
+    String id, {
+    Size? size,
+    Offset? offset,
+    double? angle,
+    StackItemStatus? status,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -552,8 +573,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     // If this is a group, update group transform
     if (item is StackGroupItem) {
-      updateGroupTransform(id,
-          offset: offset, angle: angle, size: size, addToHistory: addToHistory);
+      updateGroupTransform(
+        id,
+        offset: offset,
+        angle: angle,
+        size: size,
+        addToHistory: addToHistory,
+      );
       if (status != null) {
         data[_indexMap[id]!] = item.copyWith(status: status);
         if (addToHistory) commit();
@@ -574,8 +600,10 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * update item
-  void updateItem(StackItem<StackItemContent> item,
-      {bool addToHistory = true}) {
+  void updateItem(
+    StackItem<StackItemContent> item, {
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(item.id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -587,8 +615,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     value = value.copyWith(data: data);
   }
 
-  void flipItem(String id,
-      {bool flipX = false, bool flipY = false, bool addToHistory = true}) {
+  void flipItem(
+    String id, {
+    bool flipX = false,
+    bool flipY = false,
+    bool addToHistory = true,
+  }) {
     if (!_indexMap.containsKey(id)) return;
 
     final List<StackItem<StackItemContent>> data =
@@ -606,16 +638,22 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     final newFlipX = flipX ? !currentItem.flipX : currentItem.flipX;
     final newFlipY = flipY ? !currentItem.flipY : currentItem.flipY;
 
-    data[_indexMap[id]!] =
-        currentItem.copyWith(flipX: newFlipX, flipY: newFlipY);
+    data[_indexMap[id]!] = currentItem.copyWith(
+      flipX: newFlipX,
+      flipY: newFlipY,
+    );
 
     if (addToHistory) commit();
     value = value.copyWith(data: data);
   }
 
   /// Flip a group and all its child items around the group center
-  void _flipGroup(String groupId,
-      {bool flipX = false, bool flipY = false, bool addToHistory = true}) {
+  void _flipGroup(
+    String groupId, {
+    bool flipX = false,
+    bool flipY = false,
+    bool addToHistory = true,
+  }) {
     final group = getGroupById(groupId);
     if (group == null) return;
 
@@ -724,7 +762,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
   /// * get data json list by type
   List<Map<String, dynamic>>
-      getTypeData<T extends StackItem<StackItemContent>>() {
+  getTypeData<T extends StackItem<StackItemContent>>() {
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
@@ -966,8 +1004,13 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// Update group transform and apply to all child items (handles nested groups)
-  void updateGroupTransform(String groupId,
-      {Offset? offset, double? angle, Size? size, bool addToHistory = true}) {
+  void updateGroupTransform(
+    String groupId, {
+    Offset? offset,
+    double? angle,
+    Size? size,
+    bool addToHistory = true,
+  }) {
     final group = getGroupById(groupId);
     if (group == null) return;
 
