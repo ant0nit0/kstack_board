@@ -229,6 +229,15 @@ class StackBoardPlus extends StatelessWidget {
                     final SnapConfig? snapConfig = StackBoardPlusConfig.of(
                       context,
                     ).snapConfig;
+                    // Separate groups and non-group items
+                    // Groups are rendered first (at the bottom) so items appear on top
+                    final groups = sc.data
+                        .where((item) => item is StackGroupItem)
+                        .toList();
+                    final nonGroups = sc.data
+                        .where((item) => item is! StackGroupItem)
+                        .toList();
+
                     return Stack(
                       fit: StackFit.expand,
                       children: <Widget>[
@@ -241,8 +250,12 @@ class StackBoardPlus extends StatelessWidget {
                             config: snapConfig,
                             allItems: sc.data,
                           ),
-                        // Render all items
-                        for (final StackItem<StackItemContent> item in sc.data)
+                        // Render groups first (at the bottom of z-order)
+                        for (final StackItem<StackItemContent> item in groups)
+                          _itemBuilder(item),
+                        // Render non-group items on top
+                        for (final StackItem<StackItemContent> item
+                            in nonGroups)
                           _itemBuilder(item),
                         const SnapGuideLayer(),
                       ],

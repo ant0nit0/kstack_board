@@ -153,18 +153,27 @@ class _StackItemCaseState extends State<StackItemCase>
     return SystemMouseCursors.grab;
   }
 
+  /// Check if the item's parent group is in an active/selected state
+  bool _isParentGroupActive(StackItem<StackItemContent> item) {
+    if (!controller.isItemInGroup(item.id)) return false;
+    final groupId = controller.getGroupForItem(item.id);
+    if (groupId == null) return false;
+    final group = controller.getGroupById(groupId);
+    if (group == null) return false;
+    return group.status == StackItemStatus.selected ||
+        group.status == StackItemStatus.moving ||
+        group.status == StackItemStatus.scaling ||
+        group.status == StackItemStatus.resizing ||
+        group.status == StackItemStatus.roating;
+  }
+
   /// * Click
+  /// Handles two-step selection for grouped items:
+  /// - First tap on a grouped item: selects the group
+  /// - Second tap on an item within an already selected group: selects that individual item
   void _onTap(BuildContext context) {
     widget.onTap?.call();
-    // If item is in a group, select the group instead
-    if (controller.isItemInGroup(itemId)) {
-      final groupId = controller.getGroupForItem(itemId);
-      if (groupId != null) {
-        controller.selectOne(groupId);
-        widget.onStatusChanged?.call(StackItemStatus.selected);
-        return;
-      }
-    }
+    // selectOne now handles the two-step selection logic internally
     controller.selectOne(itemId);
     widget.onStatusChanged?.call(StackItemStatus.selected);
   }
@@ -174,12 +183,25 @@ class _StackItemCaseState extends State<StackItemCase>
     // If long press grouping is disabled, do nothing
     if (!widget.enableLongPressGrouping) return;
 
-    // Don't toggle grouping if item is in a group (select group instead)
+    // For items in a group, toggle grouping on the group itself
+    // unless the item is individually selected (group was already selected before)
     if (controller.isItemInGroup(itemId)) {
       final groupId = controller.getGroupForItem(itemId);
       if (groupId != null) {
-        controller.selectOne(groupId);
-        widget.onStatusChanged?.call(StackItemStatus.selected);
+        final item = controller.getById(itemId);
+        // If this individual item is selected (not the group), toggle grouping on the item
+        if (item != null && item.status == StackItemStatus.selected) {
+          controller.toggleGroupingStatus(itemId);
+          widget.onStatusChanged?.call(
+            controller.getById(itemId)?.status ?? StackItemStatus.idle,
+          );
+          return;
+        }
+        // Otherwise toggle on the group
+        controller.toggleGroupingStatus(groupId);
+        widget.onStatusChanged?.call(
+          controller.getById(groupId)?.status ?? StackItemStatus.idle,
+        );
         return;
       }
     }
@@ -250,10 +272,14 @@ class _StackItemCaseState extends State<StackItemCase>
 
           // When requireSelectionForInteraction is enabled and item is idle,
           // don't provide scale handlers so pan/zoom gestures can pass through
-          // to InteractiveViewer, while still allowing taps to be detected
+          // to InteractiveViewer, while still allowing taps to be detected.
+          // However, if the item's parent group is selected, we should handle
+          // gestures to allow moving the group by panning on its items.
+          final bool isParentGroupActive = _isParentGroupActive(item);
           final bool shouldAllowGesturePassthrough =
               config.requireSelectionForInteraction &&
-              item.status == StackItemStatus.idle;
+              item.status == StackItemStatus.idle &&
+              !isParentGroupActive;
 
           Widget content = MouseRegion(
             cursor: _cursor(item.status),

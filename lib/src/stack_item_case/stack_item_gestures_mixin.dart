@@ -34,13 +34,77 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   void onAngleChanged(double angle);
   double getMinSize(BuildContext context);
 
-  /// Check if item is in a group and that group is selected
+  /// Check if item is in a group and that group is selected (but the individual item is not)
+  /// Returns false if the item itself is selected (allowing individual manipulation)
   bool _isItemInSelectedGroup(StackItem<StackItemContent> item) {
     if (!controller.isItemInGroup(item.id)) return false;
+    // If the item itself is selected, allow individual manipulation
+    if (item.status == StackItemStatus.selected ||
+        item.status == StackItemStatus.moving ||
+        item.status == StackItemStatus.scaling ||
+        item.status == StackItemStatus.resizing ||
+        item.status == StackItemStatus.roating) {
+      return false;
+    }
     final groupId = controller.getGroupForItem(item.id);
     if (groupId == null) return false;
     final group = controller.getGroupById(groupId);
     return group?.status == StackItemStatus.selected;
+  }
+
+  /// Check if item is in a group (regardless of selection state)
+  bool _isItemInAnyGroup(String itemId) {
+    return controller.isItemInGroup(itemId);
+  }
+
+  /// Get the group ID if the item is in a selected group (for delegation)
+  String? _getSelectedGroupId(StackItem<StackItemContent> item) {
+    if (!controller.isItemInGroup(item.id)) return null;
+    // If the item itself is selected, don't delegate to group
+    if (item.status == StackItemStatus.selected ||
+        item.status == StackItemStatus.moving ||
+        item.status == StackItemStatus.scaling ||
+        item.status == StackItemStatus.resizing ||
+        item.status == StackItemStatus.roating) {
+      return null;
+    }
+    final groupId = controller.getGroupForItem(item.id);
+    if (groupId == null) return null;
+    final group = controller.getGroupById(groupId);
+    if (group?.status == StackItemStatus.selected ||
+        group?.status == StackItemStatus.moving) {
+      return groupId;
+    }
+    return null;
+  }
+
+  /// Check if item or its parent group is in an active/selected state
+  /// Used for requireSelectionForInteraction checks
+  bool _isItemOrGroupActive(StackItem<StackItemContent> item) {
+    // Check if item itself is active
+    if (item.status == StackItemStatus.selected ||
+        item.status == StackItemStatus.moving ||
+        item.status == StackItemStatus.scaling ||
+        item.status == StackItemStatus.resizing ||
+        item.status == StackItemStatus.roating) {
+      return true;
+    }
+    // Check if parent group is active
+    if (controller.isItemInGroup(item.id)) {
+      final groupId = controller.getGroupForItem(item.id);
+      if (groupId != null) {
+        final group = controller.getGroupById(groupId);
+        if (group != null &&
+            (group.status == StackItemStatus.selected ||
+                group.status == StackItemStatus.moving ||
+                group.status == StackItemStatus.scaling ||
+                group.status == StackItemStatus.resizing ||
+                group.status == StackItemStatus.roating)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   void onPanStart(
@@ -90,6 +154,24 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // Clear cached snap points when drag ends
     _clearSnapCache();
 
+    // Update group bounds if this item is in a group and was individually manipulated
+    if (_isItemInAnyGroup(itemId)) {
+      final groupId = controller.getGroupForItem(itemId);
+      if (groupId != null) {
+        controller.updateGroupBounds(groupId, addToHistory: false);
+        // Prevent selecting the item as it is already in a group
+        controller.updateBasic(
+          itemId,
+          status: StackItemStatus.idle,
+          addToHistory: false,
+        );
+        onStatusChanged(StackItemStatus.idle);
+        // And make sure the group is again the selected item
+        controller.selectOne(groupId, addToHistory: false);
+        return;
+      }
+    }
+
     if (status != StackItemStatus.selected) {
       if (status == StackItemStatus.editing) return;
       status = StackItemStatus.selected;
@@ -104,8 +186,14 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
     if (item.locked) return;
-    // Prevent individual item manipulation when in a selected group
-    if (_isItemInSelectedGroup(item)) return;
+
+    // Check if we should delegate movement to the group
+    final String? selectedGroupId = _getSelectedGroupId(item);
+    if (selectedGroupId != null) {
+      // Delegate panning to the group
+      _onPanUpdateGroup(dud, context, selectedGroupId);
+      return;
+    }
 
     final double angle = item.angle;
     final double sina = math.sin(-angle);
@@ -132,6 +220,43 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
 
     onOffsetChanged(realOffset);
     controller.updateBasic(itemId, offset: realOffset, addToHistory: false);
+  }
+
+  /// Pan update delegated to the group (when panning an item within a selected group)
+  void _onPanUpdateGroup(
+    DragUpdateDetails dud,
+    BuildContext context,
+    String groupId,
+  ) {
+    final group = controller.getGroupById(groupId);
+    if (group == null) return;
+    if (group.locked) return;
+
+    final double angle = group.angle;
+    final double sina = math.sin(-angle);
+    final double cosa = math.cos(-angle);
+
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
+
+    Offset d = Offset(
+      dud.delta.dx / zoom * fittedBoxScale,
+      dud.delta.dy / zoom * fittedBoxScale,
+    );
+
+    d = Offset(sina * d.dy + cosa * d.dx, cosa * d.dy - sina * d.dx);
+
+    final Offset realOffset = group.offset.translate(d.dx, d.dy);
+
+    // Update group transform (which also moves all child items)
+    controller.updateGroupTransform(
+      groupId,
+      offset: realOffset,
+      addToHistory: false,
+    );
   }
 
   /// Cache snap points to avoid recalculating them on every pan update
@@ -986,16 +1111,18 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // Check if selection is required for interaction
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     if (config.requireSelectionForInteraction) {
-      // If selection is required, only allow interaction if item is already selected
-      if (item.status != StackItemStatus.selected &&
-          item.status != StackItemStatus.moving &&
-          item.status != StackItemStatus.scaling &&
-          item.status != StackItemStatus.resizing &&
-          item.status != StackItemStatus.roating) {
-        // Item is not selected, ignore the gesture
+      // If selection is required, only allow interaction if item or its parent group is active
+      if (!_isItemOrGroupActive(item)) {
+        // Neither item nor its group is selected, ignore the gesture
         return;
       }
     }
+
+    // Check if we should delegate to the group
+    final String? selectedGroupId = _getSelectedGroupId(item);
+    final group = selectedGroupId != null
+        ? controller.getGroupById(selectedGroupId)
+        : null;
 
     // Commit state before starting gesture
     controller.commit();
@@ -1008,7 +1135,16 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
           controller.selectOne(itemId, addToHistory: false);
         }
       }
-      controller.updateBasic(itemId, status: newStatus, addToHistory: false);
+      // If delegating to group, set group status to moving
+      if (group != null) {
+        controller.updateBasic(
+          selectedGroupId!,
+          status: newStatus,
+          addToHistory: false,
+        );
+      } else {
+        controller.updateBasic(itemId, status: newStatus, addToHistory: false);
+      }
       // controller.moveItemOnTop(itemId, addToHistory: false);
       onStatusChanged(newStatus);
     }
@@ -1018,12 +1154,19 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       Offset(renderBox.size.width / 2, renderBox.size.height / 2),
     );
     startGlobalPoint = details.focalPoint;
-    startOffset = item.offset;
-    startSize = item.size;
-    startAngle = item.angle;
 
-    // Cache snap points when gesture starts
-    _cacheSnapPoints(context, item.size);
+    // If delegating to group, store group's offset/size/angle
+    if (group != null) {
+      startOffset = group.offset;
+      startSize = group.size;
+      startAngle = group.angle;
+      _cacheSnapPoints(context, group.size);
+    } else {
+      startOffset = item.offset;
+      startSize = item.size;
+      startAngle = item.angle;
+      _cacheSnapPoints(context, item.size);
+    }
   }
 
   void onGestureUpdate(ScaleUpdateDetails details, BuildContext context) {
@@ -1032,19 +1175,23 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
     if (item.locked) return;
-    // Prevent individual item manipulation when in a selected group
-    if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
+
+    // Check if we should delegate movement to the group
+    if (!isGroupItem(item)) {
+      final String? selectedGroupId = _getSelectedGroupId(item);
+      if (selectedGroupId != null) {
+        // Delegate gesture to the group
+        _onGestureUpdateGroup(details, context, selectedGroupId);
+        return;
+      }
+    }
 
     // Check if selection is required for interaction
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     if (config.requireSelectionForInteraction) {
-      // If selection is required, only allow interaction if item is in an active state
-      if (item.status != StackItemStatus.selected &&
-          item.status != StackItemStatus.moving &&
-          item.status != StackItemStatus.scaling &&
-          item.status != StackItemStatus.resizing &&
-          item.status != StackItemStatus.roating) {
-        // Item is not selected, ignore the gesture update
+      // If selection is required, only allow interaction if item or its parent group is active
+      if (!_isItemOrGroupActive(item)) {
+        // Neither item nor its group is selected, ignore the gesture update
         return;
       }
     }
@@ -1103,7 +1250,42 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     );
   }
 
+  /// Gesture update delegated to the group (when gesturing on an item within a selected group)
+  void _onGestureUpdateGroup(
+    ScaleUpdateDetails details,
+    BuildContext context,
+    String groupId,
+  ) {
+    final group = controller.getGroupById(groupId);
+    if (group == null) return;
+    if (group.locked) return;
+
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
+
+    // For single pointer, just move the group
+    final Offset delta =
+        (details.focalPoint - startGlobalPoint) / zoom * fittedBoxScale;
+    final Offset newOffset = startOffset + delta;
+
+    // Update group transform (which also moves all child items)
+    controller.updateGroupTransform(
+      groupId,
+      offset: newOffset,
+      addToHistory: false,
+    );
+  }
+
   void onGestureEnd(ScaleEndDetails details, BuildContext context) {
+    // Update group bounds if this item is in a group and was individually manipulated
+    if (_isItemInAnyGroup(itemId)) {
+      final groupId = controller.getGroupForItem(itemId);
+      if (groupId != null) {
+        controller.updateGroupBounds(groupId, addToHistory: false);
+      }
+    }
     onPanEnd(context, StackItemStatus.moving);
   }
 }

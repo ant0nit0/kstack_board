@@ -221,6 +221,9 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * select only item
+  /// If an item is in a group:
+  /// - First tap: select the group
+  /// - Second tap (when group is already selected): select the individual item
   void selectOne(
     String id, {
     bool forceMoveToTop = false,
@@ -229,11 +232,22 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    // If clicking an item that's in a group, select the group instead
+    // Check if the item is in a group
     String? targetId = id;
-    if (isItemInGroup(id)) {
-      targetId = getGroupForItem(id);
-      if (targetId == null) return;
+    final bool isInGroup = isItemInGroup(id);
+    final String? groupId = isInGroup ? getGroupForItem(id) : null;
+
+    // If clicking an item that's in a group, check if group is already selected
+    if (isInGroup && groupId != null) {
+      final group = getGroupById(groupId);
+      if (group != null && group.status == StackItemStatus.selected) {
+        // Group is already selected, so select the individual item instead
+        // First unselect the group
+        targetId = id;
+      } else {
+        // Group is not selected, select the group first
+        targetId = groupId;
+      }
     }
 
     // If in grouping mode, toggle grouping status instead of selecting
@@ -1001,6 +1015,38 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     if (addToHistory) commit();
     value = value.copyWith(data: data, indexMap: _newIndexMap);
+  }
+
+  /// Update group bounds based on its child items' current positions
+  /// Called when an individual item within a group is moved/resized
+  void updateGroupBounds(String groupId, {bool addToHistory = false}) {
+    final group = getGroupById(groupId);
+    if (group == null) return;
+
+    // Get all direct child items (not recursively for nested groups)
+    final childItems = getItemsInGroup(groupId);
+    if (childItems.isEmpty) return;
+
+    // Calculate new bounds from child items (handles nested groups)
+    final bounds = _calculateBoundsForGroupItems(childItems);
+    final newSize = Size(bounds.width, bounds.height);
+    final newCenter = Offset(
+      bounds.left + bounds.width / 2,
+      bounds.top + bounds.height / 2,
+    );
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+
+    // Update group with new bounds (keep angle unchanged)
+    data[_indexMap[groupId]!] = group.copyWith(
+      size: newSize,
+      offset: newCenter,
+      content: group.content?.copyWith(groupCenter: newCenter),
+    );
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
   }
 
   /// Update group transform and apply to all child items (handles nested groups)
