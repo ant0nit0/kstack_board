@@ -270,7 +270,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     if (_indexMap.containsKey(targetId)) {
       final StackItem<StackItemContent> item = data[_indexMap[targetId]!];
-      if (!item.lockZOrder || forceMoveToTop) {
+      if (forceMoveToTop) {
         data.removeAt(_indexMap[targetId]!);
         data.add(item);
       }
