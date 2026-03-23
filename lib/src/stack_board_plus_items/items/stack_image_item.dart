@@ -148,8 +148,6 @@ class ImageItemContent extends StackItemContent {
 
   void _init() {
     final sources = {
-      'url': url,
-      'assetName': assetName,
       'bytes': bytes,
       'file': file,
       'svgString': svgString,
@@ -160,12 +158,13 @@ class ImageItemContent extends StackItemContent {
         .toList();
 
     if (!loading) {
-      if (nonNullSources.length != 1) {
-        final selected = nonNullSources.map((e) => e.key).join(', ');
+      // At least one source must be provided
+      final hasAnySource = nonNullSources.isNotEmpty ||
+          url != null ||
+          assetName != null;
+      if (!hasAnySource) {
         throw Exception(
-          nonNullSources.isEmpty
-              ? 'One image source must be provided: url, assetName, bytes, file, or svgString.'
-              : 'Only one image source can be used at a time. Found multiple: $selected',
+          'One image source must be provided: url, assetName, bytes, file, or svgString.',
         );
       }
     }
@@ -174,6 +173,7 @@ class ImageItemContent extends StackItemContent {
     _isLoaded = false;
     _hasError = false;
     _isLoading = false;
+    _useFallback = false;
     _loadingCompleter?.complete();
     _loadingCompleter = null;
 
@@ -194,66 +194,6 @@ class ImageItemContent extends StackItemContent {
             : null,
         matchTextDirection: matchTextDirection,
       );
-    } else if (url != null) {
-      _isSvg = _isSvgUrl(url!);
-      if (_isSvg) {
-        _svgWidget = SvgPicture.network(
-          url!,
-          width: width,
-          height: height,
-          fit: fit,
-          semanticsLabel: semanticLabel,
-          excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null
-              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
-              : null,
-          matchTextDirection: matchTextDirection,
-        );
-      } else {
-        if (url!.startsWith('http') || url!.startsWith('https')) {
-          _image = NetworkImage(url!);
-        } else {
-          _image = FileImage(File(url!));
-        }
-      }
-    } else if (assetName != null) {
-      _isSvg = _isSvgPath(assetName!);
-      if (_isSvg) {
-        _svgWidget = SvgPicture.asset(
-          assetName!,
-          width: width,
-          height: height,
-          fit: fit,
-          semanticsLabel: semanticLabel,
-          excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null
-              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
-              : null,
-          matchTextDirection: matchTextDirection,
-        );
-      } else {
-        _image = AssetImage(assetName!);
-        _isLoaded = true;
-      }
-    } else if (file != null) {
-      // Check if file is an SVG
-      _isSvg = _isSvgPath(file!.path);
-      if (_isSvg) {
-        _svgWidget = SvgPicture.file(
-          file!,
-          width: width,
-          height: height,
-          fit: fit,
-          semanticsLabel: semanticLabel,
-          excludeFromSemantics: excludeFromSemantics,
-          colorFilter: color != null
-              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
-              : null,
-          matchTextDirection: matchTextDirection,
-        );
-      } else {
-        _image = FileImage(file!);
-      }
     } else if (bytes != null) {
       /// Check if bytes represent an SVG
       _isSvg = _isSvgBytes(bytes!);
@@ -276,7 +216,89 @@ class ImageItemContent extends StackItemContent {
         _image = MemoryImage(bytes!);
         _isLoaded = true;
       }
+    } else if (file != null) {
+      _isSvg = _isSvgPath(file!.path);
+      if (_isSvg) {
+        _svgWidget = SvgPicture.file(
+          file!,
+          width: width,
+          height: height,
+          fit: fit,
+          semanticsLabel: semanticLabel,
+          excludeFromSemantics: excludeFromSemantics,
+          colorFilter: color != null
+              ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+              : null,
+          matchTextDirection: matchTextDirection,
+        );
+      } else {
+        _image = FileImage(file!);
+      }
+    } else if (assetName != null) {
+      _initFromAssetName();
+    } else if (url != null) {
+      _initFromUrl();
     }
+  }
+
+  /// Initialize image from assetName source
+  void _initFromAssetName() {
+    _isSvg = _isSvgPath(assetName!);
+    if (_isSvg) {
+      _svgWidget = SvgPicture.asset(
+        assetName!,
+        width: width,
+        height: height,
+        fit: fit,
+        semanticsLabel: semanticLabel,
+        excludeFromSemantics: excludeFromSemantics,
+        colorFilter: color != null
+            ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+            : null,
+        matchTextDirection: matchTextDirection,
+      );
+    } else {
+      _image = AssetImage(assetName!);
+      _isLoaded = true;
+    }
+  }
+
+  /// Initialize image from url source
+  void _initFromUrl() {
+    _isSvg = _isSvgUrl(url!);
+    if (_isSvg) {
+      _svgWidget = SvgPicture.network(
+        url!,
+        width: width,
+        height: height,
+        fit: fit,
+        semanticsLabel: semanticLabel,
+        excludeFromSemantics: excludeFromSemantics,
+        colorFilter: color != null
+            ? ColorFilter.mode(color!, colorBlendMode ?? BlendMode.srcIn)
+            : null,
+        matchTextDirection: matchTextDirection,
+      );
+    } else {
+      if (url!.startsWith('http') || url!.startsWith('https')) {
+        _image = NetworkImage(url!);
+      } else {
+        _image = FileImage(File(url!));
+      }
+    }
+  }
+
+  /// Switch to url fallback when assetName fails
+  void _switchToUrlFallback() {
+    if (url == null || _useFallback) return;
+    _useFallback = true;
+    _image = null;
+    _svgWidget = null;
+    _isSvg = false;
+    _isLoaded = false;
+    _hasError = false;
+    _isLoading = false;
+    _initFromUrl();
   }
 
   /// Helper methods to detect SVG content
@@ -315,6 +337,7 @@ class ImageItemContent extends StackItemContent {
   bool _isLoaded = false;
   bool _hasError = false;
   bool _isLoading = false;
+  bool _useFallback = false;
   Completer<void>? _loadingCompleter;
 
   String? url;
@@ -363,6 +386,7 @@ class ImageItemContent extends StackItemContent {
     _isLoaded = false;
     _hasError = false;
     _isLoading = false;
+    _useFallback = false;
     _loadingCompleter?.complete();
     _loadingCompleter = null;
 
@@ -474,6 +498,17 @@ class ImageItemContent extends StackItemContent {
     return _buildShimmerPlaceholder();
   }
 
+  bool get _hasFallbackUrl => url != null && assetName != null && !_useFallback;
+
+  /// Try to switch to url fallback; returns true if fallback was activated
+  bool _tryFallback() {
+    if (_hasFallbackUrl) {
+      _switchToUrlFallback();
+      return true;
+    }
+    return false;
+  }
+
   /// Network image with proper loading state management
   Widget _buildImageWithLoadingState() {
     if (_image is NetworkImage) {
@@ -501,6 +536,9 @@ class ImageItemContent extends StackItemContent {
           return _buildShimmerPlaceholder();
         },
         errorBuilder: (context, error, stackTrace) {
+          if (_tryFallback()) {
+            return _buildWidgetWithShimmer();
+          }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _markAsError();
           });
@@ -515,6 +553,9 @@ class ImageItemContent extends StackItemContent {
       if (_isLoaded) {
         return _buildContentWidget();
       } else if (_hasError) {
+        if (_tryFallback()) {
+          return _buildWidgetWithShimmer();
+        }
         return _buildErrorWidget();
       }
 
@@ -544,6 +585,9 @@ class ImageItemContent extends StackItemContent {
           return _buildShimmerPlaceholder();
         },
         errorBuilder: (context, error, stackTrace) {
+          if (_tryFallback()) {
+            return _buildWidgetWithShimmer();
+          }
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _markAsError();
           });
