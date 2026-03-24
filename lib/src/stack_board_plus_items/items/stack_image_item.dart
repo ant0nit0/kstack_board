@@ -29,6 +29,7 @@ class ImageItemContent extends StackItemContent {
     this.filterQuality = FilterQuality.low,
     this.cornerRadius,
     this.loading = false,
+    this.pixabayId,
   }) {
     _init();
   }
@@ -53,6 +54,7 @@ class ImageItemContent extends StackItemContent {
     FilterQuality? filterQuality,
     double? cornerRadius,
     bool? loading,
+    String? pixabayId,
   }) {
     return ImageItemContent(
       url: url ?? this.url,
@@ -74,6 +76,7 @@ class ImageItemContent extends StackItemContent {
       filterQuality: filterQuality ?? this.filterQuality,
       cornerRadius: cornerRadius ?? this.cornerRadius,
       loading: loading ?? this.loading,
+      pixabayId: pixabayId ?? this.pixabayId,
     );
   }
 
@@ -115,6 +118,9 @@ class ImageItemContent extends StackItemContent {
           ? asT<double>(json['cornerRadius'])
           : null,
       loading: asNullT<bool>(json['loading']) ?? false,
+      pixabayId: json['pixabayId'] != null
+          ? asT<String>(json['pixabayId'])
+          : null,
     );
   }
 
@@ -359,6 +365,7 @@ class ImageItemContent extends StackItemContent {
   FilterQuality filterQuality;
   double? cornerRadius;
   bool loading;
+  String? pixabayId;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -674,6 +681,7 @@ class ImageItemContent extends StackItemContent {
       'filterQuality': filterQuality.index,
       if (cornerRadius != null) 'cornerRadius': cornerRadius,
       'loading': loading,
+      if (pixabayId != null) 'pixabayId': pixabayId,
     };
   }
 
