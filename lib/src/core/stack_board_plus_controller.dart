@@ -426,7 +426,35 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
+  /// Ids of the items sharing the moved item's z-order scope: its group
+  /// siblings (including itself) when it is a direct child of a group,
+  /// otherwise all top-level items. Rendering anchors group children to
+  /// their group, so stepping over an item outside this scope would have
+  /// no visual effect.
+  Set<String> _siblingScopeIds(
+    String id,
+    List<StackItem<StackItemContent>> data,
+  ) {
+    final Map<String, Set<String>> groupChildren = <String, Set<String>>{
+      for (final StackItem<StackItemContent> item in data)
+        if (item is StackGroupItem)
+          item.id: (item.content?.itemIds ?? const <String>[]).toSet(),
+    };
+    for (final Set<String> childIds in groupChildren.values) {
+      if (childIds.contains(id)) return childIds;
+    }
+    final Set<String> allChildIds = groupChildren.values
+        .expand((Set<String> ids) => ids)
+        .toSet();
+    return data
+        .map((StackItem<StackItemContent> item) => item.id)
+        .where((String itemId) => !allChildIds.contains(itemId))
+        .toSet();
+  }
+
   /// * move item one step forward (toward top)
+  /// Steps relative to the item's z-order scope (its group siblings, or the
+  /// top-level items), skipping items whose render position is independent.
   void moveItemForward(
     String id, {
     bool force = false,
@@ -439,12 +467,20 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     final int currentIndex = _indexMap[id]!;
     final StackItem<StackItemContent> item = data[currentIndex];
-    if (currentIndex >= data.length - 1) return; // already at top
+    if (item.lockZOrder && !force) return;
 
-    if (!item.lockZOrder || force) {
-      data.removeAt(currentIndex);
-      data.insert(currentIndex + 1, item);
+    final Set<String> scopeIds = _siblingScopeIds(id, data);
+    int? targetIndex;
+    for (int i = currentIndex + 1; i < data.length; i++) {
+      if (scopeIds.contains(data[i].id)) {
+        targetIndex = i;
+        break;
+      }
     }
+    if (targetIndex == null) return; // already at the top of its scope
+
+    data.removeAt(currentIndex);
+    data.insert(targetIndex, item);
 
     _reorder(data);
 
@@ -453,6 +489,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * move item one step backward (toward bottom)
+  /// Steps relative to the item's z-order scope (its group siblings, or the
+  /// top-level items), skipping items whose render position is independent.
   void moveItemBackward(
     String id, {
     bool force = false,
@@ -465,12 +503,20 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     final int currentIndex = _indexMap[id]!;
     final StackItem<StackItemContent> item = data[currentIndex];
-    if (currentIndex <= 0) return; // already at bottom
+    if (item.lockZOrder && !force) return;
 
-    if (!item.lockZOrder || force) {
-      data.removeAt(currentIndex);
-      data.insert(currentIndex - 1, item);
+    final Set<String> scopeIds = _siblingScopeIds(id, data);
+    int? targetIndex;
+    for (int i = currentIndex - 1; i >= 0; i--) {
+      if (scopeIds.contains(data[i].id)) {
+        targetIndex = i;
+        break;
+      }
     }
+    if (targetIndex == null) return; // already at the bottom of its scope
+
+    data.removeAt(currentIndex);
+    data.insert(targetIndex, item);
 
     _reorder(data);
 
@@ -965,8 +1011,15 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       }
     }
 
-    data.add(groupItem);
-    _indexMap[groupItem.id] = data.length - 1;
+    // Insert the group just above its topmost member so grouping keeps the
+    // unit's visual z-position (children render anchored to the group).
+    int insertIndex = 0;
+    for (final StackItem<StackItemContent> item in validItems) {
+      final int itemIndex = _indexMap[item.id]!;
+      if (itemIndex + 1 > insertIndex) insertIndex = itemIndex + 1;
+    }
+    data.insert(insertIndex, groupItem);
+    _reorder(data);
 
     // Update group maps
     // For nested groups, we need to handle items that are already in groups
@@ -1002,13 +1055,35 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    // Remove group from data
-    data.removeAt(_indexMap[groupId]!);
+    final int groupIndex = _indexMap[groupId]!;
+    final List<String> directChildIds = List<String>.from(
+      _groupToItemsMap[groupId] ?? group.content?.itemIds ?? const <String>[],
+    );
+    final Set<String> directChildIdSet = directChildIds.toSet();
+
+    // Children rendered anchored to the group; on ungroup, move them to the
+    // group's z-slot (keeping their relative order) so nothing jumps in z.
+    final List<StackItem<StackItemContent>> children = data
+        .where(
+          (StackItem<StackItemContent> item) =>
+              directChildIdSet.contains(item.id),
+        )
+        .toList();
+    int insertIndex = 0;
+    for (int i = 0; i < groupIndex; i++) {
+      if (!directChildIdSet.contains(data[i].id)) insertIndex++;
+    }
+
+    data.removeWhere(
+      (StackItem<StackItemContent> item) =>
+          item.id == groupId || directChildIdSet.contains(item.id),
+    );
+    data.insertAll(insertIndex, children);
     _indexMap.remove(groupId);
 
     // Remove from group maps
-    final itemIds = _groupToItemsMap.remove(groupId) ?? [];
-    for (final itemId in itemIds) {
+    _groupToItemsMap.remove(groupId);
+    for (final itemId in directChildIds) {
       _itemToGroupMap.remove(itemId);
     }
 
@@ -1177,10 +1252,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
       // Update child size
       final newChildSize = scaleChildSizes
-          ? Size(
-              oldChildSize.width * scaleX,
-              oldChildSize.height * scaleY,
-            )
+          ? Size(oldChildSize.width * scaleX, oldChildSize.height * scaleY)
           : oldChildSize;
 
       data[childIndex] = childItem.copyWith(

@@ -229,14 +229,11 @@ class StackBoardPlus extends StatelessWidget {
                     final SnapConfig? snapConfig = StackBoardPlusConfig.of(
                       context,
                     ).snapConfig;
-                    // Separate groups and non-group items
-                    // Groups are rendered first (at the bottom) so items appear on top
-                    final groups = sc.data
-                        .where((item) => item is StackGroupItem)
-                        .toList();
-                    final nonGroups = sc.data
-                        .where((item) => item is! StackGroupItem)
-                        .toList();
+                    // Render in z-order (data order), with each group's
+                    // children rendered immediately above their group so a
+                    // group and its content move together as a single z-unit.
+                    final List<StackItem<StackItemContent>> renderOrder =
+                        _computeRenderOrder(sc.data);
 
                     return Stack(
                       fit: StackFit.expand,
@@ -250,12 +247,8 @@ class StackBoardPlus extends StatelessWidget {
                             config: snapConfig,
                             allItems: sc.data,
                           ),
-                        // Render groups first (at the bottom of z-order)
-                        for (final StackItem<StackItemContent> item in groups)
-                          _itemBuilder(item),
-                        // Render non-group items on top
                         for (final StackItem<StackItemContent> item
-                            in nonGroups)
+                            in renderOrder)
                           _itemBuilder(item),
                         const SnapGuideLayer(),
                       ],
@@ -268,6 +261,59 @@ class StackBoardPlus extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Computes the paint order for [data] (bottom to top).
+  ///
+  /// Top-level items keep their [data] order (list index == z-order). Items
+  /// that belong to a group are not rendered at their own index: they are
+  /// rendered immediately after their group placeholder (keeping their
+  /// relative [data] order among siblings), so a whole group occupies a
+  /// single slot in the z-order and can be reordered like any other item.
+  List<StackItem<StackItemContent>> _computeRenderOrder(
+    List<StackItem<StackItemContent>> data,
+  ) {
+    final Map<String, StackItem<StackItemContent>> byId =
+        <String, StackItem<StackItemContent>>{
+          for (final StackItem<StackItemContent> item in data) item.id: item,
+        };
+
+    final Set<String> childIds = <String>{};
+    void collectChildIds(StackGroupItem group) {
+      for (final String id in group.content?.itemIds ?? const <String>[]) {
+        if (!childIds.add(id)) continue;
+        final StackItem<StackItemContent>? child = byId[id];
+        if (child is StackGroupItem) collectChildIds(child);
+      }
+    }
+
+    for (final StackItem<StackItemContent> item in data) {
+      if (item is StackGroupItem) collectChildIds(item);
+    }
+
+    final List<StackItem<StackItemContent>> ordered =
+        <StackItem<StackItemContent>>[];
+    final Set<String> added = <String>{};
+    void addWithChildren(StackItem<StackItemContent> item) {
+      if (!added.add(item.id)) return;
+      ordered.add(item);
+      if (item is StackGroupItem) {
+        final Set<String> directChildIds =
+            (item.content?.itemIds ?? const <String>[]).toSet();
+        for (final StackItem<StackItemContent> candidate in data) {
+          if (directChildIds.contains(candidate.id)) {
+            addWithChildren(candidate);
+          }
+        }
+      }
+    }
+
+    for (final StackItem<StackItemContent> item in data) {
+      if (childIds.contains(item.id)) continue;
+      addWithChildren(item);
+    }
+
+    return ordered;
   }
 
   Widget _itemBuilder(StackItem<StackItemContent> item) {
