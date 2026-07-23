@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Axis;
 // ignore: unnecessary_import
 import 'package:stack_board_plus/src/helpers/history_controller_mixin.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
@@ -1049,6 +1050,63 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     value = value.copyWith(data: data);
   }
 
+  /// Axis-aligned extent of an item along [axis], accounting for its rotation.
+  double _itemAxisExtent(StackItem<StackItemContent> item, Axis axis) {
+    final double w = item.size.width;
+    final double h = item.size.height;
+    final double c = math.cos(item.angle).abs();
+    final double s = math.sin(item.angle).abs();
+    return axis == Axis.horizontal ? w * c + h * s : w * s + h * c;
+  }
+
+  /// Distributes the direct children of a group so the gaps between them are
+  /// equal along [axis]. The outermost items keep their positions; the items
+  /// in between are re-spaced. Requires at least 3 children.
+  void distributeGroupSpacing(
+    String groupId, {
+    required Axis axis,
+    bool addToHistory = true,
+  }) {
+    final group = getGroupById(groupId);
+    if (group == null) return;
+
+    final items = List<StackItem<StackItemContent>>.from(
+      getItemsInGroup(groupId),
+    );
+    if (items.length < 3) return;
+
+    double centerOf(StackItem<StackItemContent> item) =>
+        axis == Axis.horizontal ? item.offset.dx : item.offset.dy;
+
+    items.sort((a, b) => centerOf(a).compareTo(centerOf(b)));
+
+    final List<double> extents = <double>[
+      for (final item in items) _itemAxisExtent(item, axis),
+    ];
+
+    final double span =
+        (centerOf(items.last) + extents.last / 2) -
+        (centerOf(items.first) - extents.first / 2);
+    final double totalExtent = extents.fold(0.0, (a, b) => a + b);
+    final double gap = (span - totalExtent) / (items.length - 1);
+
+    double cursor = centerOf(items.first) + extents.first / 2 + gap;
+    for (int i = 1; i < items.length - 1; i++) {
+      final item = items[i];
+      final double newCenter = cursor + extents[i] / 2;
+      final Offset newOffset = axis == Axis.horizontal
+          ? Offset(newCenter, item.offset.dy)
+          : Offset(item.offset.dx, newCenter);
+      // updateBasic delegates to updateGroupTransform for nested groups,
+      // moving their children along.
+      updateBasic(item.id, offset: newOffset, addToHistory: false);
+      cursor += extents[i] + gap;
+    }
+
+    updateGroupBounds(groupId, addToHistory: false);
+    if (addToHistory) commit();
+  }
+
   /// Update group transform and apply to all child items (handles nested groups)
   void updateGroupTransform(
     String groupId, {
@@ -1079,6 +1137,11 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     // Calculate scale factors
     final scaleX = newSize.width / oldSize.width;
     final scaleY = newSize.height / oldSize.height;
+
+    // Uniform scaling (corner handles, two-finger pinch) scales the children
+    // themselves. Non-uniform scaling (edge resize handles) only spreads the
+    // children apart / together along that axis — their sizes are kept.
+    final bool scaleChildSizes = (scaleX - scaleY).abs() < 0.001;
 
     // Update child items relative to group center
     for (final childItem in childItems) {
@@ -1113,10 +1176,12 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
       final newChildAngle = oldChildAngle - oldAngle + newAngle;
 
       // Update child size
-      final newChildSize = Size(
-        oldChildSize.width * scaleX,
-        oldChildSize.height * scaleY,
-      );
+      final newChildSize = scaleChildSizes
+          ? Size(
+              oldChildSize.width * scaleX,
+              oldChildSize.height * scaleY,
+            )
+          : oldChildSize;
 
       data[childIndex] = childItem.copyWith(
         offset: newChildOffset,

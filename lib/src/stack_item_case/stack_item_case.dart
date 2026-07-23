@@ -5,6 +5,7 @@ import 'stack_item_gestures_mixin.dart';
 import 'stack_item_types.dart';
 import 'widgets/dashed_border.dart';
 import 'widgets/resize_handle.dart';
+import 'widgets/rotate_handle.dart';
 import 'widgets/scale_handle.dart';
 import 'widgets/tool_actions.dart';
 
@@ -273,13 +274,23 @@ class _StackItemCaseState extends State<StackItemCase>
           // When requireSelectionForInteraction is enabled and item is idle,
           // don't provide scale handlers so pan/zoom gestures can pass through
           // to InteractiveViewer, while still allowing taps to be detected.
-          // However, if the item's parent group is selected, we should handle
-          // gestures to allow moving the group by panning on its items.
+          //
+          // Idle children of an active group also pass gestures through: the
+          // group's own case sits right below them and covers the full group
+          // bounds, so drags and two-finger pinches land in a SINGLE scale
+          // recognizer there — exactly like gesturing a regular item. (With
+          // per-child handlers, two fingers on two different children would
+          // feed two separate recognizers and no rotation/scale could ever be
+          // detected.) Taps/long-presses stay on the child for the two-step
+          // selection and grouping flows.
           final bool isParentGroupActive = _isParentGroupActive(item);
+          final bool isIdleChildOfActiveGroup =
+              isParentGroupActive && item.status == StackItemStatus.idle;
           final bool shouldAllowGesturePassthrough =
-              config.requireSelectionForInteraction &&
-              item.status == StackItemStatus.idle &&
-              !isParentGroupActive;
+              isIdleChildOfActiveGroup ||
+              (config.requireSelectionForInteraction &&
+                  item.status == StackItemStatus.idle &&
+                  !isParentGroupActive);
 
           Widget content = MouseRegion(
             cursor: _cursor(item.status),
@@ -374,9 +385,7 @@ class _StackItemCaseState extends State<StackItemCase>
       widgets.add(widget.actionsBuilder!(item.status, _caseStyle(context)));
     } else if (item.status != StackItemStatus.editing) {
       if (item.status != StackItemStatus.idle) {
-        // Groups cannot be resized, only scaled
-        final bool isGroup = isGroupItem(item);
-        if (!isGroup && item.size.height > getMinSize(context) * 2) {
+        if (item.size.height > getMinSize(context) * 2) {
           widgets.add(
             Positioned(
               bottom: bottomBorder - resizeHandleSize / 2 - hitAreaPadding,
@@ -408,7 +417,7 @@ class _StackItemCaseState extends State<StackItemCase>
             ),
           );
         }
-        if (!isGroup && item.size.width > getMinSize(context) * 2) {
+        if (item.size.width > getMinSize(context) * 2) {
           widgets.add(
             Positioned(
               left: leftBorder - resizeHandleSize / 2 - hitAreaPadding,
@@ -519,6 +528,12 @@ class _StackItemCaseState extends State<StackItemCase>
               SystemMouseCursors.resizeUpLeftDownRight,
               HandlePosition.bottomRight,
             ),
+          ),
+          // Rotate handle, just above the top-right corner
+          Positioned(
+            top: 0,
+            right: 0,
+            child: _buildRotateHandle(context, item.status),
           ),
         ]);
       }
@@ -634,6 +649,17 @@ class _StackItemCaseState extends State<StackItemCase>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRotateHandle(BuildContext context, StackItemStatus status) {
+    final CaseStyle style = _caseStyle(context);
+
+    return RotateHandle(
+      onPanStart: (d) => onPanStart(d, context, StackItemStatus.roating),
+      onPanUpdate: (d) => onRotateUpdate(d, context, status),
+      onPanEnd: (_) => onPanEnd(context, status),
+      caseStyle: style,
     );
   }
 

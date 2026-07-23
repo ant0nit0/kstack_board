@@ -5,6 +5,9 @@ import 'package:stack_board_plus/stack_board_plus.dart';
 enum StackShapeType {
   rectangle,
   circle,
+
+  /// Kept for backward-compatible deserialization of old journals only.
+  /// Loaded instances are migrated to [rectangle] + a `borderRadius`.
   roundedRectangle,
   line,
   star,
@@ -24,6 +27,10 @@ class StackShapeContent implements StackItemContent {
   final double width;
   final double height;
   final int? endpoints; // for polygon/star only
+  final double borderRadius; // for rectangle only
+  final Color? shadowColor; // null = no shadow
+  final Offset? shadowOffset;
+  final double shadowBlurRadius;
 
   StackShapeContent({
     required this.type,
@@ -35,7 +42,13 @@ class StackShapeContent implements StackItemContent {
     required this.width,
     required this.height,
     this.endpoints,
+    this.borderRadius = 0.0,
+    this.shadowColor,
+    this.shadowOffset,
+    this.shadowBlurRadius = 0.0,
   });
+
+  bool get hasShadow => shadowColor != null;
 
   StackShapeContent copyWith({
     StackShapeType? type,
@@ -47,6 +60,11 @@ class StackShapeContent implements StackItemContent {
     double? width,
     double? height,
     int? endpoints,
+    double? borderRadius,
+    Color? shadowColor,
+    Offset? shadowOffset,
+    double? shadowBlurRadius,
+    bool clearShadow = false,
   }) {
     return StackShapeContent(
       type: type ?? this.type,
@@ -58,6 +76,11 @@ class StackShapeContent implements StackItemContent {
       width: width ?? this.width,
       height: height ?? this.height,
       endpoints: endpoints ?? this.endpoints,
+      borderRadius: borderRadius ?? this.borderRadius,
+      shadowColor: clearShadow ? null : (shadowColor ?? this.shadowColor),
+      shadowOffset: clearShadow ? null : (shadowOffset ?? this.shadowOffset),
+      shadowBlurRadius:
+          clearShadow ? 0.0 : (shadowBlurRadius ?? this.shadowBlurRadius),
     );
   }
 
@@ -73,20 +96,48 @@ class StackShapeContent implements StackItemContent {
       'width': width.toString(),
       'height': height.toString(),
       'endpoints': endpoints.toString(),
+      'borderRadius': borderRadius,
+      if (shadowColor != null) 'shadowColor': shadowColor?.toARGB32(),
+      if (shadowOffset != null)
+        'shadowOffset': {'dx': shadowOffset!.dx, 'dy': shadowOffset!.dy},
+      'shadowBlurRadius': shadowBlurRadius,
     };
   }
 
   factory StackShapeContent.fromJson(Map<String, dynamic> json) {
+    StackShapeType type = StackShapeType.values.byName(json['type']);
+    final double width = asNullT<double>(json['width']) ?? 100.0;
+    final double height = asNullT<double>(json['height']) ?? 100.0;
+    double borderRadius = asNullT<double>(json['borderRadius']) ?? 0.0;
+    // Migrate legacy rounded rectangles to rectangle + border radius,
+    // matching the radius the old painter used (min(w, h) * 0.2).
+    if (type == StackShapeType.roundedRectangle) {
+      type = StackShapeType.rectangle;
+      if (borderRadius == 0.0) {
+        borderRadius = (width < height ? width : height) * 0.2;
+      }
+    }
     return StackShapeContent(
-      type: StackShapeType.values.byName(json['type']),
+      type: type,
       fillColor: Color(asNullT<int>(json['fillColor']) ?? 0xFF000000),
       strokeColor: Color(asNullT<int>(json['strokeColor']) ?? 0xFF000000),
       strokeWidth: asNullT<double>(json['strokeWidth']) ?? 0.0,
       opacity: asNullT<double>(json['opacity']) ?? 1.0,
       tilt: asNullT<double>(json['tilt']) ?? 0.0,
-      width: asNullT<double>(json['width']) ?? 100.0,
-      height: asNullT<double>(json['height']) ?? 100.0,
+      width: width,
+      height: height,
       endpoints: asNullT<int>(json['endpoints']),
+      borderRadius: borderRadius,
+      shadowColor: json['shadowColor'] == null
+          ? null
+          : Color(asT<int>(json['shadowColor'])),
+      shadowOffset: json['shadowOffset'] == null
+          ? null
+          : Offset(
+              asT<double>(json['shadowOffset']['dx']),
+              asT<double>(json['shadowOffset']['dy']),
+            ),
+      shadowBlurRadius: asNullT<double>(json['shadowBlurRadius']) ?? 0.0,
     );
   }
 
@@ -96,6 +147,14 @@ class StackShapeContent implements StackItemContent {
       strokeWidth: strokeWidth * scaleFactor,
       width: width * scaleFactor,
       height: height * scaleFactor,
+      borderRadius: borderRadius * scaleFactor,
+      shadowOffset: shadowOffset == null
+          ? null
+          : Offset(
+              shadowOffset!.dx * scaleFactor,
+              shadowOffset!.dy * scaleFactor,
+            ),
+      shadowBlurRadius: shadowBlurRadius * scaleFactor,
     );
   }
 }

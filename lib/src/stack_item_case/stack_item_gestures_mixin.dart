@@ -154,6 +154,16 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     // Clear cached snap points when drag ends
     _clearSnapCache();
 
+    // After an edge resize of a group (spacing mode: children keep their
+    // sizes), re-fit the group bounds so the border hugs the children again.
+    final StackItem<StackItemContent>? endedItem = controller.getById(itemId);
+    if (endedItem != null &&
+        isGroupItem(endedItem) &&
+        endedItem.status == StackItemStatus.resizing &&
+        endedItem.angle.abs() < 0.001) {
+      controller.updateGroupBounds(itemId, addToHistory: false);
+    }
+
     // Update group bounds if this item is in a group and was individually manipulated
     if (_isItemInAnyGroup(itemId)) {
       final groupId = controller.getGroupForItem(itemId);
@@ -815,8 +825,6 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
     if (item.locked) return;
-    // Groups cannot be resized (only scaled)
-    if (isGroupItem(item)) return;
     // Individual items in selected groups cannot be resized
     if (_isItemInSelectedGroup(item)) return;
 
@@ -1060,35 +1068,18 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.locked) return;
 
-    final double startToCenterX = startGlobalPoint.dx - centerPoint.dx;
-    final double startToCenterY = startGlobalPoint.dy - centerPoint.dy;
-    final double endToCenterX = dud.globalPosition.dx - centerPoint.dx;
-    final double endToCenterY = dud.globalPosition.dy - centerPoint.dy;
-    final double direct =
-        startToCenterX * endToCenterY - startToCenterY * endToCenterX;
-    final double startToCenter = math.sqrt(
-      math.pow(centerPoint.dx - startGlobalPoint.dx, 2) +
-          math.pow(centerPoint.dy - startGlobalPoint.dy, 2),
+    // Absolute-angle delta around the item center, mirroring the two-finger
+    // gesture semantics (startAngle + rotation delta). atan2 keeps the
+    // direction and speed exact regardless of zoom or drag distance.
+    final double startPointerAngle = math.atan2(
+      startGlobalPoint.dy - centerPoint.dy,
+      startGlobalPoint.dx - centerPoint.dx,
     );
-    final double endToCenter = math.sqrt(
-      math.pow(centerPoint.dx - dud.globalPosition.dx, 2) +
-          math.pow(centerPoint.dy - dud.globalPosition.dy, 2),
+    final double currentPointerAngle = math.atan2(
+      dud.globalPosition.dy - centerPoint.dy,
+      dud.globalPosition.dx - centerPoint.dx,
     );
-    final double startToEnd = math.sqrt(
-      math.pow(startGlobalPoint.dx - dud.globalPosition.dx, 2) +
-          math.pow(startGlobalPoint.dy - dud.globalPosition.dy, 2),
-    );
-    final double cosA =
-        (math.pow(startToCenter, 2) +
-            math.pow(endToCenter, 2) -
-            math.pow(startToEnd, 2)) /
-        (2 * startToCenter * endToCenter);
-    double angle = math.acos(cosA);
-    if (direct < 0) {
-      angle = startAngle - angle;
-    } else {
-      angle = startAngle + angle;
-    }
+    double angle = startAngle + (currentPointerAngle - startPointerAngle);
 
     // Apply rotation snap
     final RotationSnapConfig? rotationSnapConfig = StackBoardPlusConfig.of(
@@ -1265,15 +1256,39 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (zoom < 1) zoom = 1;
     final double fittedBoxScale = config.fittedBoxScale ?? 1;
 
-    // For single pointer, just move the group
     final Offset delta =
         (details.focalPoint - startGlobalPoint) / zoom * fittedBoxScale;
     final Offset newOffset = startOffset + delta;
+
+    // Two-finger gestures also rotate/scale the whole group
+    // (startAngle/startSize hold the group's values, set in onGestureStart).
+    double newAngle = startAngle + details.rotation;
+    if (details.pointerCount > 1) {
+      final RotationSnapConfig? rotationSnapConfig = config.rotationSnapConfig;
+      if (rotationSnapConfig != null) {
+        newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
+      }
+    }
+
+    double newScale = details.scale;
+    final double minSize = getMinSize(context);
+    if (startSize.width * newScale < minSize ||
+        startSize.height * newScale < minSize) {
+      final double scaleW = minSize / startSize.width;
+      final double scaleH = minSize / startSize.height;
+      newScale = math.max(newScale, math.max(scaleW, scaleH));
+    }
+    final Size newSize = Size(
+      startSize.width * newScale,
+      startSize.height * newScale,
+    );
 
     // Update group transform (which also moves all child items)
     controller.updateGroupTransform(
       groupId,
       offset: newOffset,
+      angle: newAngle,
+      size: newSize,
       addToHistory: false,
     );
   }
