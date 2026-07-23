@@ -274,23 +274,17 @@ class _StackItemCaseState extends State<StackItemCase>
           // When requireSelectionForInteraction is enabled and item is idle,
           // don't provide scale handlers so pan/zoom gestures can pass through
           // to InteractiveViewer, while still allowing taps to be detected.
-          //
-          // Idle children of an active group also pass gestures through: the
-          // group's own case sits right below them and covers the full group
-          // bounds, so drags and two-finger pinches land in a SINGLE scale
-          // recognizer there — exactly like gesturing a regular item. (With
-          // per-child handlers, two fingers on two different children would
-          // feed two separate recognizers and no rotation/scale could ever be
-          // detected.) Taps/long-presses stay on the child for the two-step
-          // selection and grouping flows.
+          // However, if the item's parent group is selected, we should handle
+          // gestures to allow moving the group by panning on its items
+          // (delegated to the group in the gesture callbacks). Note: pointers
+          // cannot "fall through" to the group case below — Stack hit-testing
+          // stops at the first child that claims the hit — so delegation from
+          // the child's own recognizer is the only way group drags can work.
           final bool isParentGroupActive = _isParentGroupActive(item);
-          final bool isIdleChildOfActiveGroup =
-              isParentGroupActive && item.status == StackItemStatus.idle;
           final bool shouldAllowGesturePassthrough =
-              isIdleChildOfActiveGroup ||
-              (config.requireSelectionForInteraction &&
-                  item.status == StackItemStatus.idle &&
-                  !isParentGroupActive);
+              config.requireSelectionForInteraction &&
+              item.status == StackItemStatus.idle &&
+              !isParentGroupActive;
 
           Widget content = MouseRegion(
             cursor: _cursor(item.status),
