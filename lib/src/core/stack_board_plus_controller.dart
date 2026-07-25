@@ -19,7 +19,13 @@ class StackConfig {
 
   final Map<String, int> indexMap;
 
-  StackItem<StackItemContent> operator [](String id) => data[indexMap[id]!];
+  /// Item with this [id], or null when it is not on the board (a deleted item
+  /// still referenced by a group, a stale index map, …).
+  StackItem<StackItemContent>? operator [](String id) {
+    final int? index = indexMap[id];
+    if (index == null || index < 0 || index >= data.length) return null;
+    return data[index];
+  }
 
   StackConfig copyWith({
     List<StackItem<StackItemContent>>? data,
@@ -81,14 +87,19 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
   }
 
   /// * get index by id
+  /// Returns -1 when the item is not on the board, like `List.indexOf`.
   int getIndexById(String id) {
-    return _indexMap[id]!;
+    return _indexMap[id] ?? -1;
   }
 
   /// * reorder index
+  ///
+  /// Rebuilt from scratch: only assigning the new indexes left the ids of
+  /// removed items behind, pointing at positions that no longer hold them.
   List<StackItem<StackItemContent>> _reorder(
     List<StackItem<StackItemContent>> data,
   ) {
+    _indexMap.clear();
     for (int i = 0; i < data.length; i++) {
       _indexMap[data[i].id] = i;
     }
@@ -725,7 +736,9 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     final List<StackItem<StackItemContent>> data =
         List<StackItem<StackItemContent>>.from(innerData);
 
-    final oldGroup = data[_indexMap[groupId]!] as StackGroupItem;
+    final int? groupIndex = _indexMap[groupId];
+    if (groupIndex == null) return;
+    final oldGroup = data[groupIndex] as StackGroupItem;
     final groupCenter = oldGroup.offset;
     final groupAngle = oldGroup.angle;
 
@@ -788,7 +801,7 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     }
 
     // Update group's flip properties
-    data[_indexMap[groupId]!] = oldGroup.copyWith(
+    data[groupIndex] = oldGroup.copyWith(
       flipX: newFlipX,
       flipY: newFlipY,
     );
@@ -894,11 +907,21 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     _itemToGroupMap.clear();
     _groupToItemsMap.clear();
 
+    // A group's content can name items that are no longer on the board (an
+    // item deleted before an undo, a board restored from JSON, …). Keeping
+    // those ids in the maps makes every later lookup resolve to nothing and
+    // crash on the `!` operators; drop them here, once.
+    final Set<String> existingIds = <String>{
+      for (final item in data) item.id,
+    };
+
     for (final item in data) {
       if (item is StackGroupItem && item.content != null) {
         final groupId = item.id;
-        final itemIds = item.content!.itemIds;
-        _groupToItemsMap[groupId] = List<String>.from(itemIds);
+        final itemIds = item.content!.itemIds
+            .where(existingIds.contains)
+            .toList();
+        _groupToItemsMap[groupId] = itemIds;
         for (final itemId in itemIds) {
           _itemToGroupMap[itemId] = groupId;
         }
@@ -1220,7 +1243,8 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
 
     // Update child items relative to group center
     for (final childItem in childItems) {
-      final childIndex = _indexMap[childItem.id]!;
+      final int? childIndex = _indexMap[childItem.id];
+      if (childIndex == null) continue;
       final oldChildOffset = childItem.offset;
       final oldChildAngle = childItem.angle;
       final oldChildSize = childItem.size;

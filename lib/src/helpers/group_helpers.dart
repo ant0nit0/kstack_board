@@ -3,6 +3,7 @@ import 'package:flutter/painting.dart';
 import '../core/stack_board_plus_item/stack_item.dart';
 import '../core/stack_board_plus_item/stack_item_content.dart';
 import '../stack_board_plus_items/items/stack_group_item.dart';
+import 'ex_list.dart';
 
 /// Calculate the bounding rectangle for a list of items
 /// Takes into account item rotations by calculating corners
@@ -102,22 +103,31 @@ bool isGroupItem(StackItem<StackItemContent> item) {
 }
 
 /// Get all items recursively from a group (handles nested groups)
+///
+/// A group can reference an item that no longer exists — an item deleted
+/// while the board was restored from history or rebuilt from JSON leaves its
+/// id behind in the group content. Those ids are skipped instead of throwing:
+/// a stale reference must not take the whole board down.
 List<StackItem<StackItemContent>> getGroupItemsRecursive(
   StackGroupItem group,
-  List<StackItem<StackItemContent>> allItems,
-) {
+  List<StackItem<StackItemContent>> allItems, [
+  Set<String>? visitedGroupIds,
+]) {
   final List<StackItem<StackItemContent>> result = [];
 
-  for (final itemId in group.content?.itemIds ?? []) {
-    final item = allItems.firstWhere(
-      (item) => item.id == itemId,
-      orElse: () => throw StateError('Item $itemId not found in group'),
-    );
+  // Guard against a group that (directly or not) contains itself, which would
+  // otherwise recurse until the stack overflows.
+  final visited = visitedGroupIds ?? <String>{};
+  if (!visited.add(group.id)) return result;
+
+  for (final String itemId in group.content?.itemIds ?? const <String>[]) {
+    final item = allItems.firstWhereOrNull((item) => item.id == itemId);
+    if (item == null) continue;
 
     if (item is StackGroupItem) {
       result.add(item);
       // Recursively get items from nested group
-      result.addAll(getGroupItemsRecursive(item, allItems));
+      result.addAll(getGroupItemsRecursive(item, allItems, visited));
     } else {
       result.add(item);
     }

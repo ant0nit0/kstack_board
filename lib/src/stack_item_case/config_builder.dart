@@ -34,17 +34,19 @@ class ConfigBuilder extends StatelessWidget {
   }) {
     return ConfigBuilder(
       shouldRebuild: (StackConfig p, StackConfig n) {
-        try {
-          final StackItem<StackItemContent> pI = p[id];
-          final StackItem<StackItemContent> nI = n[id];
+        final StackItem<StackItemContent>? pI = p[id];
+        final StackItem<StackItemContent>? nI = n[id];
+        // The item appeared or disappeared: always rebuild.
+        if (pI == null || nI == null) return true;
 
-          return shouldRebuild?.call(pI, nI) ?? true;
-        } catch (e) {
-          return true;
-        }
+        return shouldRebuild?.call(pI, nI) ?? true;
       },
       childBuilder: (StackConfig sc, Widget c) {
-        final StackItem<StackItemContent> item = sc[id];
+        // The item can already be gone while this case is still on screen
+        // (deleted, or removed with its group): render the child untouched
+        // rather than crashing on a missing id.
+        final StackItem<StackItemContent>? item = sc[id];
+        if (item == null) return c;
         return childBuilder?.call(item, c) ?? c;
       },
       child: child,
