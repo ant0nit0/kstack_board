@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:stack_board_plus/src/helpers/svg_file_picture.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
 class ImageItemContent extends StackItemContent {
@@ -225,7 +226,11 @@ class ImageItemContent extends StackItemContent {
     } else if (file != null) {
       _isSvg = _isSvgPath(file!.path);
       if (_isSvg) {
-        _svgWidget = SvgPicture.file(
+        // Goes through the conditional-import shim rather than calling
+        // SvgPicture.file directly: on web flutter_svg expects its own File
+        // abstraction, which dart:io's File does not implement, so a direct
+        // call does not compile for web. Native behaviour is unchanged.
+        _svgWidget = svgPictureFromFile(
           file!,
           width: width,
           height: height,
