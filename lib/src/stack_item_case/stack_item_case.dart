@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:stack_board_plus/stack_board_plus.dart';
 
@@ -103,6 +105,47 @@ class StackItemCase extends StatefulWidget {
 
 /// How much bigger the rotate/scale corner is than a plain scale corner.
 const double _rotateHandleSizeFactor = 1.3;
+
+/// How much of an item's shortest side has to stay clear of its corner handles.
+///
+/// Handles are sized against the zoom, not against the item they belong to, so
+/// on a small item the two corners meet in the middle and there is no bare body
+/// left underneath for the drag detector. The item can then only be moved by
+/// zooming in far enough to shrink the handles — which is not something anyone
+/// works out on their own.
+const double _kMinBareBody = 24.0;
+
+/// The most the corner handles may be shrunk to make that room.
+///
+/// Below roughly a third of their nominal size they stop being reliable touch
+/// targets, and an item too small to satisfy both is better off with handles
+/// that can still be grabbed than with a body that can still be dragged: the
+/// scale corner is the way out of being too small in the first place.
+const double _kMinHandleShrink = 0.35;
+
+/// How far the corner handles have to shrink to leave [_kMinBareBody] of body
+/// bare on an item of [itemSize]. `1.0` — no shrink at all — for anything with
+/// room to spare, which is every ordinarily sized item.
+///
+/// The two corners on a diagonal each eat half their own size plus their hit
+/// padding, and one of them is the rotate corner, which is
+/// [_rotateHandleSizeFactor] times larger.
+@visibleForTesting
+double handleShrinkFactor({
+  required Size itemSize,
+  required double scaleHandleSize,
+  required double hitAreaPadding,
+}) {
+  final double shortest = math.min(itemSize.width, itemSize.height);
+  final double spend =
+      (0.5 + _rotateHandleSizeFactor / 2) * scaleHandleSize +
+      2 * hitAreaPadding;
+  if (spend <= 0) return 1.0;
+  final double room = shortest - _kMinBareBody;
+  if (room >= spend) return 1.0;
+  if (room <= 0) return _kMinHandleShrink;
+  return math.max(_kMinHandleShrink, room / spend);
+}
 
 class _StackItemCaseState extends State<StackItemCase>
     with StackItemGestures<StackItemCase> {
@@ -331,6 +374,31 @@ class _StackItemCaseState extends State<StackItemCase>
     );
   }
 
+  /// [style] with its handles scaled down far enough to leave a grabbable strip
+  /// of an item of [itemSize] bare. Returns [style] unchanged for anything with
+  /// room to spare, which is every ordinarily sized item.
+  CaseStyle _shrunkHandleStyle(CaseStyle style, Size itemSize) {
+    final double buttonSize = style.buttonStyle.size ?? 24.0;
+    final double scaleSize = style.scaleHandleStyle?.size ?? buttonSize;
+    final double shrink = handleShrinkFactor(
+      itemSize: itemSize,
+      scaleHandleSize: scaleSize,
+      hitAreaPadding: style.handleHitAreaPadding,
+    );
+    if (shrink >= 1.0) return style;
+    // A null handle style means "inherit from buttonStyle", and a HandleStyle
+    // carrying only a size keeps inheriting everything else.
+    return style.copyWith(
+      scaleHandleStyle: (style.scaleHandleStyle ?? const HandleStyle())
+          .copyWith(size: scaleSize * shrink),
+      resizeHandleStyle: (style.resizeHandleStyle ?? const HandleStyle())
+          .copyWith(
+        size: (style.resizeHandleStyle?.size ?? buttonSize) * shrink,
+      ),
+      handleHitAreaPadding: style.handleHitAreaPadding * shrink,
+    );
+  }
+
   Widget _childrenStack(
     BuildContext context,
     StackItem<StackItemContent> item,
@@ -357,9 +425,17 @@ class _StackItemCaseState extends State<StackItemCase>
     }
 
     final double buttonSize = style.buttonStyle.size ?? 24.0;
-    final double scaleHandleSize = style.scaleHandleStyle?.size ?? buttonSize;
-    final double resizeHandleSize = style.resizeHandleStyle?.size ?? buttonSize;
-    final double hitAreaPadding = style.handleHitAreaPadding;
+    // Handles shrink on an item too small to wear them at full size, so that a
+    // strip of its body is always left bare for the drag detector underneath.
+    // No effect at all on an ordinarily sized item. `buttonSize` stays as it
+    // is: the whole frame's geometry is derived from it, and moving that would
+    // move the border and the content padding along with the handles.
+    final CaseStyle handleStyle = _shrunkHandleStyle(style, item.size);
+    final double scaleHandleSize =
+        handleStyle.scaleHandleStyle?.size ?? buttonSize;
+    final double resizeHandleSize =
+        handleStyle.resizeHandleStyle?.size ?? buttonSize;
+    final double hitAreaPadding = handleStyle.handleHitAreaPadding;
     // The rotate/scale corner is drawn slightly larger than the plain corners
     // so its glyph stays legible.
     final double rotateHandleSize = scaleHandleSize * _rotateHandleSizeFactor;
@@ -398,6 +474,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 context,
                 item.status,
                 HandlePosition.right,
+                handleStyle,
               ),
             ),
           );
@@ -413,6 +490,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 context,
                 item.status,
                 HandlePosition.left,
+                handleStyle,
               ),
             ),
           );
@@ -430,6 +508,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 context,
                 item.status,
                 HandlePosition.top,
+                handleStyle,
               ),
             ),
           );
@@ -445,6 +524,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 context,
                 item.status,
                 HandlePosition.bottom,
+                handleStyle,
               ),
             ),
           );
@@ -470,6 +550,7 @@ class _StackItemCaseState extends State<StackItemCase>
                 item.status,
                 SystemMouseCursors.resizeUpRightDownLeft,
                 HandlePosition.bottomLeft,
+                handleStyle,
               ),
             ),
           );
@@ -505,6 +586,7 @@ class _StackItemCaseState extends State<StackItemCase>
               item.status,
               SystemMouseCursors.resizeUpLeftDownRight,
               HandlePosition.topLeft,
+              handleStyle,
             ),
           ),
           Positioned(
@@ -515,6 +597,7 @@ class _StackItemCaseState extends State<StackItemCase>
               item.status,
               SystemMouseCursors.resizeUpLeftDownRight,
               HandlePosition.bottomRight,
+              handleStyle,
             ),
           ),
           // The top-right corner doubles as the rotation grip: diagonal drags
@@ -523,7 +606,7 @@ class _StackItemCaseState extends State<StackItemCase>
           Positioned(
             top: topBorder - rotateHandleSize / 2 - hitAreaPadding,
             right: rightBorder - rotateHandleSize / 2 - hitAreaPadding,
-            child: _buildRotateHandle(context, item.status),
+            child: _buildRotateHandle(context, item.status, handleStyle),
           ),
         ]);
       }
@@ -642,8 +725,11 @@ class _StackItemCaseState extends State<StackItemCase>
     );
   }
 
-  Widget _buildRotateHandle(BuildContext context, StackItemStatus status) {
-    final CaseStyle style = _caseStyle(context);
+  Widget _buildRotateHandle(
+    BuildContext context,
+    StackItemStatus status,
+    CaseStyle style,
+  ) {
     final double scaleHandleSize =
         style.scaleHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
 
@@ -667,9 +753,8 @@ class _StackItemCaseState extends State<StackItemCase>
     StackItemStatus status,
     MouseCursor cursor,
     HandlePosition handle,
+    CaseStyle style,
   ) {
-    final CaseStyle style = _caseStyle(context);
-
     return ScaleHandle(
       onPanStart: (d) => onPanStart(d, context, StackItemStatus.scaling),
       onPanUpdate: (d) => onScaleUpdate(d, context, status, handle),
@@ -684,8 +769,8 @@ class _StackItemCaseState extends State<StackItemCase>
     BuildContext context,
     StackItemStatus status,
     HandlePosition handle,
+    CaseStyle style,
   ) {
-    final CaseStyle style = _caseStyle(context);
     final double size =
         style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
     return ResizeHandle(
@@ -703,8 +788,8 @@ class _StackItemCaseState extends State<StackItemCase>
     BuildContext context,
     StackItemStatus status,
     HandlePosition handle,
+    CaseStyle style,
   ) {
-    final CaseStyle style = _caseStyle(context);
     final double size =
         style.resizeHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
     return ResizeHandle(
