@@ -101,6 +101,9 @@ class StackItemCase extends StatefulWidget {
   }
 }
 
+/// How much bigger the rotate/scale corner is than a plain scale corner.
+const double _rotateHandleSizeFactor = 1.3;
+
 class _StackItemCaseState extends State<StackItemCase>
     with StackItemGestures<StackItemCase> {
   @override
@@ -357,6 +360,9 @@ class _StackItemCaseState extends State<StackItemCase>
     final double scaleHandleSize = style.scaleHandleStyle?.size ?? buttonSize;
     final double resizeHandleSize = style.resizeHandleStyle?.size ?? buttonSize;
     final double hitAreaPadding = style.handleHitAreaPadding;
+    // The rotate/scale corner is drawn slightly larger than the plain corners
+    // so its glyph stays legible.
+    final double rotateHandleSize = scaleHandleSize * _rotateHandleSizeFactor;
 
     // The content has a padding of buttonSize/2 on left/right and buttonSize*1.5 on top/bottom
     // We need to align handles with the border which is at:
@@ -372,7 +378,7 @@ class _StackItemCaseState extends State<StackItemCase>
 
     // Don't show handles/actions if item is in a selected group (unless grouping)
     if (isInSelectedGroup && item.status != StackItemStatus.grouping) {
-      return Stack(children: widgets);
+      return Stack(clipBehavior: Clip.none, children: widgets);
     }
 
     if (widget.actionsBuilder != null) {
@@ -457,18 +463,6 @@ class _StackItemCaseState extends State<StackItemCase>
             item.size.width > getMinSize(context)) {
           widgets.add(
             Positioned(
-              top: scaleHandleOffsetTop,
-              right: scaleHandleOffsetRight,
-              child: _buildScaleHandle(
-                context,
-                item.status,
-                SystemMouseCursors.resizeUpRightDownLeft,
-                HandlePosition.topRight,
-              ),
-            ),
-          );
-          widgets.add(
-            Positioned(
               bottom: scaleHandleOffsetBottom,
               left: scaleHandleOffsetLeft,
               child: _buildScaleHandle(
@@ -523,10 +517,12 @@ class _StackItemCaseState extends State<StackItemCase>
               HandlePosition.bottomRight,
             ),
           ),
-          // Rotate handle, just above the top-right corner
+          // The top-right corner doubles as the rotation grip: diagonal drags
+          // resize it, any other direction rotates. Added last so it wins the
+          // hit test against anything it overlaps.
           Positioned(
-            top: 0,
-            right: 0,
+            top: topBorder - rotateHandleSize / 2 - hitAreaPadding,
+            right: rightBorder - rotateHandleSize / 2 - hitAreaPadding,
             child: _buildRotateHandle(context, item.status),
           ),
         ]);
@@ -536,7 +532,7 @@ class _StackItemCaseState extends State<StackItemCase>
         widgets.add(_buildDeleteHandle(context));
       }
     }
-    return Stack(children: widgets);
+    return Stack(clipBehavior: Clip.none, children: widgets);
   }
 
   /// * Child component
@@ -648,12 +644,21 @@ class _StackItemCaseState extends State<StackItemCase>
 
   Widget _buildRotateHandle(BuildContext context, StackItemStatus status) {
     final CaseStyle style = _caseStyle(context);
+    final double scaleHandleSize =
+        style.scaleHandleStyle?.size ?? style.buttonStyle.size ?? 24.0;
 
     return RotateHandle(
-      onPanStart: (d) => onPanStart(d, context, StackItemStatus.roating),
-      onPanUpdate: (d) => onRotateUpdate(d, context, status),
-      onPanEnd: (_) => onPanEnd(context, status),
       caseStyle: style,
+      size: scaleHandleSize * _rotateHandleSizeFactor,
+      // Top-right corner: local +x is right, local -y is up.
+      diagonal: const Offset(1, -1),
+      onScaleStart: (d) => onPanStart(d, context, StackItemStatus.scaling),
+      onScaleUpdate: (d) =>
+          onScaleUpdate(d, context, status, HandlePosition.topRight),
+      onScaleEnd: (_) => onPanEnd(context, status),
+      onRotateStart: (d) => onPanStart(d, context, StackItemStatus.roating),
+      onRotateUpdate: (d) => onRotateUpdate(d, context, status),
+      onRotateEnd: (_) => onPanEnd(context, status),
     );
   }
 

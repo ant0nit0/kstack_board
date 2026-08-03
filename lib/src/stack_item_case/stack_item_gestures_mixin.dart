@@ -20,6 +20,14 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   bool _wasSnapping = false;
   bool _wasRotationSnapping = false;
 
+  /// Pointer angle around the item centre as of the previous rotate frame.
+  /// `null` until the first update of a gesture.
+  double? _lastPointerAngle;
+
+  /// Rotation accumulated since the gesture started, summed from per-frame
+  /// steps so that crossing atan2's discontinuity can never add a full turn.
+  double _rotationDelta = 0;
+
   // Cached snap points for performance optimization
   List<SnapPoint>? _cachedHorizontalSnaps;
   List<SnapPoint>? _cachedVerticalSnaps;
@@ -130,17 +138,43 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       onStatusChanged(newStatus);
     }
 
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    centerPoint = renderBox.localToGlobal(
-      Offset(renderBox.size.width / 2, renderBox.size.height / 2),
-    );
+    centerPoint = _itemCenterGlobal(context, item.offset);
     startGlobalPoint = details.globalPosition;
     startOffset = item.offset;
     startSize = item.size;
     startAngle = item.angle;
+    _lastPointerAngle = null;
+    _rotationDelta = 0;
 
     // Cache snap points when drag starts
     _cacheSnapPoints(context, item.size);
+  }
+
+  /// The board render box. Item offsets and sizes are expressed in its
+  /// coordinate space, so it is also what converts pointer positions from
+  /// screen space into board space.
+  RenderBox? _boardBox(BuildContext context) {
+    final RenderBox? box = context.findAncestorRenderObjectOfType<RenderBox>();
+    if (box == null || !box.hasSize) return null;
+    return box;
+  }
+
+  /// Global (screen) position of the item centre sitting at [boardOffset].
+  ///
+  /// This must not be derived from this case's own render object: that object
+  /// is the `Transform.translate` which shifts the case by half its padded
+  /// size, and `localToGlobal` never applies a render object's own paint
+  /// transform — so its box centre lands half a case away from the item.
+  Offset _itemCenterGlobal(BuildContext context, Offset boardOffset) {
+    final RenderBox? boardBox = _boardBox(context);
+    if (boardBox != null) return boardBox.localToGlobal(boardOffset);
+    // No board box (detached / under test): fall back to the case box, whose
+    // local origin coincides with the item centre thanks to that translate.
+    final RenderObject? renderObject = context.findRenderObject();
+    if (renderObject is RenderBox && renderObject.hasSize) {
+      return renderObject.localToGlobal(Offset.zero);
+    }
+    return centerPoint;
   }
 
   void onPanEnd(BuildContext context, StackItemStatus status) {
@@ -609,33 +643,35 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final double anchorDy = anchorLocalX * sinA + anchorLocalY * cosA;
     final Offset anchorGlobal = startOffset + Offset(anchorDx, anchorDy);
 
-    // Calculate the global delta from start position to current position
-    final Offset globalDelta = dud.globalPosition - startGlobalPoint;
+    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
+    double zoom = config.zoomLevel ?? 1;
+    if (zoom < 1) zoom = 1;
+    final double fittedBoxScale = config.fittedBoxScale ?? 1;
+
+    // Screen delta -> board delta, exactly like the edge resize path does.
+    // Without this conversion the corner lags behind the finger whenever the
+    // board is zoomed or fitted into a box smaller than its own coordinates.
+    final Offset globalDelta =
+        (dud.globalPosition - startGlobalPoint) / zoom * fittedBoxScale;
 
     // Transform global delta to local (unrotated) coordinates
     // Using inverse rotation: rotate by -startAngle
     final double localDeltaX = globalDelta.dx * cosA + globalDelta.dy * sinA;
     final double localDeltaY = -globalDelta.dx * sinA + globalDelta.dy * cosA;
 
-    // Calculate scale contribution from each axis
-    // Apply direction multipliers so that the correct direction increases scale
-    final double deltaX = localDeltaX * dirX;
-    final double deltaY = localDeltaY * dirY;
+    // Vector from the anchor to the dragged corner in local coordinates; the
+    // direction multipliers already carry its sign.
+    final double diagX = dirX * startSize.width;
+    final double diagY = dirY * startSize.height;
+    final double diagLengthSq = diagX * diagX + diagY * diagY;
 
-    // The initial distance from anchor to handle in local coordinates is the full diagonal
-    // which equals sqrt(width^2 + height^2)
-    // But we want uniform scaling based on both axes contributing equally
-    // So we calculate scale based on how much each axis has moved relative to its dimension
-
-    // Scale contribution from X axis: how much the width should change
-    final double scaleFromX = 1.0 + (deltaX / startSize.width);
-    // Scale contribution from Y axis: how much the height should change
-    final double scaleFromY = 1.0 + (deltaY / startSize.height);
-
-    // Average the two scale contributions for uniform scaling
-    // This ensures that dragging 100px right has the same effect as dragging 100px down
-    // (proportional to their respective dimensions)
-    double scale = (scaleFromX + scaleFromY) / 2.0;
+    // Uniform scaling constrains the corner to that diagonal, so project the
+    // drag onto it: the corner then tracks the finger 1:1 along the diagonal
+    // instead of being driven by an average of two per-axis ratios, which
+    // only matched the finger on perfectly square items.
+    double scale = diagLengthSq == 0
+        ? 1.0
+        : 1.0 + (localDeltaX * diagX + localDeltaY * diagY) / diagLengthSq;
 
     // Ensure scale doesn't go negative
     if (scale <= 0.01) {
@@ -643,7 +679,6 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     }
 
     // Apply Snapping
-    final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     final SnapConfig snapConfig = config.snapConfig ?? const SnapConfig();
     final List<SnapGuideLine> guideLines = <SnapGuideLine>[];
 
@@ -1020,44 +1055,38 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     );
   }
 
+  /// Wrap [angle] into `[-pi, pi)`.
+  static double _wrapAngle(double angle) {
+    const double twoPi = 2 * math.pi;
+    return (angle + math.pi) % twoPi - math.pi;
+  }
+
   // Helper to snap angle to nearest multiple of snapAngle
   // If the difference is within tolerance, snap it.
-  double _snapAngle(
-    double angle,
-    RotationSnapConfig snapConfig,
-    BuildContext context,
-  ) {
+  double _snapAngle(double angle, RotationSnapConfig snapConfig) {
     if (!snapConfig.enabled) return angle;
 
     final double snapIncrement = snapConfig.snapIncrement;
-    final double tolerance = snapConfig.tolerance;
+    if (snapIncrement <= 0) return angle;
 
-    final double remainder = angle % snapIncrement;
-    double snapped = angle;
-    bool isSnapped = false;
+    final double snapped =
+        (angle / snapIncrement).roundToDouble() * snapIncrement;
 
-    if (remainder.abs() < tolerance) {
-      snapped = angle - remainder;
-      isSnapped = true;
-    } else if ((remainder - snapIncrement).abs() < tolerance) {
-      snapped = angle - remainder + snapIncrement;
-      isSnapped = true;
-    } else if ((remainder + snapIncrement).abs() < tolerance) {
-      snapped = angle - remainder - snapIncrement;
-      isSnapped = true;
-    }
-
-    if (isSnapped) {
+    if ((angle - snapped).abs() < snapConfig.tolerance) {
       if (!_wasRotationSnapping) {
         snapConfig.onSnapHapticFeedback?.call();
         _wasRotationSnapping = true;
       }
       return snapped;
-    } else {
-      _wasRotationSnapping = false;
-      return angle;
     }
+
+    _wasRotationSnapping = false;
+    return angle;
   }
+
+  /// Below this distance from the pivot the pointer angle is meaningless and
+  /// a pixel of jitter would swing the item wildly, so the sample is dropped.
+  static const double _rotationDeadZone = 8;
 
   void onRotateUpdate(
     DragUpdateDetails dud,
@@ -1068,25 +1097,35 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.locked) return;
 
-    // Absolute-angle delta around the item center, mirroring the two-finger
-    // gesture semantics (startAngle + rotation delta). atan2 keeps the
-    // direction and speed exact regardless of zoom or drag distance.
-    final double startPointerAngle = math.atan2(
-      startGlobalPoint.dy - centerPoint.dy,
-      startGlobalPoint.dx - centerPoint.dx,
-    );
-    final double currentPointerAngle = math.atan2(
-      dud.globalPosition.dy - centerPoint.dy,
-      dud.globalPosition.dx - centerPoint.dx,
-    );
-    double angle = startAngle + (currentPointerAngle - startPointerAngle);
+    // Rotate around the item's real centre, recomputed each frame: the value
+    // captured at gesture start is only a fallback.
+    final Offset center = _itemCenterGlobal(context, item.offset);
+
+    final Offset radius = dud.globalPosition - center;
+    if (radius.distance < _rotationDeadZone) return;
+    final double pointerAngle = math.atan2(radius.dy, radius.dx);
+
+    if (_lastPointerAngle == null) {
+      final Offset startRadius = startGlobalPoint - center;
+      _lastPointerAngle = startRadius.distance < _rotationDeadZone
+          ? pointerAngle
+          : math.atan2(startRadius.dy, startRadius.dx);
+    }
+
+    // Accumulate wrapped per-frame steps. Measuring against the gesture's
+    // start angle instead makes the item jump a full turn every time the
+    // pointer crosses atan2's branch cut behind the item.
+    _rotationDelta += _wrapAngle(pointerAngle - _lastPointerAngle!);
+    _lastPointerAngle = pointerAngle;
+
+    double angle = startAngle + _rotationDelta;
 
     // Apply rotation snap
     final RotationSnapConfig? rotationSnapConfig = StackBoardPlusConfig.of(
       context,
     ).rotationSnapConfig;
     if (rotationSnapConfig != null) {
-      angle = _snapAngle(angle, rotationSnapConfig, context);
+      angle = _snapAngle(angle, rotationSnapConfig);
     }
 
     onAngleChanged(angle);
@@ -1140,11 +1179,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       onStatusChanged(newStatus);
     }
 
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    centerPoint = renderBox.localToGlobal(
-      Offset(renderBox.size.width / 2, renderBox.size.height / 2),
-    );
     startGlobalPoint = details.focalPoint;
+    _lastPointerAngle = null;
+    _rotationDelta = 0;
 
     // If delegating to group, store group's offset/size/angle
     if (group != null) {
@@ -1158,6 +1195,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
       startAngle = item.angle;
       _cacheSnapPoints(context, item.size);
     }
+    centerPoint = _itemCenterGlobal(context, startOffset);
   }
 
   void onGestureUpdate(ScaleUpdateDetails details, BuildContext context) {
@@ -1193,7 +1231,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (details.pointerCount > 1) {
       final RotationSnapConfig? rotationSnapConfig = config.rotationSnapConfig;
       if (rotationSnapConfig != null) {
-        newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
+        newAngle = _snapAngle(newAngle, rotationSnapConfig);
       }
     }
     double zoom = config.zoomLevel ?? 1;
@@ -1266,7 +1304,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (details.pointerCount > 1) {
       final RotationSnapConfig? rotationSnapConfig = config.rotationSnapConfig;
       if (rotationSnapConfig != null) {
-        newAngle = _snapAngle(newAngle, rotationSnapConfig, context);
+        newAngle = _snapAngle(newAngle, rotationSnapConfig);
       }
     }
 
