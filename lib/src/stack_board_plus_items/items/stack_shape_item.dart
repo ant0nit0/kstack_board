@@ -18,7 +18,35 @@ enum StackShapeType {
 
 /// Data model for a shape's properties
 class StackShapeContent implements StackItemContent {
+  /// The silhouette, as one of the eight the package itself can draw.
+  ///
+  /// Still written on every save, and still the only thing an older build
+  /// reads. When [shapeId] names a silhouette from the host app's wider
+  /// catalogue, this holds the nearest of the eight so that build gets a
+  /// rectangle rather than an exception.
   final StackShapeType type;
+
+  /// The silhouette, as the host app's catalogue names it.
+  ///
+  /// Null on everything saved before that catalogue existed, and on anything
+  /// whose shape is one of the original eight. Takes precedence over [type]
+  /// wherever it is set.
+  final String? shapeId;
+
+  /// Per-item seed for the silhouettes that are generated from noise, so two
+  /// torn shapes on a page do not tear identically.
+  final int seed;
+
+  /// A picture shown inside the silhouette, clipped to it.
+  ///
+  /// The same triple every image-backed item carries: the local image id, the
+  /// Cloud Storage URL a synced page arrives with, and the stock id.
+  final String? assetName;
+  final String? url;
+  final String? pixabayId;
+
+  /// How that picture sits in the silhouette's box.
+  final BoxFit imageFit;
   final Color fillColor;
   final Color strokeColor;
   final double strokeWidth;
@@ -34,6 +62,12 @@ class StackShapeContent implements StackItemContent {
 
   StackShapeContent({
     required this.type,
+    this.shapeId,
+    this.seed = 0,
+    this.assetName,
+    this.url,
+    this.pixabayId,
+    this.imageFit = BoxFit.cover,
     required this.fillColor,
     required this.strokeColor,
     required this.strokeWidth,
@@ -50,8 +84,20 @@ class StackShapeContent implements StackItemContent {
 
   bool get hasShadow => shadowColor != null;
 
+  /// Whether there is a picture to show inside the silhouette.
+  bool get hasImage =>
+      (assetName != null && assetName!.isNotEmpty) ||
+      (url != null && url!.isNotEmpty);
+
   StackShapeContent copyWith({
     StackShapeType? type,
+    String? shapeId,
+    int? seed,
+    String? assetName,
+    String? url,
+    String? pixabayId,
+    BoxFit? imageFit,
+    bool clearImage = false,
     Color? fillColor,
     Color? strokeColor,
     double? strokeWidth,
@@ -68,6 +114,12 @@ class StackShapeContent implements StackItemContent {
   }) {
     return StackShapeContent(
       type: type ?? this.type,
+      shapeId: shapeId ?? this.shapeId,
+      seed: seed ?? this.seed,
+      assetName: clearImage ? null : (assetName ?? this.assetName),
+      url: clearImage ? null : (url ?? this.url),
+      pixabayId: clearImage ? null : (pixabayId ?? this.pixabayId),
+      imageFit: imageFit ?? this.imageFit,
       fillColor: fillColor ?? this.fillColor,
       strokeColor: strokeColor ?? this.strokeColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
@@ -88,6 +140,12 @@ class StackShapeContent implements StackItemContent {
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'type': type.name,
+      if (shapeId != null) 'shapeId': shapeId,
+      if (seed != 0) 'seed': seed,
+      if (assetName != null) 'assetName': assetName,
+      if (url != null) 'url': url,
+      if (pixabayId != null) 'pixabayId': pixabayId,
+      'imageFit': imageFit.index,
       'fillColor': fillColor.toARGB32(),
       'strokeColor': strokeColor.toARGB32(),
       'strokeWidth': strokeWidth,
@@ -105,7 +163,13 @@ class StackShapeContent implements StackItemContent {
   }
 
   factory StackShapeContent.fromJson(Map<String, dynamic> json) {
-    StackShapeType type = StackShapeType.values.byName(json['type']);
+    // Tolerant on purpose. A page synced from a build that knows a shape this
+    // one does not must still open — showing a rectangle — rather than throwing
+    // and taking the whole page's load down with it.
+    StackShapeType type = StackShapeType.values.firstWhere(
+      (StackShapeType t) => t.name == json['type'],
+      orElse: () => StackShapeType.rectangle,
+    );
     final double width = asNullT<double>(json['width']) ?? 100.0;
     final double height = asNullT<double>(json['height']) ?? 100.0;
     double borderRadius = asNullT<double>(json['borderRadius']) ?? 0.0;
@@ -119,6 +183,14 @@ class StackShapeContent implements StackItemContent {
     }
     return StackShapeContent(
       type: type,
+      shapeId: asNullT<String>(json['shapeId']),
+      seed: asNullT<int>(json['seed']) ?? 0,
+      assetName: asNullT<String>(json['assetName']),
+      url: asNullT<String>(json['url']),
+      pixabayId: asNullT<String>(json['pixabayId']),
+      imageFit: json['imageFit'] == null
+          ? BoxFit.cover
+          : BoxFit.values[asT<int>(json['imageFit'])],
       fillColor: Color(asNullT<int>(json['fillColor']) ?? 0xFF000000),
       strokeColor: Color(asNullT<int>(json['strokeColor']) ?? 0xFF000000),
       strokeWidth: asNullT<double>(json['strokeWidth']) ?? 0.0,
