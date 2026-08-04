@@ -98,6 +98,15 @@ class StackShapeContent implements StackItemContent {
     String? pixabayId,
     BoxFit? imageFit,
     bool clearImage = false,
+
+    /// Drop the remote pointers while keeping the local picture.
+    ///
+    /// Passing `url: null` cannot say this — null means "keep what you have"
+    /// for every other parameter here — and a stale URL is worse than none:
+    /// sync prefers it over the local copy, so the *previous* picture would
+    /// come back on the next pull.
+    bool clearUrl = false,
+    bool clearPixabayId = false,
     Color? fillColor,
     Color? strokeColor,
     double? strokeWidth,
@@ -117,8 +126,10 @@ class StackShapeContent implements StackItemContent {
       shapeId: shapeId ?? this.shapeId,
       seed: seed ?? this.seed,
       assetName: clearImage ? null : (assetName ?? this.assetName),
-      url: clearImage ? null : (url ?? this.url),
-      pixabayId: clearImage ? null : (pixabayId ?? this.pixabayId),
+      url: (clearImage || clearUrl) ? null : (url ?? this.url),
+      pixabayId: (clearImage || clearPixabayId)
+          ? null
+          : (pixabayId ?? this.pixabayId),
       imageFit: imageFit ?? this.imageFit,
       fillColor: fillColor ?? this.fillColor,
       strokeColor: strokeColor ?? this.strokeColor,
