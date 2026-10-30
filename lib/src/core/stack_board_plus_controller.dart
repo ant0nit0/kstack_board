@@ -354,6 +354,71 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     value = value.copyWith(data: data, indexMap: _newIndexMap);
   }
 
+  /// * Whether the item [id] is held in place: it can't be moved, resized,
+  /// rotated or removed.
+  ///
+  /// That is the case when it is locked itself, when a group it belongs to
+  /// (at any depth) is locked, and — for a group — when anything inside it is
+  /// locked, since moving or removing the group would take that along.
+  ///
+  /// [StackItem.lockZOrder] has nothing to do with it: it only pins the
+  /// item's place in the stacking order.
+  bool isItemLocked(String id) {
+    final StackItem<StackItemContent>? item = getById(id);
+    if (item == null) return false;
+    if (item.locked) return true;
+
+    final Set<String> visited = <String>{id};
+    String? groupId = getGroupForItem(id);
+    while (groupId != null && visited.add(groupId)) {
+      if (getById(groupId)?.locked ?? false) return true;
+      groupId = getGroupForItem(groupId);
+    }
+
+    if (item is StackGroupItem) {
+      return getGroupItemsRecursive(
+        item,
+        innerData,
+      ).any((StackItem<StackItemContent> child) => child.locked);
+    }
+    return false;
+  }
+
+  /// * Locks or unlocks the item [id] itself.
+  ///
+  /// Only [StackItem.locked] changes: [StackItem.lockZOrder] is left as it
+  /// is, and a group's children keep their own flags (a locked group holds
+  /// them anyway, see [isItemLocked]). A history step, so undo / redo take
+  /// the lock back and forth like any other change.
+  void setItemLocked(String id, bool locked, {bool addToHistory = true}) {
+    if (!_indexMap.containsKey(id)) return;
+
+    final int index = _indexMap[id]!;
+    final StackItem<StackItemContent> item = innerData[index];
+    if (item.locked == locked) return;
+
+    final List<StackItem<StackItemContent>> data =
+        List<StackItem<StackItemContent>>.from(innerData);
+    data[index] = item.copyWith(locked: locked);
+
+    if (addToHistory) commit();
+    value = value.copyWith(data: data);
+  }
+
+  /// * [removeItem], unless the item is held in place ([isItemLocked]).
+  ///
+  /// What a person deleting an item goes through. Returns whether it was
+  /// removed. Replacing an item with another one (a photo turned into a
+  /// stamp, an emptied text) still calls [removeItem] directly.
+  bool removeItemIfUnlocked(
+    StackItem<StackItemContent> item, {
+    bool addToHistory = true,
+  }) {
+    if (isItemLocked(item.id)) return false;
+    removeItem(item, addToHistory: addToHistory);
+    return true;
+  }
+
   /// * update one item status
   void setItemStatus(
     String id,
@@ -869,12 +934,21 @@ class StackBoardPlusController extends SafeValueNotifier<StackConfig>
     return list;
   }
 
+  // Two controllers are the same controller only when they are one object,
+  // or share a tag. Untagged ones used to compare equal to each other, so a
+  // widget handed a fresh controller in place of an old one — an
+  // [ExBuilder], an inherited config — saw no change and stayed bound to the
+  // old one, and a board filled from a new controller went on showing the
+  // items of the one it was first built with.
   @override
-  int get hashCode => _tag.hashCode;
+  int get hashCode => _tag?.hashCode ?? identityHashCode(this);
 
   @override
   bool operator ==(Object other) =>
-      other is StackBoardPlusController && _tag == other._tag;
+      identical(this, other) ||
+      (other is StackBoardPlusController &&
+          _tag != null &&
+          _tag == other._tag);
 
   @override
   void dispose() {

@@ -101,6 +101,7 @@ class StackBoardPlus extends StatelessWidget {
     this.requireSelectionForInteraction = false,
     this.onTapOutside,
     this.onBackgroundTapUp,
+    this.lockedBadgeBuilder,
   });
 
   final StackBoardPlusController? controller;
@@ -168,6 +169,10 @@ class StackBoardPlus extends StatelessWidget {
     BuildContext context,
   )?
   customActionsBuilder;
+
+  /// * Badge on the frame of a picked item that is locked (it can't be moved,
+  /// resized, rotated or removed): see [StackItemCase.lockedBadgeBuilder].
+  final Widget Function(StackItem<StackItemContent> item)? lockedBadgeBuilder;
 
   /// * Snap configuration
   final SnapConfig? snapConfig;
@@ -344,6 +349,7 @@ class StackBoardPlus extends StatelessWidget {
       borderBuilder: borderBuilder,
       customActionsBuilder: customActionsBuilder,
       enableLongPressGrouping: enableLongPressGrouping,
+      lockedBadgeBuilder: lockedBadgeBuilder,
     );
   }
 }

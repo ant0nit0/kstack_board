@@ -41,6 +41,7 @@ class StackItemCase extends StatefulWidget {
     this.customActionsBuilder,
     this.minItemSize,
     this.enableLongPressGrouping = true,
+    this.lockedBadgeBuilder,
   });
 
   /// * StackItemData
@@ -89,6 +90,11 @@ class StackItemCase extends StatefulWidget {
     BuildContext context,
   )?
   customActionsBuilder;
+
+  /// * Badge drawn on the frame's top-right corner while a locked item is
+  /// picked (see [StackBoardPlusController.isItemLocked]). It takes no
+  /// touches. Nothing is drawn when null.
+  final Widget Function(StackItem<StackItemContent> item)? lockedBadgeBuilder;
 
   /// * Minimum item size
   final double? minItemSize;
@@ -171,7 +177,9 @@ class _StackItemCaseState extends State<StackItemCase>
 
   /// * Outer frame style
   CaseStyle _caseStyle(BuildContext context) {
-    if (widget.stackItem.locked) {
+    // The item as it is now (the widget's copy can be older than a lock
+    // toggled since), held by a locked group or holding a locked item too.
+    if (controller.isItemLocked(itemId)) {
       final CaseStyle? lockedStyle =
           widget.lockedCaseStyle ??
           StackBoardPlusConfig.of(context).lockedCaseStyle;
@@ -282,7 +290,9 @@ class _StackItemCaseState extends State<StackItemCase>
               p.offset != n.offset ||
               p.angle != n.angle ||
               p.size != n.size ||
-              p.status != n.status,
+              p.status != n.status ||
+              // The locked frame has its own geometry.
+              p.locked != n.locked,
       childBuilder: (StackItem<StackItemContent> item, Widget c) {
         final double buttonSize = _caseStyle(context).buttonStyle.size ?? 24.0;
         return Positioned(
@@ -308,7 +318,8 @@ class _StackItemCaseState extends State<StackItemCase>
                 p.size != n.size ||
                 p.offset != n.offset ||
                 p.opacity != n.opacity ||
-                p.angle != n.angle,
+                p.angle != n.angle ||
+                p.locked != n.locked,
         childBuilder: (StackItem<StackItemContent> item, Widget c) {
           // if (item.locked) {
           //   return IgnorePointer(child: _content(context, item));
@@ -326,11 +337,17 @@ class _StackItemCaseState extends State<StackItemCase>
           // cannot "fall through" to the group case below — Stack hit-testing
           // stops at the first child that claims the hit — so delegation from
           // the child's own recognizer is the only way group drags can work.
+          //
+          // An item being edited in place (a paragraph with the caret in it)
+          // passes gestures through as well: its own scale handlers would win
+          // the arena and then do nothing, since editing items are never
+          // moved, which left the page impossible to pan or zoom while typing.
           final bool isParentGroupActive = _isParentGroupActive(item);
           final bool shouldAllowGesturePassthrough =
               config.requireSelectionForInteraction &&
-              item.status == StackItemStatus.idle &&
-              !isParentGroupActive;
+              (item.status == StackItemStatus.editing ||
+                  (item.status == StackItemStatus.idle &&
+                      !isParentGroupActive));
 
           Widget content = MouseRegion(
             cursor: _cursor(item.status),
@@ -454,6 +471,27 @@ class _StackItemCaseState extends State<StackItemCase>
 
     // Don't show handles/actions if item is in a selected group (unless grouping)
     if (isInSelectedGroup && item.status != StackItemStatus.grouping) {
+      return Stack(clipBehavior: Clip.none, children: widgets);
+    }
+
+    // A picked item that is held in place wears its badge instead of
+    // handles: there is nothing to resize or rotate.
+    if (item.status != StackItemStatus.idle &&
+        item.status != StackItemStatus.grouping &&
+        controller.isItemLocked(item.id)) {
+      final Widget? badge = widget.lockedBadgeBuilder?.call(item);
+      if (badge != null) {
+        widgets.add(
+          Positioned(
+            top: topBorder,
+            right: rightBorder,
+            child: FractionalTranslation(
+              translation: const Offset(0.5, -0.5),
+              child: IgnorePointer(child: badge),
+            ),
+          ),
+        );
+      }
       return Stack(clipBehavior: Clip.none, children: widgets);
     }
 

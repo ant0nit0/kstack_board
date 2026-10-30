@@ -123,7 +123,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
 
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
 
     // Commit state before starting gesture
     controller.commit();
@@ -229,7 +229,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
 
     // Check if we should delegate movement to the group
     final String? selectedGroupId = _getSelectedGroupId(item);
@@ -274,7 +274,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   ) {
     final group = controller.getGroupById(groupId);
     if (group == null) return;
-    if (group.locked) return;
+    if (controller.isItemLocked(group.id)) return;
 
     final double angle = group.angle;
     final double sina = math.sin(-angle);
@@ -592,7 +592,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
     // Groups can be scaled, but individual items in selected groups cannot
     if (!isGroupItem(item) && _isItemInSelectedGroup(item)) return;
 
@@ -859,7 +859,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
     // Individual items in selected groups cannot be resized
     if (_isItemInSelectedGroup(item)) return;
 
@@ -1095,7 +1095,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   ) {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
 
     // Rotate around the item's real centre, recomputed each frame: the value
     // captured at gesture start is only a fallback.
@@ -1136,7 +1136,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final StackItem<StackItemContent>? item = controller.getById(itemId);
     if (item == null) return;
 
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
 
     // Check if selection is required for interaction
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
@@ -1153,6 +1153,9 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     final group = selectedGroupId != null
         ? controller.getGroupById(selectedGroupId)
         : null;
+    // A group holding a locked item doesn't move either: nothing to start,
+    // and no empty step in the history.
+    if (group != null && controller.isItemLocked(group.id)) return;
 
     // Commit state before starting gesture
     controller.commit();
@@ -1203,7 +1206,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
     if (item == null) return;
     if (item.status == StackItemStatus.editing) return;
     if (item.status == StackItemStatus.drawing) return;
-    if (item.locked) return;
+    if (controller.isItemLocked(item.id)) return;
 
     // Check if we should delegate movement to the group
     if (!isGroupItem(item)) {
@@ -1287,7 +1290,7 @@ mixin StackItemGestures<T extends StatefulWidget> on State<T> {
   ) {
     final group = controller.getGroupById(groupId);
     if (group == null) return;
-    if (group.locked) return;
+    if (controller.isItemLocked(group.id)) return;
 
     final StackBoardPlusConfig config = StackBoardPlusConfig.of(context);
     double zoom = config.zoomLevel ?? 1;

@@ -31,6 +31,9 @@ class ImageItemContent extends StackItemContent {
     this.cornerRadius,
     this.loading = false,
     this.pixabayId,
+    this.photoScale = 1.0,
+    this.photoAlignment = Alignment.center,
+    this.photoQuarterTurns = 0,
   }) {
     _init();
   }
@@ -56,6 +59,9 @@ class ImageItemContent extends StackItemContent {
     double? cornerRadius,
     bool? loading,
     String? pixabayId,
+    double? photoScale,
+    Alignment? photoAlignment,
+    int? photoQuarterTurns,
   }) {
     return ImageItemContent(
       url: url ?? this.url,
@@ -78,6 +84,9 @@ class ImageItemContent extends StackItemContent {
       cornerRadius: cornerRadius ?? this.cornerRadius,
       loading: loading ?? this.loading,
       pixabayId: pixabayId ?? this.pixabayId,
+      photoScale: photoScale ?? this.photoScale,
+      photoAlignment: photoAlignment ?? this.photoAlignment,
+      photoQuarterTurns: photoQuarterTurns ?? this.photoQuarterTurns,
     );
   }
 
@@ -122,6 +131,19 @@ class ImageItemContent extends StackItemContent {
       pixabayId: json['pixabayId'] != null
           ? asT<String>(json['pixabayId'])
           : null,
+      photoScale: json['photoScale'] != null
+          ? asT<double>(json['photoScale'])
+          : 1.0,
+      // Stored as two numbers rather than one object, so an item written
+      // before framing existed simply has neither and reads as the centre it
+      // was drawn at.
+      photoAlignment: Alignment(
+        json['photoAlignX'] != null ? asT<double>(json['photoAlignX']) : 0.0,
+        json['photoAlignY'] != null ? asT<double>(json['photoAlignY']) : 0.0,
+      ),
+      photoQuarterTurns: json['photoQuarterTurns'] != null
+          ? asT<int>(json['photoQuarterTurns'])
+          : 0,
     );
   }
 
@@ -154,11 +176,7 @@ class ImageItemContent extends StackItemContent {
   }
 
   void _init() {
-    final sources = {
-      'bytes': bytes,
-      'file': file,
-      'svgString': svgString,
-    };
+    final sources = {'bytes': bytes, 'file': file, 'svgString': svgString};
 
     final nonNullSources = sources.entries
         .where((e) => e.value != null)
@@ -166,9 +184,8 @@ class ImageItemContent extends StackItemContent {
 
     if (!loading) {
       // At least one source must be provided
-      final hasAnySource = nonNullSources.isNotEmpty ||
-          url != null ||
-          assetName != null;
+      final hasAnySource =
+          nonNullSources.isNotEmpty || url != null || assetName != null;
       if (!hasAnySource) {
         throw Exception(
           'One image source must be provided: url, assetName, bytes, file, or svgString.',
@@ -371,6 +388,33 @@ class ImageItemContent extends StackItemContent {
   double? cornerRadius;
   bool loading;
   String? pixabayId;
+
+  /// Extra zoom applied on top of [fit], 1.0 being none.
+  ///
+  /// Together with [photoAlignment] this is the *framing*: which part of the
+  /// picture shows inside the box the item has been given, chosen without
+  /// touching the box itself. Panning and zooming a picture that overflows its
+  /// item is a different decision from resizing the item, and only this one
+  /// leaves the page's composition where the reader put it.
+  double photoScale;
+
+  /// Which part of an overflowing picture shows, as an [Alignment].
+  ///
+  /// `center` is the default and the whole of the old behaviour. Only ever
+  /// visible where the picture overflows its box — on a `contain` fit, or a
+  /// picture whose proportions match the item, it does nothing.
+  ///
+  /// Read in the coordinates the reader *sees*, which on a turned picture is
+  /// not the same thing as the picture's own — see [photoQuarterTurns].
+  Alignment photoAlignment;
+
+  /// How many quarter turns clockwise the picture is shown at, 0..3.
+  ///
+  /// Part of the framing, like [photoScale] and [photoAlignment], and stored
+  /// for the same reason: a photograph that came off the camera on its side is
+  /// turned by writing a number here rather than by re-encoding it, so the
+  /// original bytes survive and the turn can be taken back months later.
+  int photoQuarterTurns;
 
   ImageProvider? get image => _image;
   SvgPicture? get svgWidget => _svgWidget;
@@ -687,6 +731,10 @@ class ImageItemContent extends StackItemContent {
       if (cornerRadius != null) 'cornerRadius': cornerRadius,
       'loading': loading,
       if (pixabayId != null) 'pixabayId': pixabayId,
+      'photoScale': photoScale,
+      'photoAlignX': photoAlignment.x,
+      'photoAlignY': photoAlignment.y,
+      'photoQuarterTurns': photoQuarterTurns,
     };
   }
 

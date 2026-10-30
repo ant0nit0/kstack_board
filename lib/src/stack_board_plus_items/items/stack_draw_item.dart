@@ -178,6 +178,7 @@ class StackDrawItem extends StackItem<StackDrawContent> {
       angle: angle ?? this.angle,
       status: status ?? this.status,
       lockZOrder: lockZOrder ?? this.lockZOrder,
+      locked: locked ?? this.locked,
       content: content ?? this.content!,
       // DrawingBoard options
       showDefaultActions: showDefaultActions ?? this.showDefaultActions,
